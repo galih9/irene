@@ -1,0 +1,166 @@
+[gd_scene load_steps=3 format=3 uid="uid://b1n4r7x8m5v2w"]
+
+[ext_resource type="Script" path="res://scripts/ui/debug_menu.gd" id="1_dbg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_dbg_bg"]
+bg_color = Color(0.08, 0.1, 0.14, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.4, 0.5, 0.65, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0, 0, 0, 0.6)
+shadow_size = 18
+shadow_offset = Vector2(0, 8)
+
+[node name="DebugMenu" type="Control"]
+z_index = 250
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(360, 800)
+script = ExtResource("1_dbg")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="Panel" parent="."]
+custom_minimum_size = Vector2(640, 860)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -320.0
+offset_top = -430.0
+offset_right = 320.0
+offset_bottom = 430.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_dbg_bg")
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 18
+
+[node name="VBox" type="VBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 14
+
+[node name="Header" type="HBoxContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/Margin/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 20
+text = "⚙️ DEVELOPER DEBUG MENU"
+
+[node name="CloseBtn" type="Button" parent="Panel/Margin/VBox/Header"]
+custom_minimum_size = Vector2(38, 38)
+layout_mode = 2
+text = "✕"
+
+[node name="Scroll" type="ScrollContainer" parent="Panel/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Content" type="VBoxContainer" parent="Panel/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 16
+
+[node name="EcoTitle" type="Label" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.3, 1)
+theme_override_font_sizes/font_size = 14
+text = "── ECONOMY CHEATS ──"
+
+[node name="EcoGrid" type="HBoxContainer" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="AddCoinsBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/EcoGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+250 🪙"
+
+[node name="AddGemsBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/EcoGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+50 💎"
+
+[node name="AddEnergyBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/EcoGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "+50 ⚡"
+
+[node name="InfEnergyCheck" type="CheckBox" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+text = "Infinite Energy Mode"
+
+[node name="BoardTitle" type="Label" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "── BOARD CONTROLS ──"
+
+[node name="BoardGrid" type="HBoxContainer" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="ClearBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/BoardGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🗑️ Clear Board"
+
+[node name="FillBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/BoardGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "🎲 Fill Random"
+
+[node name="QuestTitle" type="Label" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.5, 0.95, 0.5, 1)
+theme_override_font_sizes/font_size = 14
+text = "── QUEST CONTROLS ──"
+
+[node name="QuestBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+text = "✨ Instant Complete Active Quest"
+
+[node name="SpawnTitle" type="Label" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.6, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "── INSTANT ITEM SPAWNER ──"
+
+[node name="SpawnItemsContainer" type="HFlowContainer" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8

@@ -1,0 +1,42 @@
+[gd_scene load_steps=5 format=3 uid="uid://bq7vw18rnxlyt"]
+
+[ext_resource type="Script" path="res://scripts/gameplay/board.gd" id="1_board"]
+[ext_resource type="PackedScene" uid="uid://c6f3a7m4h5j2r" path="res://scenes/item_view.tscn" id="2_item_view"]
+[ext_resource type="PackedScene" uid="uid://d3m7p8v2q9k1l" path="res://scenes/board_cell.tscn" id="3_cell"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_board_bg"]
+bg_color = Color(0.1, 0.12, 0.16, 0.95)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.2, 0.25, 0.32, 0.8)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.3)
+shadow_size = 8
+shadow_offset = Vector2(0, 4)
+
+[node name="Board" type="Node2D"]
+script = ExtResource("1_board")
+item_view_scene = ExtResource("2_item_view")
+cell_scene = ExtResource("3_cell")
+
+[node name="Background" type="Panel" parent="."]
+offset_left = -12.0
+offset_top = -12.0
+offset_right = 676.0
+offset_bottom = 868.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_board_bg")
+
+[node name="CellsContainer" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_right = 664.0
+offset_bottom = 856.0
+mouse_filter = 2
+
+[node name="ItemsContainer" type="Node2D" parent="."]

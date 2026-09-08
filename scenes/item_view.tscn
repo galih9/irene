@@ -1,0 +1,79 @@
+[gd_scene load_steps=5 format=3 uid="uid://c6f3a7m4h5j2r"]
+
+[ext_resource type="Script" path="res://scripts/gameplay/item_view.gd" id="1_item"]
+[ext_resource type="Texture2D" uid="uid://lp1xqunym3pe" path="res://icon.svg" id="2_icon"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+bg_color = Color(0.12, 0.12, 0.15, 0.85)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_spawner"]
+bg_color = Color(0.95, 0.65, 0.1, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[node name="ItemView" type="Node2D"]
+z_index = 10
+script = ExtResource("1_item")
+
+[node name="Shadow" type="Sprite2D" parent="."]
+modulate = Color(0, 0, 0, 0.25)
+position = Vector2(0, 6)
+scale = Vector2(0.42, 0.42)
+texture = ExtResource("2_icon")
+
+[node name="Visuals" type="Node2D" parent="."]
+
+[node name="Glow" type="Sprite2D" parent="Visuals"]
+visible = false
+modulate = Color(1, 1, 0.3, 0.5)
+scale = Vector2(0.56, 0.56)
+texture = ExtResource("2_icon")
+
+[node name="Sprite" type="Sprite2D" parent="Visuals"]
+scale = Vector2(0.48, 0.48)
+texture = ExtResource("2_icon")
+
+[node name="TierBadge" type="PanelContainer" parent="Visuals"]
+offset_left = 6.0
+offset_top = 8.0
+offset_right = 34.0
+offset_bottom = 30.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="TierLabel" type="Label" parent="Visuals/TierBadge"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+text = "T1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SpawnerBadge" type="PanelContainer" parent="Visuals"]
+visible = false
+offset_left = -34.0
+offset_top = -34.0
+offset_right = -10.0
+offset_bottom = -10.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_spawner")
+
+[node name="SpawnerLabel" type="Label" parent="Visuals/SpawnerBadge"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "⚡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="TouchArea" type="Control" parent="."]
+layout_mode = 3
+anchors_preset = 0
+offset_left = -40.0
+offset_top = -40.0
+offset_right = 40.0
+offset_bottom = 40.0
+mouse_filter = 2

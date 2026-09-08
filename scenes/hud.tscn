@@ -1,0 +1,158 @@
+[gd_scene load_steps=6 format=3 uid="uid://b8q7x3v1m2n5r"]
+
+[ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_bg"]
+bg_color = Color(0.09, 0.11, 0.15, 0.98)
+border_width_bottom = 2
+border_color = Color(0.2, 0.25, 0.32, 0.8)
+shadow_color = Color(0, 0, 0, 0.35)
+shadow_size = 6
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill"]
+bg_color = Color(0.15, 0.18, 0.24, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.25, 0.32, 0.42, 0.6)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_bg"]
+bg_color = Color(0.12, 0.15, 0.2, 0.8)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_fill"]
+bg_color = Color(0.2, 0.8, 0.45, 1)
+corner_radius_top_left = 4
+corner_radius_top_right = 4
+corner_radius_bottom_right = 4
+corner_radius_bottom_left = 4
+
+[node name="HUD" type="Control"]
+custom_minimum_size = Vector2(720, 105)
+layout_mode = 3
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 105.0
+grow_horizontal = 2
+script = ExtResource("1_hud")
+
+[node name="Background" type="Panel" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_hud_bg")
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 10
+
+[node name="HBox" type="HBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 12
+
+[node name="CoinsBox" type="PanelContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(115, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+
+[node name="HBox" type="HBoxContainer" parent="Margin/HBox/CoinsBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="Margin/HBox/CoinsBox/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "🪙"
+
+[node name="Value" type="Label" parent="Margin/HBox/CoinsBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.88, 0.3, 1)
+theme_override_font_sizes/font_size = 15
+text = "150"
+
+[node name="GemsBox" type="PanelContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(95, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+
+[node name="HBox" type="HBoxContainer" parent="Margin/HBox/GemsBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="Margin/HBox/GemsBox/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 18
+text = "💎"
+
+[node name="Value" type="Label" parent="Margin/HBox/GemsBox/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 15
+text = "25"
+
+[node name="EnergyBox" type="PanelContainer" parent="Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox/EnergyBox"]
+layout_mode = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="Margin/HBox/EnergyBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.3, 0.95, 0.6, 1)
+theme_override_font_sizes/font_size = 14
+text = "⚡ 100/100"
+horizontal_alignment = 1
+
+[node name="ProgressBar" type="ProgressBar" parent="Margin/HBox/EnergyBox/VBox"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_energy_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_energy_fill")
+value = 100.0
+show_percentage = false
+
+[node name="TimerLabel" type="Label" parent="Margin/HBox/EnergyBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.75, 0.82, 0.8)
+theme_override_font_sizes/font_size = 10
+text = "FULL"
+horizontal_alignment = 1
+
+[node name="ButtonsBox" type="HBoxContainer" parent="Margin/HBox"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="ShopBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
+custom_minimum_size = Vector2(80, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 13
+text = "🛒 SHOP"
+
+[node name="DebugBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
+custom_minimum_size = Vector2(48, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 16
+text = "⚙️"

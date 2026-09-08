@@ -1,0 +1,198 @@
+[gd_scene load_steps=10 format=3 uid="uid://c601le2ra4a6v"]
+
+[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="PackedScene" uid="uid://b8q7x3v1m2n5r" path="res://scenes/hud.tscn" id="2_hud"]
+[ext_resource type="PackedScene" uid="uid://dm5x2q8p7y1n4" path="res://scenes/quest_manager.tscn" id="3_quest"]
+[ext_resource type="PackedScene" uid="uid://bq7vw18rnxlyt" path="res://scenes/board.tscn" id="4_board"]
+[ext_resource type="PackedScene" uid="uid://c5e8w9u2m1n4r" path="res://scenes/inventory_bar.tscn" id="5_inv"]
+[ext_resource type="PackedScene" uid="uid://c3m7r5t1v9n8p" path="res://scenes/shop_modal.tscn" id="6_shop"]
+[ext_resource type="PackedScene" uid="uid://b1n4r7x8m5v2w" path="res://scenes/debug_menu.tscn" id="7_dbg"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sellbin"]
+bg_color = Color(0.12, 0.14, 0.19, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.65, 0.2, 0.6)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_help"]
+bg_color = Color(0.09, 0.11, 0.15, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.2, 0.25, 0.32, 0.6)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+
+[node name="Main" type="Node2D"]
+script = ExtResource("1_main")
+
+[node name="Background" type="ColorRect" parent="."]
+offset_right = 720.0
+offset_bottom = 1600.0
+mouse_filter = 2
+color = Color(0.07, 0.08, 0.11, 1)
+
+[node name="CanvasLayer" type="CanvasLayer" parent="."]
+
+[node name="UI" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="HUD" parent="CanvasLayer/UI" instance=ExtResource("2_hud")]
+layout_mode = 1
+
+[node name="QuestContainer" type="Control" parent="CanvasLayer/UI"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 28.0
+offset_top = 114.0
+offset_right = 692.0
+offset_bottom = 286.0
+mouse_filter = 2
+
+[node name="QuestManager" parent="CanvasLayer/UI/QuestContainer" instance=ExtResource("3_quest")]
+layout_mode = 1
+
+[node name="Board" parent="CanvasLayer/UI" instance=ExtResource("4_board")]
+position = Vector2(28, 298)
+
+[node name="InventoryBar" parent="CanvasLayer/UI" instance=ExtResource("5_inv")]
+offset_left = 28.0
+offset_top = 1166.0
+offset_right = 692.0
+offset_bottom = 1292.0
+
+[node name="BottomBar" type="Control" parent="CanvasLayer/UI"]
+layout_mode = 3
+anchors_preset = 0
+offset_left = 28.0
+offset_top = 1302.0
+offset_right = 692.0
+offset_bottom = 1378.0
+mouse_filter = 2
+
+[node name="SellBin" type="Panel" parent="CanvasLayer/UI/BottomBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 1
+theme_override_styles/panel = SubResource("StyleBoxFlat_sellbin")
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/UI/BottomBar/SellBin"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 20
+text = "🗑️"
+
+[node name="Text" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.78, 0.35, 1)
+theme_override_font_sizes/font_size = 14
+text = "DROP ANY ITEM HERE TO SELL FOR COINS 🪙"
+
+[node name="HelpBar" type="Panel" parent="CanvasLayer/UI"]
+layout_mode = 0
+offset_left = 28.0
+offset_top = 1388.0
+offset_right = 692.0
+offset_bottom = 1580.0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_help")
+
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/UI/HelpBar"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UI/HelpBar/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+
+[node name="Title" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "💡 QUICK GUIDE & CONTROLS"
+
+[node name="Tip1" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "• Tap ⚡ Spawners (Toolbox / Ancient Tree) to generate items using 1 Energy."
+
+[node name="Tip2" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "• Drag two identical tier items together to merge them into the next tier!"
+
+[node name="Tip3" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "• Tap Coins or Batteries to collect their currency directly."
+
+[node name="Tip4" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "• Deliver customer orders at the top to earn Coins and rare Gems."
+
+[node name="Tip5" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
+theme_override_font_sizes/font_size = 11
+text = "• Open 🛒 SHOP for energy refills or ⚙️ DEBUG for instant item cheats!"
+
+[node name="FloatingLayer" type="Node2D" parent="CanvasLayer"]
+z_index = 150
+
+[node name="Modals" type="Control" parent="CanvasLayer"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+
+[node name="ShopModal" parent="CanvasLayer/Modals" instance=ExtResource("6_shop")]
+layout_mode = 1
+
+[node name="DebugMenu" parent="CanvasLayer/Modals" instance=ExtResource("7_dbg")]
+layout_mode = 1
