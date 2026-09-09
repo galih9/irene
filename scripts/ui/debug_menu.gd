@@ -62,7 +62,10 @@ func _populate_spawn_buttons() -> void:
 		var item_data: ItemData = it
 		var btn := Button.new()
 		btn.text = "%s (T%d)" % [item_data.display_name, item_data.tier]
-		btn.add_theme_font_size_override("font_size", 11)
+		btn.add_theme_font_size_override("font_size", 12)
+		btn.add_theme_color_override("font_color", Color.WHITE)
+		btn.add_theme_color_override("font_outline_color", Color(0.15, 0.1, 0.08, 0.75))
+		btn.add_theme_constant_override("outline_size", 1)
 		btn.custom_minimum_size = Vector2(130, 36)
 
 		var style := StyleBoxFlat.new()

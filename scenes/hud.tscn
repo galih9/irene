@@ -3,20 +3,20 @@
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_bg"]
-bg_color = Color(0.09, 0.11, 0.15, 0.98)
+bg_color = Color(0.13, 0.12, 0.14, 0.98)
 border_width_bottom = 2
-border_color = Color(0.2, 0.25, 0.32, 0.8)
-shadow_color = Color(0, 0, 0, 0.35)
+border_color = Color(0.28, 0.24, 0.22, 0.8)
+shadow_color = Color(0.05, 0.03, 0.02, 0.35)
 shadow_size = 6
 shadow_offset = Vector2(0, 3)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill"]
-bg_color = Color(0.15, 0.18, 0.24, 0.9)
+bg_color = Color(0.19, 0.17, 0.2, 0.92)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.25, 0.32, 0.42, 0.6)
+border_color = Color(0.36, 0.32, 0.38, 0.6)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -86,8 +86,10 @@ text = "🪙"
 
 [node name="Value" type="Label" parent="Margin/HBox/CoinsBox/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.88, 0.3, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(1, 0.86, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.12, 0.04, 0.7)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
 text = "150"
 
 [node name="GemsBox" type="PanelContainer" parent="Margin/HBox"]
@@ -106,8 +108,10 @@ text = "💎"
 
 [node name="Value" type="Label" parent="Margin/HBox/GemsBox/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_color = Color(0.48, 0.88, 1, 1)
+theme_override_colors/font_outline_color = Color(0.06, 0.16, 0.22, 0.7)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 16
 text = "25"
 
 [node name="EnergyBox" type="PanelContainer" parent="Margin/HBox"]
@@ -121,7 +125,9 @@ alignment = 1
 
 [node name="Label" type="Label" parent="Margin/HBox/EnergyBox/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.3, 0.95, 0.6, 1)
+theme_override_colors/font_color = Color(0.42, 0.95, 0.65, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.22, 0.12, 0.7)
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 14
 text = "⚡ 100/100"
 horizontal_alignment = 1
@@ -136,7 +142,7 @@ show_percentage = false
 
 [node name="TimerLabel" type="Label" parent="Margin/HBox/EnergyBox/VBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.7, 0.75, 0.82, 0.8)
+theme_override_colors/font_color = Color(0.88, 0.84, 0.78, 0.85)
 theme_override_font_sizes/font_size = 10
 text = "FULL"
 horizontal_alignment = 1
@@ -146,9 +152,10 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="ShopBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
-custom_minimum_size = Vector2(74, 0)
+custom_minimum_size = Vector2(76, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
+theme_override_font_sizes/font_size = 13
 text = "🛒 SHOP"
 
 [node name="OptionsBtn" type="Button" parent="Margin/HBox/ButtonsBox"]

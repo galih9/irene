@@ -3,17 +3,17 @@
 [ext_resource type="Script" path="res://scripts/ui/save_toast.gd" id="1_toast"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
-bg_color = Color(0.08, 0.1, 0.14, 0.94)
+bg_color = Color(0.15, 0.13, 0.16, 0.96)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.95, 0.75, 0.25, 0.9)
+border_color = Color(1, 0.82, 0.35, 0.95)
 corner_radius_top_left = 16
 corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
-shadow_color = Color(0, 0, 0, 0.45)
+shadow_color = Color(0.06, 0.04, 0.03, 0.45)
 shadow_size = 8
 shadow_offset = Vector2(0, 3)
 
@@ -63,7 +63,7 @@ vertical_alignment = 1
 
 [node name="Label" type="Label" parent="Panel/Margin/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_colors/font_color = Color(1, 0.98, 0.94, 1)
 theme_override_font_sizes/font_size = 14
 text = "Saving, please do not exit the game..."
 vertical_alignment = 1

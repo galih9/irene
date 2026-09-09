@@ -72,15 +72,15 @@ func _apply_tab_style(btn: Button, is_active: bool) -> void:
 	style.corner_radius_bottom_right = 8
 	style.corner_radius_bottom_left = 8
 	if is_active:
-		style.bg_color = Color(0.28, 0.38, 0.58, 0.95)
-		style.border_color = Color(0.5, 0.75, 1.0, 1.0)
+		style.bg_color = Color(0.38, 0.28, 0.52, 0.95)
+		style.border_color = Color(0.75, 0.55, 0.95, 1.0)
 		style.border_width_left = 2
 		style.border_width_top = 2
 		style.border_width_right = 2
 		style.border_width_bottom = 2
 	else:
-		style.bg_color = Color(0.12, 0.15, 0.20, 0.8)
-		style.border_color = Color(0.2, 0.25, 0.35, 0.5)
+		style.bg_color = Color(0.16, 0.14, 0.18, 0.8)
+		style.border_color = Color(0.28, 0.24, 0.32, 0.5)
 		style.border_width_left = 1
 		style.border_width_top = 1
 		style.border_width_right = 1
@@ -218,21 +218,21 @@ func _create_item_row(item: ItemData) -> Control:
 	var title_lbl := Label.new()
 	if is_unlocked:
 		title_lbl.text = "%s (Tier %d)" % [item.display_name, item.tier]
-		title_lbl.add_theme_color_override("font_color", Color(0.95, 0.95, 1.0))
+		title_lbl.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
 	else:
 		title_lbl.text = "??? (Tier %d)" % item.tier
-		title_lbl.add_theme_color_override("font_color", Color(0.5, 0.55, 0.65))
-	title_lbl.add_theme_font_size_override("font_size", 14)
+		title_lbl.add_theme_color_override("font_color", Color(0.65, 0.6, 0.68))
+	title_lbl.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(title_lbl)
 
 	var desc_lbl := Label.new()
 	if is_unlocked:
 		desc_lbl.text = item.description
-		desc_lbl.add_theme_color_override("font_color", Color(0.68, 0.74, 0.84))
+		desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.82, 0.78))
 	else:
 		desc_lbl.text = "Merge Tier %d items to discover!" % maxi(item.tier - 1, 1)
-		desc_lbl.add_theme_color_override("font_color", Color(0.4, 0.45, 0.55))
-	desc_lbl.add_theme_font_size_override("font_size", 11)
+		desc_lbl.add_theme_color_override("font_color", Color(0.58, 0.54, 0.6))
+	desc_lbl.add_theme_font_size_override("font_size", 12)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(desc_lbl)
 	hbox.add_child(vbox)
@@ -244,7 +244,7 @@ func _create_item_row(item: ItemData) -> Control:
 	if not is_unlocked:
 		var locked_lbl := Label.new()
 		locked_lbl.text = "🔒 Locked"
-		locked_lbl.add_theme_color_override("font_color", Color(0.4, 0.45, 0.55))
+		locked_lbl.add_theme_color_override("font_color", Color(0.6, 0.55, 0.62))
 		locked_lbl.add_theme_font_size_override("font_size", 12)
 		action_box.add_child(locked_lbl)
 	elif not is_claimed:
@@ -256,10 +256,13 @@ func _create_item_row(item: ItemData) -> Control:
 		if reward.gems > 0:
 			reward_str += " 💎%d" % reward.gems
 		claim_btn.text = reward_str
-		claim_btn.add_theme_font_size_override("font_size", 11)
+		claim_btn.add_theme_font_size_override("font_size", 12)
+		claim_btn.add_theme_color_override("font_color", Color.WHITE)
+		claim_btn.add_theme_color_override("font_outline_color", Color(0.2, 0.12, 0.04, 0.7))
+		claim_btn.add_theme_constant_override("outline_size", 2)
 
 		var btn_style := StyleBoxFlat.new()
-		btn_style.bg_color = Color(0.9, 0.65, 0.15, 1.0)
+		btn_style.bg_color = Color(0.92, 0.68, 0.16, 1.0)
 		btn_style.corner_radius_top_left = 8
 		btn_style.corner_radius_top_right = 8
 		btn_style.corner_radius_bottom_right = 8
@@ -288,7 +291,7 @@ func _create_item_row(item: ItemData) -> Control:
 	else:
 		var claimed_lbl := Label.new()
 		claimed_lbl.text = "✓ Claimed"
-		claimed_lbl.add_theme_color_override("font_color", Color(0.35, 0.85, 0.45))
+		claimed_lbl.add_theme_color_override("font_color", Color(0.42, 0.88, 0.55))
 		claimed_lbl.add_theme_font_size_override("font_size", 12)
 		action_box.add_child(claimed_lbl)
 

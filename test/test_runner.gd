@@ -278,6 +278,35 @@ func _ready() -> void:
 	menu_inst.queue_free()
 	print("✔ Main Menu Scene verified!")
 
+	# 12. Test Cozy Theme & Gotham Font Overhaul
+	print("\n--- Testing Cozy Theme & Gotham Font Overhaul ---")
+	var custom_theme_path: String = ProjectSettings.get_setting("gui/theme/custom")
+	assert(custom_theme_path == "res://resources/cozy_theme.tres", "Project custom theme must be res://resources/cozy_theme.tres")
+
+	var custom_font_path: String = ProjectSettings.get_setting("gui/theme/custom_font")
+	assert(custom_font_path == "res://assets/fons/gotham.otf", "Project custom font must be res://assets/fons/gotham.otf")
+
+	var cozy_theme: Theme = load(custom_theme_path)
+	assert(cozy_theme != null, "cozy_theme.tres must load successfully")
+	assert(cozy_theme.default_font != null, "cozy_theme must have default_font")
+	assert(cozy_theme.default_font.resource_path == "res://assets/fons/gotham.otf", "cozy_theme default font must be gotham.otf")
+	assert(cozy_theme.default_font_size == 14, "cozy_theme default_font_size must be 14")
+
+	var test_lbl := Label.new()
+	add_child(test_lbl)
+	var lbl_font := test_lbl.get_theme_font("font")
+	assert(lbl_font != null, "Label must inherit a theme font")
+	assert(lbl_font.resource_path == "res://assets/fons/gotham.otf", "Label font must be gotham.otf")
+	test_lbl.queue_free()
+
+	var test_btn := Button.new()
+	add_child(test_btn)
+	var btn_font := test_btn.get_theme_font("font")
+	assert(btn_font != null, "Button must inherit a theme font")
+	assert(btn_font.resource_path == "res://assets/fons/gotham.otf", "Button font must be gotham.otf")
+	test_btn.queue_free()
+	print("✔ Cozy Theme & Gotham Font verified across UI elements!")
+
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)
 

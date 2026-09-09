@@ -47,11 +47,11 @@ func update_inventory_display() -> void:
 		var max_slots := InventoryManager.get_max_slots()
 		inventory_capacity_label.text = "[%d / %d]" % [used, max_slots]
 		if used >= max_slots:
-			inventory_capacity_label.add_theme_color_override("font_color", Color(1.0, 0.45, 0.45))
+			inventory_capacity_label.add_theme_color_override("font_color", Color(1.0, 0.48, 0.48))
 		elif used > 0:
-			inventory_capacity_label.add_theme_color_override("font_color", Color(0.45, 0.85, 1.0))
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.55, 0.85, 1.0))
 		else:
-			inventory_capacity_label.add_theme_color_override("font_color", Color(0.65, 0.72, 0.82))
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.72))
 
 func update_progression_display() -> void:
 	if not is_instance_valid(badge_panel) or not is_instance_valid(badge_label):

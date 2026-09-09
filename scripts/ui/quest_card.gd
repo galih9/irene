@@ -97,6 +97,8 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 	tier_lbl.add_theme_font_size_override("font_size", 10)
 	tier_lbl.position = Vector2(2, 2)
 	tier_lbl.add_theme_color_override("font_color", Color.WHITE)
+	tier_lbl.add_theme_color_override("font_outline_color", Color(0.18, 0.12, 0.08, 0.8))
+	tier_lbl.add_theme_constant_override("outline_size", 2)
 	box.add_child(tier_lbl)
 
 	# Status checkmark / X
@@ -106,7 +108,7 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 	check_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	check_lbl.position = Vector2(16, 26)
 	check_lbl.size = Vector2(26, 18)
-	check_lbl.add_theme_color_override("font_color", Color(0.4, 1.0, 0.4) if has_it else Color(0.7, 0.7, 0.7, 0.6))
+	check_lbl.add_theme_color_override("font_color", Color(0.42, 0.95, 0.55) if has_it else Color(0.68, 0.64, 0.62, 0.7))
 	box.add_child(check_lbl)
 
 	return box
@@ -114,13 +116,18 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 func _update_btn_style(ready: bool) -> void:
 	var style := StyleBoxFlat.new()
 	if ready:
-		style.bg_color = Color(0.2, 0.72, 0.35)
-		style.border_color = Color(0.4, 0.95, 0.5)
+		style.bg_color = Color(0.22, 0.72, 0.38)
+		style.border_color = Color(0.48, 0.96, 0.62)
 		deliver_btn.text = "DELIVER!"
+		deliver_btn.add_theme_color_override("font_color", Color.WHITE)
+		deliver_btn.add_theme_color_override("font_outline_color", Color(0.12, 0.32, 0.16, 0.8))
+		deliver_btn.add_theme_constant_override("outline_size", 2)
 	else:
-		style.bg_color = Color(0.2, 0.23, 0.28)
-		style.border_color = Color(0.3, 0.35, 0.42)
+		style.bg_color = Color(0.22, 0.2, 0.22)
+		style.border_color = Color(0.35, 0.3, 0.35)
 		deliver_btn.text = "Incomplete"
+		deliver_btn.add_theme_color_override("font_color", Color(0.7, 0.66, 0.64))
+		deliver_btn.add_theme_constant_override("outline_size", 0)
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1

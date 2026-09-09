@@ -98,15 +98,15 @@ func _setup_shop_items() -> void:
 func _add_category_header(title: String) -> void:
 	var lbl := Label.new()
 	lbl.text = title
-	lbl.add_theme_color_override("font_color", Color(0.5, 0.75, 1.0))
-	lbl.add_theme_font_size_override("font_size", 12)
+	lbl.add_theme_color_override("font_color", Color(0.72, 0.9, 1.0))
+	lbl.add_theme_font_size_override("font_size", 13)
 	items_container.add_child(lbl)
 
 func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount: int, on_buy: Callable, requires_board_space: bool) -> void:
 	var row := PanelContainer.new()
 	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.14, 0.17, 0.23, 0.95)
-	style.border_color = Color(0.25, 0.32, 0.42, 0.7)
+	style.bg_color = Color(0.18, 0.16, 0.2, 0.95)
+	style.border_color = Color(0.35, 0.3, 0.4, 0.7)
 	style.border_width_left = 1
 	style.border_width_top = 1
 	style.border_width_right = 1
@@ -133,21 +133,24 @@ func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount
 
 	var lbl_title := Label.new()
 	lbl_title.text = title
-	lbl_title.add_theme_color_override("font_color", Color(0.95, 0.95, 0.98))
-	lbl_title.add_theme_font_size_override("font_size", 14)
+	lbl_title.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
+	lbl_title.add_theme_font_size_override("font_size", 15)
 
 	var lbl_desc := Label.new()
 	lbl_desc.text = desc
-	lbl_desc.add_theme_color_override("font_color", Color(0.65, 0.7, 0.8))
-	lbl_desc.add_theme_font_size_override("font_size", 11)
+	lbl_desc.add_theme_color_override("font_color", Color(0.85, 0.82, 0.76))
+	lbl_desc.add_theme_font_size_override("font_size", 12)
 
 	vbox.add_child(lbl_title)
 	vbox.add_child(lbl_desc)
 	hbox.add_child(vbox)
 
 	var buy_btn := Button.new()
-	buy_btn.custom_minimum_size = Vector2(92, 40)
-	buy_btn.add_theme_font_size_override("font_size", 12)
+	buy_btn.custom_minimum_size = Vector2(94, 40)
+	buy_btn.add_theme_font_size_override("font_size", 13)
+	buy_btn.add_theme_color_override("font_color", Color.WHITE)
+	buy_btn.add_theme_color_override("font_outline_color", Color(0.18, 0.12, 0.08, 0.7))
+	buy_btn.add_theme_constant_override("outline_size", 2)
 
 	var btn_style := StyleBoxFlat.new()
 	btn_style.corner_radius_top_left = 8
@@ -157,13 +160,13 @@ func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount
 
 	if cost_type == "coins":
 		buy_btn.text = "🪙 %d" % cost_amount
-		btn_style.bg_color = Color(0.85, 0.65, 0.15)
+		btn_style.bg_color = Color(0.92, 0.68, 0.16)
 	elif cost_type == "gems":
 		buy_btn.text = "💎 %d" % cost_amount
-		btn_style.bg_color = Color(0.2, 0.65, 0.85)
+		btn_style.bg_color = Color(0.25, 0.68, 0.9)
 	else:
 		buy_btn.text = "FREE!"
-		btn_style.bg_color = Color(0.25, 0.75, 0.35)
+		btn_style.bg_color = Color(0.28, 0.78, 0.42)
 
 	buy_btn.add_theme_stylebox_override("normal", btn_style)
 	buy_btn.add_theme_stylebox_override("hover", btn_style)

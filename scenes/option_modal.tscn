@@ -3,39 +3,39 @@
 [ext_resource type="Script" path="res://scripts/ui/option_modal.gd" id="1_option"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.1, 0.12, 0.17, 0.98)
+bg_color = Color(0.14, 0.13, 0.15, 0.98)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.25, 0.35, 0.48, 0.9)
+border_color = Color(0.45, 0.42, 0.48, 0.9)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.6)
+shadow_color = Color(0.06, 0.04, 0.03, 0.6)
 shadow_size = 20
 shadow_offset = Vector2(0, 8)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_save"]
-bg_color = Color(0.18, 0.48, 0.32, 0.95)
+bg_color = Color(0.2, 0.56, 0.35, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.35, 0.85, 0.55, 0.8)
+border_color = Color(0.42, 0.88, 0.6, 0.85)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
-bg_color = Color(0.16, 0.2, 0.28, 0.95)
+bg_color = Color(0.2, 0.18, 0.22, 0.95)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.28, 0.38, 0.52, 0.7)
+border_color = Color(0.38, 0.34, 0.42, 0.7)
 corner_radius_top_left = 12
 corner_radius_top_right = 12
 corner_radius_bottom_right = 12
@@ -99,7 +99,11 @@ layout_mode = 2
 [node name="Title" type="Label" parent="Panel/Margin/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_colors/font_color = Color(1, 0.98, 0.94, 1)
+theme_override_colors/font_shadow_color = Color(0.15, 0.1, 0.05, 0.5)
+theme_override_colors/font_outline_color = Color(0.18, 0.12, 0.08, 0.8)
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 22
 text = "⚙️ OPTIONS & SETTINGS"
 
@@ -121,6 +125,9 @@ alignment = 1
 [node name="SaveBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.12, 0.3, 0.15, 0.8)
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_save")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_save")
@@ -129,7 +136,7 @@ text = "💾 SAVE GAME NOW"
 [node name="StatusLabel" type="Label" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.95, 0.5, 1)
+theme_override_colors/font_color = Color(0.45, 0.95, 0.65, 1)
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -137,6 +144,7 @@ vertical_alignment = 1
 [node name="SfxBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.96, 0.92, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_normal")
@@ -145,6 +153,7 @@ text = "🔊 SOUND EFFECTS: ON"
 [node name="MenuBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.96, 0.92, 1)
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_normal")
@@ -153,7 +162,7 @@ text = "🏠 RETURN TO MAIN MENU"
 [node name="DebugBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 50)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.65, 0.72, 0.85, 1)
+theme_override_colors/font_color = Color(0.85, 0.82, 0.78, 1)
 theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_normal")
@@ -162,7 +171,9 @@ text = "🛠️ DEBUG TOOLS"
 [node name="ResumeBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_colors/font_color = Color(0.6, 0.88, 1, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.18, 0.25, 0.7)
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 15
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_normal")

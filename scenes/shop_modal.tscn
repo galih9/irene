@@ -3,17 +3,17 @@
 [ext_resource type="Script" path="res://scripts/ui/shop_modal.gd" id="1_shop"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.1, 0.12, 0.17, 0.98)
+bg_color = Color(0.14, 0.13, 0.15, 0.98)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.25, 0.35, 0.48, 0.9)
+border_color = Color(0.75, 0.6, 0.35, 0.9)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0, 0, 0, 0.6)
+shadow_color = Color(0.06, 0.04, 0.03, 0.6)
 shadow_size = 20
 shadow_offset = Vector2(0, 8)
 
@@ -73,6 +73,10 @@ layout_mode = 2
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(1, 0.88, 0.35, 1)
+theme_override_colors/font_shadow_color = Color(0.18, 0.12, 0.04, 0.5)
+theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.8)
+theme_override_constants/shadow_offset_y = 2
+theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 22
 text = "🛒 GENERAL STORE"
 

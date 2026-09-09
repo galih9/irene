@@ -35,10 +35,10 @@ func _update_save_state() -> void:
 			info.get("gems", 0),
 			info.get("energy", 0)
 		]
-		save_info_label.add_theme_color_override("font_color", Color(0.75, 0.85, 0.95, 0.8))
+		save_info_label.add_theme_color_override("font_color", Color(0.88, 0.84, 0.78, 0.85))
 	else:
 		save_info_label.text = "Start a fresh adventure below!"
-		save_info_label.add_theme_color_override("font_color", Color(0.6, 0.65, 0.75, 0.6))
+		save_info_label.add_theme_color_override("font_color", Color(0.72, 0.68, 0.64, 0.75))
 
 func _animate_title() -> void:
 	if not title_badge:
