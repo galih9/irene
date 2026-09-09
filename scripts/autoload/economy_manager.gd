@@ -71,3 +71,37 @@ func get_seconds_to_next_energy() -> float:
 	if energy >= max_energy:
 		return 0.0
 	return _regen_timer
+
+func set_regen_timer(time: float) -> void:
+	_regen_timer = clampf(time, 0.0, energy_regen_time)
+
+func serialize_data() -> Dictionary:
+	return {
+		"coins": coins,
+		"gems": gems,
+		"energy": energy,
+		"max_energy": max_energy,
+		"regen_timer": _regen_timer
+	}
+
+func load_data(data: Dictionary) -> void:
+	coins = int(data.get("coins", 150))
+	gems = int(data.get("gems", 25))
+	energy = int(data.get("energy", 100))
+	max_energy = int(data.get("max_energy", 100))
+	_regen_timer = float(data.get("regen_timer", energy_regen_time))
+	GameEvents.currency_changed.emit("coins", coins, 0)
+	GameEvents.currency_changed.emit("gems", gems, 0)
+	GameEvents.currency_changed.emit("energy", energy, 0)
+
+func reset_all() -> void:
+	coins = 150
+	gems = 25
+	energy = 100
+	max_energy = 100
+	_regen_timer = energy_regen_time
+	infinite_energy = false
+	GameEvents.currency_changed.emit("coins", coins, 0)
+	GameEvents.currency_changed.emit("gems", gems, 0)
+	GameEvents.currency_changed.emit("energy", energy, 0)
+

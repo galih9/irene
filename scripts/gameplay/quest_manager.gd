@@ -5,7 +5,6 @@ extends Control
 @onready var cards_container: HBoxContainer = $CardsContainer
 
 var board_ref: Board = null
-var inventory_ref: InventoryBar = null
 
 var active_quests: Array[QuestData] = []
 var _cards: Array[QuestCard] = []
@@ -26,9 +25,8 @@ func _ready() -> void:
 	GameEvents.board_changed.connect(update_quest_status)
 	GameEvents.inventory_changed.connect(update_quest_status)
 
-func setup(board: Board, inventory: InventoryBar) -> void:
+func setup(board: Board, _inventory = null) -> void:
 	board_ref = board
-	inventory_ref = inventory
 
 	_init_starter_quests()
 	_rebuild_cards()
@@ -47,13 +45,13 @@ func _init_starter_quests() -> void:
 	q1.reward_gems = 0
 	active_quests.append(q1)
 
-	# Quest 2: Basic Garden (Seed + Sprout)
+	# Quest 2: Kitchen Breakfast (Egg + Fresh Herb)
 	var q2 := QuestData.new()
 	q2.id = "quest_2"
-	q2.customer_name = "Florist Lily"
-	q2.customer_color = Color(0.4, 0.85, 0.4)
-	q2.required_item_ids = ["plant_1", "plant_2"]
-	q2.reward_coins = 40
+	q2.customer_name = "Chef Luigi"
+	q2.customer_color = Color(0.85, 0.35, 0.3)
+	q2.required_item_ids = ["egg_1", "leaf_1"]
+	q2.reward_coins = 45
 	q2.reward_gems = 2
 	active_quests.append(q2)
 
@@ -84,10 +82,7 @@ func _get_all_available_item_ids() -> Array[String]:
 		for item in board_ref.get_all_items_on_board():
 			if item and item.data:
 				result.append(item.data.id)
-	if inventory_ref:
-		for item in inventory_ref.get_all_items():
-			if item and item.data:
-				result.append(item.data.id)
+	result.append_array(InventoryManager.get_all_item_ids())
 	return result
 
 func update_quest_status() -> void:
@@ -148,13 +143,9 @@ func _consume_single_item(item_id: String) -> bool:
 				item.queue_free()
 				return true
 
-	# Then search inventory
-	if inventory_ref:
-		for item in inventory_ref.get_all_items():
-			if item and item.data and item.data.id == item_id:
-				inventory_ref.clear_slot(item.inventory_slot_idx)
-				item.queue_free()
-				return true
+	# Then search backpack inventory
+	if InventoryManager.remove_item_by_id(item_id):
+		return true
 
 	return false
 
@@ -172,6 +163,8 @@ func _generate_new_quest() -> QuestData:
 	var possible_pools := [
 		["tools_1", "tools_2", "tools_3", "tools_4"],
 		["plant_1", "plant_2", "plant_3", "plant_4"],
+		["leaf_1", "leaf_2", "leaf_3", "leaf_4"],
+		["egg_1", "egg_2", "egg_3", "egg_4"],
 		["gem_1", "gem_2", "gem_3"]
 	]
 
@@ -199,3 +192,40 @@ func complete_active_quest_debug() -> void:
 		_rebuild_cards()
 		update_quest_status()
 		SoundManager.play_quest()
+
+func serialize_quests() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for q in active_quests:
+		if q:
+			result.append({
+				"id": q.id,
+				"customer_name": q.customer_name,
+				"customer_color": q.customer_color.to_html(true),
+				"required_item_ids": q.required_item_ids.duplicate(),
+				"reward_coins": q.reward_coins,
+				"reward_gems": q.reward_gems,
+				"reward_energy": q.reward_energy
+			})
+	return result
+
+func load_quests(quests_data: Array) -> void:
+	if quests_data.is_empty():
+		_init_starter_quests()
+	else:
+		active_quests.clear()
+		for entry in quests_data:
+			var q := QuestData.new()
+			q.id = str(entry.get("id", "quest_%d" % randi()))
+			q.customer_name = str(entry.get("customer_name", "Customer"))
+			q.customer_color = Color.from_string(str(entry.get("customer_color", "#4da6ff")), Color(0.3, 0.7, 1.0))
+			var reqs: Array[String] = []
+			for req in entry.get("required_item_ids", []):
+				reqs.append(str(req))
+			q.required_item_ids = reqs
+			q.reward_coins = int(entry.get("reward_coins", 25))
+			q.reward_gems = int(entry.get("reward_gems", 0))
+			q.reward_energy = int(entry.get("reward_energy", 0))
+			active_quests.append(q)
+	_rebuild_cards()
+	update_quest_status()
+

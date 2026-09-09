@@ -4,7 +4,13 @@ var _player: AudioStreamPlayer
 var _generator: AudioStreamGenerator
 var _playback: AudioStreamGeneratorPlayback
 
+var sfx_enabled: bool = true
+
 const SAMPLE_RATE: float = 22050.0
+
+func toggle_sfx() -> bool:
+	sfx_enabled = not sfx_enabled
+	return sfx_enabled
 
 func _ready() -> void:
 	_player = AudioStreamPlayer.new()
@@ -38,7 +44,7 @@ func play_error() -> void:
 	_play_buzz(130.0, 0.14, 0.25)
 
 func _play_tone(freq: float, duration: float, volume: float = 0.3, decay: float = 1.0) -> void:
-	if not _playback:
+	if not sfx_enabled or not _playback:
 		return
 	var frames := int(duration * SAMPLE_RATE)
 	var available := _playback.get_frames_available()
@@ -52,7 +58,7 @@ func _play_tone(freq: float, duration: float, volume: float = 0.3, decay: float 
 		phase = fmod(phase + phase_step, TAU)
 
 func _play_chirp(start_freq: float, end_freq: float, duration: float, volume: float = 0.3) -> void:
-	if not _playback:
+	if not sfx_enabled or not _playback:
 		return
 	var frames := int(duration * SAMPLE_RATE)
 	var available := _playback.get_frames_available()
@@ -67,7 +73,7 @@ func _play_chirp(start_freq: float, end_freq: float, duration: float, volume: fl
 		phase = fmod(phase + TAU * freq / SAMPLE_RATE, TAU)
 
 func _play_buzz(freq: float, duration: float, volume: float = 0.3) -> void:
-	if not _playback:
+	if not sfx_enabled or not _playback:
 		return
 	var frames := int(duration * SAMPLE_RATE)
 	var available := _playback.get_frames_available()
@@ -82,7 +88,7 @@ func _play_buzz(freq: float, duration: float, volume: float = 0.3) -> void:
 		phase = fmod(phase + phase_step, TAU)
 
 func _play_chord(frequencies: Array, duration: float, volume: float = 0.3) -> void:
-	if not _playback:
+	if not sfx_enabled or not _playback:
 		return
 	var frames := int(duration * SAMPLE_RATE)
 	var available := _playback.get_frames_available()

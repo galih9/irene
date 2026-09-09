@@ -8,12 +8,16 @@ extends Control
 @onready var energy_bar: ProgressBar = $Margin/HBox/EnergyBox/VBox/ProgressBar
 
 @onready var shop_btn: Button = $Margin/HBox/ButtonsBox/ShopBtn
+@onready var options_btn: Button = $Margin/HBox/ButtonsBox/OptionsBtn
 @onready var debug_btn: Button = $Margin/HBox/ButtonsBox/DebugBtn
 
 func _ready() -> void:
 	GameEvents.currency_changed.connect(_on_currency_changed)
 	shop_btn.pressed.connect(_on_shop_pressed)
-	debug_btn.pressed.connect(_on_debug_pressed)
+	if has_node("Margin/HBox/ButtonsBox/OptionsBtn"):
+		options_btn.pressed.connect(_on_options_pressed)
+	if has_node("Margin/HBox/ButtonsBox/DebugBtn"):
+		debug_btn.pressed.connect(_on_debug_pressed)
 	_update_all_labels()
 
 func _process(_delta: float) -> void:
@@ -37,6 +41,10 @@ func _on_currency_changed(_type: String, _new_amount: int, _delta: int) -> void:
 func _on_shop_pressed() -> void:
 	SoundManager.play_pickup()
 	GameEvents.request_shop_open.emit()
+
+func _on_options_pressed() -> void:
+	SoundManager.play_pickup()
+	GameEvents.request_options_open.emit()
 
 func _on_debug_pressed() -> void:
 	SoundManager.play_pickup()

@@ -10,6 +10,7 @@ extends Resource
 @export var description: String = ""
 @export var color: Color = Color.WHITE
 @export var icon_scale: float = 1.0
+@export var icon_texture: Texture2D = null
 
 # Spawner attributes
 @export var is_spawner: bool = false

@@ -77,12 +77,18 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 
 	# Icon
 	var icon := TextureRect.new()
-	icon.texture = preload("res://icon.svg")
+	if item_data.icon_texture:
+		icon.texture = item_data.icon_texture
+		icon.modulate = Color(1, 1, 1, 1.0 if has_it else 0.4)
+		box_style.bg_color = Color(0.18, 0.22, 0.3, 0.95) if has_it else Color(0.12, 0.14, 0.18, 0.8)
+	else:
+		icon.texture = preload("res://icon.svg")
+		icon.modulate = Color(1, 1, 1, 0.9 if has_it else 0.4)
+		box_style.bg_color = item_data.color * (1.0 if has_it else 0.4)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 	icon.custom_minimum_size = Vector2(30, 30)
 	icon.position = Vector2(8, 8)
-	icon.modulate = Color(1, 1, 1, 0.9 if has_it else 0.4)
 	box.add_child(icon)
 
 	# Tier badge

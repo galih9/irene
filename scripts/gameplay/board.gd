@@ -1,19 +1,90 @@
 class_name Board
 extends Node2D
 
-const COLS: int = 7
-const ROWS: int = 9
-const CELL_SIZE: float = 88.0
-const CELL_SPACING: float = 8.0
+@export_group("Grid Dimensions")
+@export var cols: int = 6:
+	set(val):
+		cols = val
+		if is_inside_tree():
+			_apply_board_styling()
+			_init_grid()
+			_create_cells()
 
-const BOARD_WIDTH: float = COLS * CELL_SIZE + (COLS - 1) * CELL_SPACING # 664
-const BOARD_HEIGHT: float = ROWS * CELL_SIZE + (ROWS - 1) * CELL_SPACING # 856
+@export var rows: int = 9:
+	set(val):
+		rows = val
+		if is_inside_tree():
+			_apply_board_styling()
+			_init_grid()
+			_create_cells()
+
+@export var cell_size: float = 88.0:
+	set(val):
+		cell_size = val
+		if is_inside_tree():
+			_apply_board_styling()
+			_create_cells()
+
+@export var cell_spacing: float = 8.0:
+	set(val):
+		cell_spacing = val
+		if is_inside_tree():
+			_apply_board_styling()
+			_create_cells()
+
+@export_group("Board Styling")
+@export var board_bg_color: Color = Color(0.1, 0.12, 0.16, 0.95):
+	set(val):
+		board_bg_color = val
+		_apply_board_styling()
+
+@export var board_border_color: Color = Color(0.2, 0.25, 0.32, 0.8):
+	set(val):
+		board_border_color = val
+		_apply_board_styling()
+
+@export var board_border_width: int = 3:
+	set(val):
+		board_border_width = val
+		_apply_board_styling()
+
+@export var board_corner_radius: int = 16:
+	set(val):
+		board_corner_radius = val
+		_apply_board_styling()
+
+@export_group("Tile Styling")
+@export var tile_bg_color: Color = Color(0.18, 0.21, 0.27, 0.9):
+	set(val):
+		tile_bg_color = val
+		_apply_cells_styling()
+
+@export var tile_border_color: Color = Color(0.28, 0.32, 0.4, 0.5):
+	set(val):
+		tile_border_color = val
+		_apply_cells_styling()
+
+@export var tile_hover_empty_color: Color = Color(0.28, 0.38, 0.52, 0.95):
+	set(val):
+		tile_hover_empty_color = val
+		_apply_cells_styling()
+
+@export var tile_hover_merge_color: Color = Color(0.25, 0.65, 0.38, 0.95):
+	set(val):
+		tile_hover_merge_color = val
+		_apply_cells_styling()
+
+@export var tile_corner_radius: int = 12:
+	set(val):
+		tile_corner_radius = val
+		_apply_cells_styling()
 
 const DRAG_THRESHOLD: float = 12.0
 
 @export var item_view_scene: PackedScene = preload("res://scenes/item_view.tscn")
 @export var cell_scene: PackedScene = preload("res://scenes/board_cell.tscn")
 
+@onready var background_panel: Panel = $Background
 @onready var cells_container: Control = $CellsContainer
 @onready var items_container: Node2D = $ItemsContainer
 
@@ -31,69 +102,122 @@ var _press_time: float = 0.0
 var _hovered_merge_item: ItemView = null
 var _last_highlighted_cell: BoardCell = null
 
-# Reference to inventory bar for cross-panel drag and drop
-var inventory_bar: InventoryBar = null
+# Reference to bottom navigation bar and sell bin
+var bottom_nav_bar: BottomNavBar = null
 var sell_bin: Control = null
 
 func _ready() -> void:
+	_apply_board_styling()
 	_init_grid()
 	_create_cells()
+
+func get_board_width() -> float:
+	return cols * cell_size + (cols - 1) * cell_spacing
+
+func get_board_height() -> float:
+	return rows * cell_size + (rows - 1) * cell_spacing
+
+func _apply_board_styling() -> void:
+	if not background_panel or not is_inside_tree():
+		return
+	var b_width := get_board_width()
+	var b_height := get_board_height()
+	background_panel.offset_left = -12.0
+	background_panel.offset_top = -12.0
+	background_panel.offset_right = b_width + 12.0
+	background_panel.offset_bottom = b_height + 12.0
+
+	if cells_container:
+		cells_container.size = Vector2(b_width, b_height)
+
+	var style: StyleBoxFlat = background_panel.get_theme_stylebox("panel")
+	if style:
+		style = style.duplicate()
+	else:
+		style = StyleBoxFlat.new()
+
+	style.bg_color = board_bg_color
+	style.border_color = board_border_color
+	style.border_width_left = board_border_width
+	style.border_width_top = board_border_width
+	style.border_width_right = board_border_width
+	style.border_width_bottom = board_border_width
+	style.corner_radius_top_left = board_corner_radius
+	style.corner_radius_top_right = board_corner_radius
+	style.corner_radius_bottom_right = board_corner_radius
+	style.corner_radius_bottom_left = board_corner_radius
+
+	background_panel.add_theme_stylebox_override("panel", style)
+
+func _apply_cells_styling() -> void:
+	for c in range(_cells.size()):
+		for r in range(_cells[c].size()):
+			var cell: BoardCell = _cells[c][r]
+			if is_instance_valid(cell):
+				cell.setup_style(tile_bg_color, tile_border_color, tile_hover_empty_color, tile_hover_merge_color, tile_corner_radius)
 
 func _init_grid() -> void:
 	_grid.clear()
 	_cells.clear()
-	for c in range(COLS):
+	for c in range(cols):
 		var col_items: Array = []
 		var col_cells: Array = []
-		col_items.resize(ROWS)
-		col_cells.resize(ROWS)
+		col_items.resize(rows)
+		col_cells.resize(rows)
 		col_items.fill(null)
 		col_cells.fill(null)
 		_grid.append(col_items)
 		_cells.append(col_cells)
 
 func _create_cells() -> void:
+	if not cells_container:
+		return
 	for child in cells_container.get_children():
 		child.queue_free()
 
-	for c in range(COLS):
-		for r in range(ROWS):
+	for c in range(cols):
+		for r in range(rows):
 			var cell: BoardCell = cell_scene.instantiate()
 			cell.grid_coord = Vector2i(c, r)
+			cell.custom_minimum_size = Vector2(cell_size, cell_size)
+			cell.size = Vector2(cell_size, cell_size)
 			cell.position = get_cell_top_left(c, r)
 			cells_container.add_child(cell)
+			cell.setup_style(tile_bg_color, tile_border_color, tile_hover_empty_color, tile_hover_merge_color, tile_corner_radius)
 			_cells[c][r] = cell
 
 func get_cell_top_left(col: int, row: int) -> Vector2:
-	var x := col * (CELL_SIZE + CELL_SPACING)
-	var y := row * (CELL_SIZE + CELL_SPACING)
+	var x := col * (cell_size + cell_spacing)
+	var y := row * (cell_size + cell_spacing)
 	return Vector2(x, y)
 
 func get_cell_center(col: int, row: int) -> Vector2:
-	return get_cell_top_left(col, row) + Vector2(CELL_SIZE * 0.5, CELL_SIZE * 0.5)
+	return get_cell_top_left(col, row) + Vector2(cell_size * 0.5, cell_size * 0.5)
 
 func world_to_grid(world_pos: Vector2) -> Vector2i:
 	var local_pos := to_local(world_pos)
-	if local_pos.x < 0 or local_pos.x > BOARD_WIDTH or local_pos.y < 0 or local_pos.y > BOARD_HEIGHT:
+	var b_width := get_board_width()
+	var b_height := get_board_height()
+	if local_pos.x < 0 or local_pos.x > b_width or local_pos.y < 0 or local_pos.y > b_height:
 		return Vector2i(-1, -1)
 
-	var col := int(local_pos.x / (CELL_SIZE + CELL_SPACING))
-	var row := int(local_pos.y / (CELL_SIZE + CELL_SPACING))
+	var col := int(local_pos.x / (cell_size + cell_spacing))
+	var row := int(local_pos.y / (cell_size + cell_spacing))
 
-	col = clampi(col, 0, COLS - 1)
-	row = clampi(row, 0, ROWS - 1)
+	col = clampi(col, 0, cols - 1)
+	row = clampi(row, 0, rows - 1)
 
 	# Verify within cell bounds (not in gap)
 	var cell_pos := get_cell_top_left(col, row)
 	var offset := local_pos - cell_pos
-	if offset.x < 0 or offset.x > CELL_SIZE or offset.y < 0 or offset.y > CELL_SIZE:
-		# Still snap to closest cell if inside spacing
+	if offset.x < 0 or offset.x > cell_size or offset.y < 0 or offset.y > cell_size:
+		# Snap to closest cell
 		pass
 
 	return Vector2i(col, row)
 
 func is_valid_coord(coord: Vector2i) -> bool:
-	return coord.x >= 0 and coord.x < COLS and coord.y >= 0 and coord.y < ROWS
+	return coord.x >= 0 and coord.x < cols and coord.y >= 0 and coord.y < rows
 
 func get_item_at(coord: Vector2i) -> ItemView:
 	if not is_valid_coord(coord):
@@ -116,8 +240,8 @@ func set_item_at(coord: Vector2i, item: ItemView) -> void:
 
 func get_empty_cells() -> Array[Vector2i]:
 	var empty: Array[Vector2i] = []
-	for c in range(COLS):
-		for r in range(ROWS):
+	for c in range(cols):
+		for r in range(rows):
 			if _grid[c][r] == null:
 				empty.append(Vector2i(c, r))
 	return empty
@@ -138,6 +262,7 @@ func spawn_item_at(coord: Vector2i, item_id: String) -> ItemView:
 	items_container.add_child(item)
 	item.setup(data)
 	set_item_at(coord, item)
+	ProgressionManager.unlock_item(item_id, true)
 	GameEvents.board_changed.emit()
 	return item
 
@@ -179,12 +304,6 @@ func _unhandled_input(event: InputEvent) -> void:
 func _handle_press(mouse_pos: Vector2) -> void:
 	var coord := world_to_grid(mouse_pos)
 	var item := get_item_at(coord)
-
-	# Also check if user clicked an inventory item
-	if not item and inventory_bar:
-		var inv_idx: int = inventory_bar.get_slot_at_world_pos(mouse_pos)
-		if inv_idx >= 0:
-			item = inventory_bar.get_item_at(inv_idx)
 
 	if item:
 		_active_item = item
@@ -232,11 +351,12 @@ func _update_hover_feedback(mouse_pos: Vector2) -> void:
 		_last_highlighted_cell = target_cell
 		return
 
-	# 2. Over inventory
-	if inventory_bar:
-		var inv_idx: int = inventory_bar.get_slot_at_world_pos(mouse_pos)
-		if inv_idx >= 0:
-			inventory_bar.set_slot_highlight(inv_idx, 1)
+	# 2. Over bottom nav bar (inventory dropzone)
+	if bottom_nav_bar:
+		if bottom_nav_bar.is_pos_inside_inventory_button(mouse_pos):
+			bottom_nav_bar.set_inventory_hover(true)
+		else:
+			bottom_nav_bar.set_inventory_hover(false)
 
 func _clear_hover_feedback() -> void:
 	if _last_highlighted_cell:
@@ -245,8 +365,8 @@ func _clear_hover_feedback() -> void:
 	if _hovered_merge_item:
 		_hovered_merge_item.set_merge_highlight(false)
 		_hovered_merge_item = null
-	if inventory_bar:
-		inventory_bar.clear_highlights()
+	if bottom_nav_bar:
+		bottom_nav_bar.set_inventory_hover(false)
 
 func _handle_release(mouse_pos: Vector2) -> void:
 	if not _active_item:
@@ -270,12 +390,10 @@ func _handle_release(mouse_pos: Vector2) -> void:
 		_sell_item(item)
 		return
 
-	# Check Inventory drop
-	if inventory_bar and inventory_bar.is_pos_inside(mouse_pos):
-		var target_slot: int = inventory_bar.get_slot_at_world_pos(mouse_pos)
-		if target_slot >= 0:
-			_drop_into_inventory(item, target_slot)
-			return
+	# Check Inventory dropzone button
+	if bottom_nav_bar and bottom_nav_bar.is_pos_inside_inventory_button(mouse_pos):
+		_drop_into_inventory_button(item)
+		return
 
 	# Check Board drop
 	var target_coord := world_to_grid(mouse_pos)
@@ -392,30 +510,30 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	# Case 4: Dropped onto another item -> SWAP
 	_execute_swap(dragged, target_item)
 
-func _drop_into_inventory(dragged: ItemView, target_slot_idx: int) -> void:
-	var target_item: ItemView = inventory_bar.get_item_at(target_slot_idx)
-
-	# Case 1: Same slot
-	if target_item == dragged:
-		dragged.animate_snap_to(inventory_bar.get_slot_center(target_slot_idx))
+func _drop_into_inventory_button(item: ItemView) -> void:
+	if not InventoryManager.has_free_slot():
+		SoundManager.play_error()
+		var text_pos: Vector2 = item.global_position
+		if bottom_nav_bar:
+			var inv_btn: Control = bottom_nav_bar.get_inventory_button()
+			text_pos = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
+		GameEvents.show_floating_text.emit("Backpack Full! 🎒", text_pos, Color(1.0, 0.4, 0.4))
+		_return_item_to_origin(item)
 		return
 
-	# Case 2: Merge in inventory
-	if target_item and _can_merge(dragged.data, target_item.data):
-		_execute_merge(dragged, target_item)
-		return
-
-	# Case 3: Empty inventory slot
-	if not target_item:
-		_clear_source_slot(dragged)
-		inventory_bar.set_item_at(target_slot_idx, dragged)
-		dragged.animate_snap_to(inventory_bar.get_slot_center(target_slot_idx))
-		GameEvents.inventory_changed.emit()
+	var success := InventoryManager.add_item(item.data.id)
+	if success:
+		SoundManager.play_pickup()
+		if bottom_nav_bar:
+			bottom_nav_bar.play_inventory_pulse()
+			var inv_btn: Control = bottom_nav_bar.get_inventory_button()
+			var text_pos: Vector2 = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
+			GameEvents.show_floating_text.emit("Stored %s! 🎒" % item.data.display_name, text_pos, Color(0.4, 0.85, 1.0))
+		remove_item(item)
+		item.queue_free()
 		GameEvents.board_changed.emit()
-		return
-
-	# Case 4: Swap between board and inventory (or two inventory slots)
-	_execute_swap(dragged, target_item)
+	else:
+		_return_item_to_origin(item)
 
 func _execute_merge(source: ItemView, target: ItemView) -> void:
 	var next_id := target.data.get_next_tier_id()
@@ -441,12 +559,7 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	GameEvents.inventory_changed.emit()
 
 func _execute_swap(item_a: ItemView, item_b: ItemView) -> void:
-	var a_in_inv := item_a.is_in_inventory
-	var a_inv_idx := item_a.inventory_slot_idx
 	var a_coord := item_a.grid_coord
-
-	var b_in_inv := item_b.is_in_inventory
-	var b_inv_idx := item_b.inventory_slot_idx
 	var b_coord := item_b.grid_coord
 
 	# Clear slots
@@ -454,44 +567,27 @@ func _execute_swap(item_a: ItemView, item_b: ItemView) -> void:
 	_clear_source_slot(item_b)
 
 	# Place A in B's old location
-	if b_in_inv:
-		inventory_bar.set_item_at(b_inv_idx, item_a)
-		item_a.animate_snap_to(inventory_bar.get_slot_center(b_inv_idx))
-	else:
-		set_item_at(b_coord, item_a)
-		item_a.animate_snap_to(get_cell_center(b_coord.x, b_coord.y))
+	set_item_at(b_coord, item_a)
+	item_a.animate_snap_to(get_cell_center(b_coord.x, b_coord.y))
 
 	# Place B in A's old location
-	if a_in_inv:
-		inventory_bar.set_item_at(a_inv_idx, item_b)
-		item_b.animate_snap_to(inventory_bar.get_slot_center(a_inv_idx))
-	else:
-		set_item_at(a_coord, item_b)
-		item_b.animate_snap_to(get_cell_center(a_coord.x, a_coord.y))
+	set_item_at(a_coord, item_b)
+	item_b.animate_snap_to(get_cell_center(a_coord.x, a_coord.y))
 
 	SoundManager.play_drop()
 	GameEvents.board_changed.emit()
-	GameEvents.inventory_changed.emit()
 
 func _clear_source_slot(item: ItemView) -> void:
-	if item.is_in_inventory:
-		if inventory_bar and item.inventory_slot_idx >= 0:
-			inventory_bar.clear_slot(item.inventory_slot_idx)
-	else:
-		if is_valid_coord(item.grid_coord):
-			_grid[item.grid_coord.x][item.grid_coord.y] = null
+	if is_valid_coord(item.grid_coord):
+		_grid[item.grid_coord.x][item.grid_coord.y] = null
 	item.grid_coord = Vector2i(-1, -1)
 	item.inventory_slot_idx = -1
 
 func _return_item_to_origin(item: ItemView) -> void:
-	if item.is_in_inventory:
-		if inventory_bar:
-			item.animate_bounce_back(inventory_bar.get_slot_center(item.inventory_slot_idx))
+	if is_valid_coord(_item_start_coord):
+		item.animate_bounce_back(get_cell_center(_item_start_coord.x, _item_start_coord.y))
 	else:
-		if is_valid_coord(_item_start_coord):
-			item.animate_bounce_back(get_cell_center(_item_start_coord.x, _item_start_coord.y))
-		else:
-			item.animate_bounce_back(_item_start_local_pos)
+		item.animate_bounce_back(_item_start_local_pos)
 
 func _sell_item(item: ItemView) -> void:
 	var value := item.data.sell_value
@@ -507,8 +603,8 @@ func remove_item(item: ItemView) -> void:
 	_clear_source_slot(item)
 
 func clear_board() -> void:
-	for c in range(COLS):
-		for r in range(ROWS):
+	for c in range(cols):
+		for r in range(rows):
 			var it: ItemView = _grid[c][r]
 			if it:
 				it.queue_free()
@@ -517,8 +613,8 @@ func clear_board() -> void:
 
 func fill_board_random() -> void:
 	var sample_pool := ["tools_1", "tools_2", "plant_1", "plant_2", "gem_1", "coins_1", "energy_1"]
-	for c in range(COLS):
-		for r in range(ROWS):
+	for c in range(cols):
+		for r in range(rows):
 			if _grid[c][r] == null:
 				var rand_id: String = sample_pool[randi() % sample_pool.size()]
 				spawn_item_at(Vector2i(c, r), rand_id)
@@ -526,8 +622,32 @@ func fill_board_random() -> void:
 
 func get_all_items_on_board() -> Array[ItemView]:
 	var items: Array[ItemView] = []
-	for c in range(COLS):
-		for r in range(ROWS):
+	for c in range(cols):
+		for r in range(rows):
 			if _grid[c][r] != null:
 				items.append(_grid[c][r])
 	return items
+
+func serialize_items() -> Array[Dictionary]:
+	var result: Array[Dictionary] = []
+	for c in range(cols):
+		for r in range(rows):
+			var it: ItemView = _grid[c][r]
+			if it and it.data:
+				result.append({
+					"col": c,
+					"row": r,
+					"item_id": it.data.id
+				})
+	return result
+
+func load_items(items_data: Array) -> void:
+	clear_board()
+	for entry in items_data:
+		var c: int = int(entry.get("col", -1))
+		var r: int = int(entry.get("row", -1))
+		var item_id: String = str(entry.get("item_id", ""))
+		if is_valid_coord(Vector2i(c, r)) and not item_id.is_empty():
+			spawn_item_at(Vector2i(c, r), item_id)
+	GameEvents.board_changed.emit()
+

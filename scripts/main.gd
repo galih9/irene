@@ -6,29 +6,53 @@ extends Node2D
 @onready var hud: HUD = $CanvasLayer/UI/HUD
 @onready var quest_manager: QuestManager = $CanvasLayer/UI/QuestContainer/QuestManager
 @onready var board: Board = $CanvasLayer/UI/Board
-@onready var inventory_bar: InventoryBar = $CanvasLayer/UI/InventoryBar
+@onready var bottom_nav_bar: BottomNavBar = $CanvasLayer/UI/BottomNavBar
 @onready var sell_bin: Control = $CanvasLayer/UI/BottomBar/SellBin
+@onready var progression_modal: ProgressionModal = $CanvasLayer/Modals/ProgressionModal
+@onready var inventory_modal: InventoryModal = $CanvasLayer/Modals/InventoryModal
 @onready var shop_modal: ShopModal = $CanvasLayer/Modals/ShopModal
 @onready var debug_menu: DebugMenu = $CanvasLayer/Modals/DebugMenu
+@onready var option_modal: OptionModal = $CanvasLayer/Modals/OptionModal
 @onready var floating_layer: Node2D = $CanvasLayer/FloatingLayer
 
 func _ready() -> void:
+	# Center the board horizontally based on current columns and cell size
+	board.position.x = (720.0 - board.get_board_width()) * 0.5
+
 	# Set references
-	board.inventory_bar = inventory_bar
+	board.bottom_nav_bar = bottom_nav_bar
 	board.sell_bin = sell_bin
-	inventory_bar.board_ref = board
+	inventory_modal.board_ref = board
 	shop_modal.board_ref = board
 	debug_menu.board_ref = board
 	debug_menu.quest_manager_ref = quest_manager
 
 	# Setup Quests
-	quest_manager.setup(board, inventory_bar)
+	quest_manager.setup(board)
 
 	# Listen to floating text signal
 	GameEvents.show_floating_text.connect(_on_show_floating_text)
 
-	# Setup starter board
-	_setup_initial_board()
+	# Register with SaveManager
+	SaveManager.board_ref = board
+	SaveManager.quest_manager_ref = quest_manager
+	SaveManager.is_gameplay_active = true
+
+	# Decide whether to load saved game or setup starter board
+	if SaveManager.should_load_on_start and SaveManager.has_save():
+		var load_success := SaveManager.load_game(board, quest_manager)
+		if not load_success:
+			_setup_initial_board()
+	else:
+		_setup_initial_board()
+
+func _exit_tree() -> void:
+	if SaveManager:
+		SaveManager.is_gameplay_active = false
+		if SaveManager.board_ref == board:
+			SaveManager.board_ref = null
+		if SaveManager.quest_manager_ref == quest_manager:
+			SaveManager.quest_manager_ref = null
 
 func _setup_initial_board() -> void:
 	board.clear_board()
@@ -44,17 +68,22 @@ func _setup_initial_board() -> void:
 	board.spawn_item_at(Vector2i(2, 5), "plant_1") # Seed
 	board.spawn_item_at(Vector2i(4, 5), "plant_1") # Seed (merge -> Sprout)
 
+	# New Farm & Kitchen items (Eggs & Herbs) ready to merge
+	board.spawn_item_at(Vector2i(1, 3), "egg_1") # Fresh Egg
+	board.spawn_item_at(Vector2i(5, 3), "egg_1") # Fresh Egg (merge -> Double Eggs)
+
+	board.spawn_item_at(Vector2i(1, 5), "leaf_1") # Fresh Herb
+	board.spawn_item_at(Vector2i(5, 5), "leaf_1") # Fresh Herb (merge -> Crisp Celery)
+
 	# Place consumables & rare
 	board.spawn_item_at(Vector2i(3, 2), "coins_1") # Bronze coin
 	board.spawn_item_at(Vector2i(3, 6), "energy_1") # Energy spark
 	board.spawn_item_at(Vector2i(3, 4), "gem_1") # Gem shard
 
-	# Put a bonus item in backpack inventory slot 0
-	var inv_item: ItemView = board.item_view_scene.instantiate()
-	board.items_container.add_child(inv_item)
-	inv_item.setup(ItemDatabase.get_item("tools_2"))
-	inventory_bar.set_item_at(0, inv_item)
-	inv_item.position = inventory_bar.get_slot_center(0)
+	# Put a starter bonus item in backpack inventory slot
+	InventoryManager.clear_all()
+	InventoryManager.add_item("tools_2") # Hammer
+	ProgressionManager.unlock_item("tools_2", true)
 
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()

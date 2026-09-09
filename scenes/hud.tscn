@@ -146,13 +146,19 @@ layout_mode = 2
 theme_override_constants/separation = 8
 
 [node name="ShopBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
-custom_minimum_size = Vector2(80, 0)
+custom_minimum_size = Vector2(74, 0)
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
+theme_override_font_sizes/font_size = 12
 text = "🛒 SHOP"
 
-[node name="DebugBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
-custom_minimum_size = Vector2(48, 0)
+[node name="OptionsBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
+custom_minimum_size = Vector2(40, 0)
 layout_mode = 2
 theme_override_font_sizes/font_size = 16
 text = "⚙️"
+
+[node name="DebugBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
+custom_minimum_size = Vector2(40, 0)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "🛠️"

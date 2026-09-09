@@ -25,6 +25,7 @@ var target_slot_pos: Vector2 = Vector2.ZERO
 
 var _pulse_tween: Tween
 var _scale_tween: Tween
+var _base_scale: float = 0.48
 
 func _ready() -> void:
 	if data:
@@ -39,8 +40,24 @@ func _update_visuals() -> void:
 	if not data:
 		return
 
-	# Color the icon
-	sprite.modulate = data.color
+	if data.icon_texture:
+		sprite.texture = data.icon_texture
+		shadow.texture = data.icon_texture
+		glow.texture = data.icon_texture
+		sprite.modulate = Color.WHITE
+		var tex_size := data.icon_texture.get_size()
+		var max_dim := maxf(tex_size.x, tex_size.y)
+		_base_scale = (70.0 / max_dim) * data.icon_scale if max_dim > 0.0 else 0.48
+	else:
+		sprite.texture = preload("res://icon.svg")
+		shadow.texture = preload("res://icon.svg")
+		glow.texture = preload("res://icon.svg")
+		sprite.modulate = data.color
+		_base_scale = 0.48 * data.icon_scale
+
+	sprite.scale = Vector2(_base_scale, _base_scale)
+	shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
+	glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
 
 	# Update tier badge
 	if data.max_tier > 1:
@@ -60,7 +77,7 @@ func animate_pickup() -> void:
 	_scale_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_scale_tween.tween_property(visuals, "scale", Vector2(1.2, 1.2), 0.15)
 	_scale_tween.tween_property(shadow, "position", Vector2(0, 16), 0.15)
-	_scale_tween.tween_property(shadow, "scale", Vector2(0.5, 0.5), 0.15)
+	_scale_tween.tween_property(shadow, "scale", Vector2(_base_scale * 1.05, _base_scale * 1.05), 0.15)
 	_scale_tween.tween_property(shadow, "modulate:a", 0.45, 0.15)
 	SoundManager.play_pickup()
 
@@ -73,7 +90,7 @@ func animate_drop(on_complete: Callable = Callable()) -> void:
 	_scale_tween = create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	_scale_tween.tween_property(visuals, "scale", Vector2.ONE, 0.2)
 	_scale_tween.tween_property(shadow, "position", Vector2(0, 6), 0.2)
-	_scale_tween.tween_property(shadow, "scale", Vector2(0.42, 0.42), 0.2)
+	_scale_tween.tween_property(shadow, "scale", Vector2(_base_scale * 0.9, _base_scale * 0.9), 0.2)
 	_scale_tween.tween_property(shadow, "modulate:a", 0.25, 0.2)
 	if on_complete.is_valid():
 		_scale_tween.finished.connect(on_complete)
@@ -94,7 +111,7 @@ func animate_bounce_back(origin_pos: Vector2) -> void:
 	var sc_tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	sc_tween.tween_property(visuals, "scale", Vector2.ONE, 0.2)
 	sc_tween.tween_property(shadow, "position", Vector2(0, 6), 0.2)
-	sc_tween.tween_property(shadow, "scale", Vector2(0.42, 0.42), 0.2)
+	sc_tween.tween_property(shadow, "scale", Vector2(_base_scale * 0.9, _base_scale * 0.9), 0.2)
 	sc_tween.tween_property(shadow, "modulate:a", 0.25, 0.2)
 
 func animate_merge_pop() -> void:

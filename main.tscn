@@ -1,12 +1,17 @@
-[gd_scene load_steps=10 format=3 uid="uid://c601le2ra4a6v"]
+[gd_scene format=3 uid="uid://c601le2ra4a6v"]
 
-[ext_resource type="Script" path="res://scripts/main.gd" id="1_main"]
+[ext_resource type="Script" uid="uid://c8axx2lw3ass5" path="res://scripts/main.gd" id="1_main"]
 [ext_resource type="PackedScene" uid="uid://b8q7x3v1m2n5r" path="res://scenes/hud.tscn" id="2_hud"]
 [ext_resource type="PackedScene" uid="uid://dm5x2q8p7y1n4" path="res://scenes/quest_manager.tscn" id="3_quest"]
 [ext_resource type="PackedScene" uid="uid://bq7vw18rnxlyt" path="res://scenes/board.tscn" id="4_board"]
-[ext_resource type="PackedScene" uid="uid://c5e8w9u2m1n4r" path="res://scenes/inventory_bar.tscn" id="5_inv"]
-[ext_resource type="PackedScene" uid="uid://c3m7r5t1v9n8p" path="res://scenes/shop_modal.tscn" id="6_shop"]
+[ext_resource type="PackedScene" uid="uid://cfe16s1k6o3uy" path="res://scenes/bottom_nav_bar.tscn" id="5_nav"]
+[ext_resource type="PackedScene" uid="uid://c3m7r5t1wan8p" path="res://scenes/shop_modal.tscn" id="6_shop"]
 [ext_resource type="PackedScene" uid="uid://b1n4r7x8m5v2w" path="res://scenes/debug_menu.tscn" id="7_dbg"]
+[ext_resource type="PackedScene" uid="uid://c8m4x1xan7y20" path="res://scenes/progression_modal.tscn" id="8_prog"]
+[ext_resource type="PackedScene" uid="uid://cb5y3r8k1m7nx" path="res://scenes/inventory_modal.tscn" id="9_inv"]
+[ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background.jpeg" id="10_bg"]
+[ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="11_opt"]
+[ext_resource type="PackedScene" uid="uid://c6u4m2j5x8qaq" path="res://scenes/save_toast.tscn" id="12_toast"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sellbin"]
 bg_color = Color(0.12, 0.14, 0.19, 0.95)
@@ -32,18 +37,35 @@ corner_radius_top_right = 12
 corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
-[node name="Main" type="Node2D"]
+[node name="Main" type="Node2D" unique_id=639357179]
 script = ExtResource("1_main")
 
-[node name="Background" type="ColorRect" parent="."]
-offset_right = 720.0
-offset_bottom = 1600.0
+[node name="BackgroundLayer" type="CanvasLayer" parent="." unique_id=2130900265]
+layer = -1
+
+[node name="Background" type="TextureRect" parent="BackgroundLayer" unique_id=305545987]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 mouse_filter = 2
-color = Color(0.07, 0.08, 0.11, 1)
+texture = ExtResource("10_bg")
+expand_mode = 1
+stretch_mode = 6
 
-[node name="CanvasLayer" type="CanvasLayer" parent="."]
+[node name="Overlay" type="ColorRect" parent="BackgroundLayer" unique_id=399604548]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.04, 0.06, 0.09, 0.22)
 
-[node name="UI" type="Control" parent="CanvasLayer"]
+[node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1076762585]
+
+[node name="UI" type="Control" parent="CanvasLayer" unique_id=525455982]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -52,11 +74,10 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="HUD" parent="CanvasLayer/UI" instance=ExtResource("2_hud")]
+[node name="HUD" parent="CanvasLayer/UI" unique_id=1818563904 instance=ExtResource("2_hud")]
 layout_mode = 1
 
-[node name="QuestContainer" type="Control" parent="CanvasLayer/UI"]
-layout_mode = 3
+[node name="QuestContainer" type="Control" parent="CanvasLayer/UI" unique_id=401919596]
 anchors_preset = 0
 offset_left = 28.0
 offset_top = 114.0
@@ -64,20 +85,24 @@ offset_right = 692.0
 offset_bottom = 286.0
 mouse_filter = 2
 
-[node name="QuestManager" parent="CanvasLayer/UI/QuestContainer" instance=ExtResource("3_quest")]
+[node name="QuestManager" parent="CanvasLayer/UI/QuestContainer" unique_id=2082244321 instance=ExtResource("3_quest")]
 layout_mode = 1
 
-[node name="Board" parent="CanvasLayer/UI" instance=ExtResource("4_board")]
-position = Vector2(28, 298)
+[node name="Board" parent="CanvasLayer/UI" unique_id=370536853 instance=ExtResource("4_board")]
+position = Vector2(76, 298)
+board_bg_color = Color(0.827451, 0.34117648, 0, 0.7372549)
+board_border_color = Color(0.827451, 0.34117648, 0, 1)
+tile_bg_color = Color(1, 0.5921569, 0.4, 0.56078434)
+tile_hover_empty_color = Color(1, 0.78505987, 0.6900917, 0.7372549)
 
-[node name="InventoryBar" parent="CanvasLayer/UI" instance=ExtResource("5_inv")]
+[node name="BottomNavBar" parent="CanvasLayer/UI" unique_id=696029694 instance=ExtResource("5_nav")]
+layout_mode = 0
 offset_left = 28.0
 offset_top = 1166.0
 offset_right = 692.0
-offset_bottom = 1292.0
+offset_bottom = 1282.0
 
-[node name="BottomBar" type="Control" parent="CanvasLayer/UI"]
-layout_mode = 3
+[node name="BottomBar" type="Control" parent="CanvasLayer/UI" unique_id=568442264]
 anchors_preset = 0
 offset_left = 28.0
 offset_top = 1302.0
@@ -85,7 +110,7 @@ offset_right = 692.0
 offset_bottom = 1378.0
 mouse_filter = 2
 
-[node name="SellBin" type="Panel" parent="CanvasLayer/UI/BottomBar"]
+[node name="SellBin" type="Panel" parent="CanvasLayer/UI/BottomBar" unique_id=1166973194]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -95,7 +120,7 @@ grow_vertical = 2
 mouse_filter = 1
 theme_override_styles/panel = SubResource("StyleBoxFlat_sellbin")
 
-[node name="HBox" type="HBoxContainer" parent="CanvasLayer/UI/BottomBar/SellBin"]
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/UI/BottomBar/SellBin" unique_id=1831261341]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -105,18 +130,18 @@ grow_vertical = 2
 mouse_filter = 2
 alignment = 1
 
-[node name="Icon" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox"]
+[node name="Icon" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=413301706]
 layout_mode = 2
 theme_override_font_sizes/font_size = 20
 text = "🗑️"
 
-[node name="Text" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox"]
+[node name="Text" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=1904344762]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.9, 0.78, 0.35, 1)
 theme_override_font_sizes/font_size = 14
 text = "DROP ANY ITEM HERE TO SELL FOR COINS 🪙"
 
-[node name="HelpBar" type="Panel" parent="CanvasLayer/UI"]
+[node name="HelpBar" type="Panel" parent="CanvasLayer/UI" unique_id=256951875]
 layout_mode = 0
 offset_left = 28.0
 offset_top = 1388.0
@@ -125,7 +150,7 @@ offset_bottom = 1580.0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_help")
 
-[node name="Margin" type="MarginContainer" parent="CanvasLayer/UI/HelpBar"]
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/UI/HelpBar" unique_id=460938379]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -138,51 +163,51 @@ theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 12
 
-[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UI/HelpBar/Margin"]
+[node name="VBox" type="VBoxContainer" parent="CanvasLayer/UI/HelpBar/Margin" unique_id=377382299]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 
-[node name="Title" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+[node name="Title" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1017379216]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
 theme_override_font_sizes/font_size = 13
 text = "💡 QUICK GUIDE & CONTROLS"
 
-[node name="Tip1" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+[node name="Tip1" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=2043963429]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
 theme_override_font_sizes/font_size = 11
 text = "• Tap ⚡ Spawners (Toolbox / Ancient Tree) to generate items using 1 Energy."
 
-[node name="Tip2" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+[node name="Tip2" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1563960216]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
 theme_override_font_sizes/font_size = 11
 text = "• Drag two identical tier items together to merge them into the next tier!"
 
-[node name="Tip3" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+[node name="Tip3" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=126299454]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
 theme_override_font_sizes/font_size = 11
 text = "• Tap Coins or Batteries to collect their currency directly."
 
-[node name="Tip4" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+[node name="Tip4" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1953041726]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
 theme_override_font_sizes/font_size = 11
 text = "• Deliver customer orders at the top to earn Coins and rare Gems."
 
-[node name="Tip5" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox"]
+[node name="Tip5" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1295228428]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.8, 0.83, 0.88, 1)
 theme_override_font_sizes/font_size = 11
-text = "• Open 🛒 SHOP for energy refills or ⚙️ DEBUG for instant item cheats!"
+text = "• Tap 📖 CODEX for rewards, 🎒 BACKPACK for storage, 🛒 SHOP for energy & crates!"
 
-[node name="FloatingLayer" type="Node2D" parent="CanvasLayer"]
+[node name="FloatingLayer" type="Node2D" parent="CanvasLayer" unique_id=164337634]
 z_index = 150
 
-[node name="Modals" type="Control" parent="CanvasLayer"]
+[node name="Modals" type="Control" parent="CanvasLayer" unique_id=1620336475]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -191,8 +216,20 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="ShopModal" parent="CanvasLayer/Modals" instance=ExtResource("6_shop")]
+[node name="ProgressionModal" parent="CanvasLayer/Modals" unique_id=724110784 instance=ExtResource("8_prog")]
 layout_mode = 1
 
-[node name="DebugMenu" parent="CanvasLayer/Modals" instance=ExtResource("7_dbg")]
+[node name="InventoryModal" parent="CanvasLayer/Modals" unique_id=1677372470 instance=ExtResource("9_inv")]
 layout_mode = 1
+
+[node name="ShopModal" parent="CanvasLayer/Modals" unique_id=424277259 instance=ExtResource("6_shop")]
+layout_mode = 1
+
+[node name="DebugMenu" parent="CanvasLayer/Modals" unique_id=1430009053 instance=ExtResource("7_dbg")]
+layout_mode = 1
+
+[node name="OptionModal" parent="CanvasLayer/Modals" unique_id=1948372615 instance=ExtResource("11_opt")]
+layout_mode = 1
+
+[node name="SaveToast" parent="CanvasLayer" unique_id=1849204857 instance=ExtResource("12_toast")]
+z_index = 180

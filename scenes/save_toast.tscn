@@ -1,0 +1,69 @@
+[gd_scene format=3 uid="uid://c6u4m2j5x8qaq"]
+
+[ext_resource type="Script" path="res://scripts/ui/save_toast.gd" id="1_toast"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
+bg_color = Color(0.08, 0.1, 0.14, 0.94)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.75, 0.25, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[node name="SaveToast" type="Control"]
+custom_minimum_size = Vector2(520, 56)
+layout_mode = 3
+anchors_preset = 5
+anchor_left = 0.5
+anchor_right = 0.5
+offset_left = -260.0
+offset_top = 35.0
+offset_right = 260.0
+offset_bottom = 91.0
+grow_horizontal = 2
+mouse_filter = 2
+script = ExtResource("1_toast")
+
+[node name="Panel" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_toast")
+
+[node name="Margin" type="MarginContainer" parent="Panel"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="Panel/Margin"]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Icon" type="Label" parent="Panel/Margin/HBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 22
+text = "💾"
+vertical_alignment = 1
+
+[node name="Label" type="Label" parent="Panel/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.95, 0.95, 0.98, 1)
+theme_override_font_sizes/font_size = 14
+text = "Saving, please do not exit the game..."
+vertical_alignment = 1

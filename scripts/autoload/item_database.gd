@@ -25,7 +25,7 @@ func _init_database() -> void:
 	var tree := _register_item("plant_5", "plant", "Plant", 5, 5, "Ancient Tree", "Tap to produce plant items! Uses 1 Energy.", Color(0.18, 0.65, 0.32))
 	tree.is_spawner = true
 	tree.energy_cost = 1
-	tree.spawn_pool = ["plant_1", "plant_1", "plant_1", "plant_2", "energy_1"]
+	tree.spawn_pool = ["plant_1", "plant_1", "leaf_1", "plant_2", "energy_1"]
 
 	# 3. Gem Chain (valuable quest / sell items)
 	_register_item("gem_1", "gem", "Gem", 1, 4, "Gem Shard", "A shining fragment of a crystal.", Color(0.55, 0.9, 0.95))
@@ -70,8 +70,26 @@ func _init_database() -> void:
 	energy3.consume_currency = "energy"
 	energy3.consume_amount = 35
 
+	# 6. Leaf / Greens Chain (Culinary produce)
+	_register_item("leaf_1", "leaf", "Greens", 1, 5, "Fresh Herb", "A fragrant culinary herb, fresh from the kitchen garden.", Color(0.4, 0.85, 0.3), preload("res://assets/leafs/leaf_0.png"))
+	_register_item("leaf_2", "leaf", "Greens", 2, 5, "Crisp Celery", "A crunchy stalk packed with aromatic flavor.", Color(0.35, 0.8, 0.28), preload("res://assets/leafs/leaf_1.png"))
+	_register_item("leaf_3", "leaf", "Greens", 3, 5, "Spinach Bundle", "A vibrant bundle of farm-fresh spinach greens.", Color(0.28, 0.75, 0.25), preload("res://assets/leafs/leaf_2.png"))
+	_register_item("leaf_4", "leaf", "Greens", 4, 5, "Crisp Cabbage", "A hearty head of crisp green cabbage.", Color(0.3, 0.78, 0.35), preload("res://assets/leafs/leaf_3.png"))
+	_register_item("leaf_5", "leaf", "Greens", 5, 5, "Garden Salad", "A colorful gourmet garden salad bowl! Max tier.", Color(0.25, 0.7, 0.3), preload("res://assets/leafs/leaf_4.png"))
+
+	# 7. Egg Chain (Farm eggs & baking)
+	_register_item("egg_1", "egg", "Eggs", 1, 6, "Fresh Egg", "A smooth white egg, fresh from the farm.", Color(0.95, 0.92, 0.88), preload("res://assets/eggs/egg_0.png"))
+	_register_item("egg_2", "egg", "Eggs", 2, 6, "Double Eggs", "Two fresh eggs, ready for breakfast.", Color(0.95, 0.92, 0.88), preload("res://assets/eggs/egg_1.png"))
+	_register_item("egg_3", "egg", "Eggs", 3, 6, "Egg Trio", "A trio of farm eggs for baking recipes.", Color(0.95, 0.92, 0.88), preload("res://assets/eggs/egg_2.png"))
+	_register_item("egg_4", "egg", "Eggs", 4, 6, "Egg Carton", "A half-dozen carton of fresh eggs.", Color(0.85, 0.75, 0.65), preload("res://assets/eggs/egg_3.png"))
+	_register_item("egg_5", "egg", "Eggs", 5, 6, "Egg Crate", "A sturdy storage container packed with eggs.", Color(0.65, 0.82, 0.92), preload("res://assets/eggs/egg_4.png"))
+	var egg_tub := _register_item("egg_6", "egg", "Eggs", 6, 6, "Egg Tub", "A wholesale tub of farm eggs! Tap to produce eggs! Uses 1 Energy.", Color(0.6, 0.8, 0.95), preload("res://assets/eggs/egg_5.png"))
+	egg_tub.is_spawner = true
+	egg_tub.energy_cost = 1
+	egg_tub.spawn_pool = ["egg_1", "egg_1", "egg_1", "egg_2", "leaf_1"]
+
 func _register_item(id: String, chain_id: String, chain_name: String, tier: int, max_tier: int,
-		display_name: String, description: String, color: Color) -> ItemData:
+		display_name: String, description: String, color: Color, texture: Texture2D = null) -> ItemData:
 	var item := ItemData.new()
 	item.id = id
 	item.chain_id = chain_id
@@ -81,6 +99,7 @@ func _register_item(id: String, chain_id: String, chain_name: String, tier: int,
 	item.display_name = display_name
 	item.description = description
 	item.color = color
+	item.icon_texture = texture
 	item.sell_value = int(pow(2, tier - 1))
 
 	_items[id] = item

@@ -16,4 +16,8 @@ signal quest_completed(quest: QuestData)
 # UI & Feedback
 signal show_floating_text(text: String, world_pos: Vector2, color: Color)
 signal request_shop_open()
+signal request_progression_open()
+signal request_inventory_open()
+signal request_options_open()
 signal request_debug_toggle()
+signal progression_changed()

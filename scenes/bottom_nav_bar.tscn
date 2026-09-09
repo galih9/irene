@@ -1,0 +1,237 @@
+[gd_scene format=3 uid="uid://cfe16s1k6o3uy"]
+
+[ext_resource type="Script" path="res://scripts/ui/bottom_nav_bar.gd" id="1_nav"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog"]
+bg_color = Color(0.12, 0.14, 0.2, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.7, 0.5, 0.9, 0.6)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv"]
+bg_color = Color(0.11, 0.15, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.65, 0.9, 0.6)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop"]
+bg_color = Color(0.14, 0.13, 0.18, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.9, 0.65, 0.2, 0.6)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+shadow_color = Color(0, 0, 0, 0.25)
+shadow_size = 4
+shadow_offset = Vector2(0, 2)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
+bg_color = Color(0.95, 0.25, 0.25, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+
+[node name="BottomNavBar" type="Control"]
+custom_minimum_size = Vector2(664, 116)
+layout_mode = 3
+anchors_preset = 0
+offset_right = 664.0
+offset_bottom = 116.0
+mouse_filter = 2
+script = ExtResource("1_nav")
+
+[node name="HBoxContainer" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="ProgressionBtn" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+theme_override_styles/normal = SubResource("StyleBoxFlat_prog")
+theme_override_styles/hover = SubResource("StyleBoxFlat_prog")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_prog")
+
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/ProgressionBtn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "📖"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.7, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "CODEX"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 10
+text = "DISCOVERY"
+horizontal_alignment = 1
+
+[node name="Badge" type="PanelContainer" parent="HBoxContainer/ProgressionBtn"]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -28.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = 28.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
+
+[node name="BadgeLabel" type="Label" parent="HBoxContainer/ProgressionBtn/Badge"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 11
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="InventoryBtn" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+theme_override_styles/normal = SubResource("StyleBoxFlat_inv")
+theme_override_styles/hover = SubResource("StyleBoxFlat_inv")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_inv")
+
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/InventoryBtn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "🎒"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.4, 0.85, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "BACKPACK"
+horizontal_alignment = 1
+
+[node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.72, 0.82, 1)
+theme_override_font_sizes/font_size = 11
+text = "[0 / 8]"
+horizontal_alignment = 1
+
+[node name="ShopBtn" type="Button" parent="HBoxContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+theme_override_styles/normal = SubResource("StyleBoxFlat_shop")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shop")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shop")
+
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/ShopBtn"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/ShopBtn/Margin"]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Icon" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 28
+text = "🛒"
+horizontal_alignment = 1
+
+[node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.8, 0.35, 1)
+theme_override_font_sizes/font_size = 13
+text = "SHOP"
+horizontal_alignment = 1
+
+[node name="Subtitle" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 10
+text = "GOLD & ⚡"
+horizontal_alignment = 1
