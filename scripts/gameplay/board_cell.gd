@@ -14,6 +14,16 @@ extends Control
 		cell_border_color = val
 		set_highlight(_current_highlight)
 
+@export var cell_locked_bg_color: Color = Color(0.10, 0.11, 0.14, 0.95):
+	set(val):
+		cell_locked_bg_color = val
+		set_highlight(_current_highlight)
+
+@export var cell_locked_border_color: Color = Color(0.20, 0.22, 0.26, 0.6):
+	set(val):
+		cell_locked_border_color = val
+		set_highlight(_current_highlight)
+
 @export var hover_empty_color: Color = Color(0.28, 0.38, 0.52, 0.95):
 	set(val):
 		hover_empty_color = val
@@ -32,13 +42,22 @@ extends Control
 @onready var background: Panel = $Background
 
 var _current_highlight: int = 0
+var is_locked: bool = false:
+	set(val):
+		is_locked = val
+		set_highlight(_current_highlight)
 
 func _ready() -> void:
 	set_highlight(0)
 
-func setup_style(bg_col: Color, border_col: Color, hover_empty: Color, hover_merge: Color, rad: int) -> void:
+func set_locked(val: bool) -> void:
+	is_locked = val
+
+func setup_style(bg_col: Color, border_col: Color, hover_empty: Color, hover_merge: Color, rad: int, locked_bg: Color = Color(0.10, 0.11, 0.14, 0.95), locked_border: Color = Color(0.20, 0.22, 0.26, 0.6)) -> void:
 	cell_bg_color = bg_col
 	cell_border_color = border_col
+	cell_locked_bg_color = locked_bg
+	cell_locked_border_color = locked_border
 	hover_empty_color = hover_empty
 	hover_merge_color = hover_merge
 	corner_radius = rad
@@ -61,8 +80,12 @@ func set_highlight(state: int) -> void:
 
 	match state:
 		0: # Normal
-			style.bg_color = cell_bg_color
-			style.border_color = cell_border_color
+			if is_locked:
+				style.bg_color = cell_locked_bg_color
+				style.border_color = cell_locked_border_color
+			else:
+				style.bg_color = cell_bg_color
+				style.border_color = cell_border_color
 			style.border_width_left = 1
 			style.border_width_top = 1
 			style.border_width_right = 1

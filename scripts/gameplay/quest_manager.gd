@@ -82,7 +82,7 @@ func _rebuild_cards() -> void:
 func _get_all_available_item_ids() -> Array[String]:
 	var result: Array[String] = []
 	if board_ref:
-		for item in board_ref.get_all_items_on_board():
+		for item in board_ref.get_all_items_on_board(true):
 			if item and item.data:
 				result.append(item.data.id)
 	result.append_array(InventoryManager.get_all_item_ids())
@@ -142,9 +142,9 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	GameEvents.board_changed.emit()
 
 func _consume_single_item(item_id: String) -> bool:
-	# First search board
+	# First search board for usable (normal) items
 	if board_ref:
-		for item in board_ref.get_all_items_on_board():
+		for item in board_ref.get_all_items_on_board(true):
 			if item and item.data and item.data.id == item_id:
 				board_ref.remove_item(item)
 				item.queue_free()

@@ -3,6 +3,10 @@ extends Node
 var _items: Dictionary = {} # id -> ItemData
 var _chains: Dictionary = {} # chain_id -> Array[ItemData]
 
+var default_min_spawner_tier: int = 3
+var default_spawner_max_charges: int = 10
+var default_spawner_cooldown_per_charge: float = 5.0
+
 func _ready() -> void:
 	_init_database()
 
@@ -28,9 +32,9 @@ func _init_database() -> void:
 		"Chef's Produce Box", "Gourmet Harvest Crate", "Master Harvest Vault"
 	]
 	var foodbox_descs := [
-		"Tap to produce fresh farm eggs and greens! Uses 1 Energy.",
-		"A sturdy reinforced produce crate. Uses 1 Energy.",
-		"A well-stocked pantry box. Uses 1 Energy.",
+		"A wooden produce box. Merge to tier 3 to create a fresh food spawner!",
+		"A sturdy reinforced produce crate. Merge to tier 3 to create a fresh food spawner!",
+		"A well-stocked pantry box. Tap to produce fresh farm eggs and greens! Uses 1 Energy.",
 		"Chef's selection box with fresh eggs and herbs. Uses 1 Energy.",
 		"Gourmet crate packed with prime kitchen harvest. Uses 1 Energy.",
 		"The ultimate farm produce vault! Produces eggs and greens. Uses 1 Energy."
@@ -42,7 +46,10 @@ func _init_database() -> void:
 			foodbox_names[t - 1], foodbox_descs[t - 1],
 			Color(0.88, 0.65, 0.35), foodbox_textures[t - 1]
 		)
-		it.is_spawner = true
+		it.min_spawner_tier = default_min_spawner_tier
+		it.is_spawner = (t >= default_min_spawner_tier)
+		it.max_charges = default_spawner_max_charges
+		it.cooldown_per_charge = default_spawner_cooldown_per_charge
 		it.energy_cost = 1
 		it.spawn_pool = _get_foodbox_pool(t)
 
@@ -60,8 +67,8 @@ func _init_database() -> void:
 		"Stainless Oven", "Pastry Range", "Grand Master Oven"
 	]
 	var oven_descs := [
-		"Tap to bake beef, cakes, and sandwiches! Uses 1 Energy.",
-		"A sturdy stone hearth with steady baking heat. Uses 1 Energy.",
+		"A small clay toaster. Merge to tier 3 to bake delicious goods!",
+		"A sturdy stone hearth with steady baking heat. Merge to tier 3 to bake delicious goods!",
 		"Traditional brick oven for savory meats and cakes. Uses 1 Energy.",
 		"Precision stainless steel oven. Uses 1 Energy.",
 		"Professional dual-deck pastry and roast range. Uses 1 Energy.",
@@ -74,7 +81,10 @@ func _init_database() -> void:
 			oven_names[t - 1], oven_descs[t - 1],
 			Color(0.95, 0.45, 0.28), oven_textures[t - 1]
 		)
-		it.is_spawner = true
+		it.min_spawner_tier = default_min_spawner_tier
+		it.is_spawner = (t >= default_min_spawner_tier)
+		it.max_charges = default_spawner_max_charges
+		it.cooldown_per_charge = default_spawner_cooldown_per_charge
 		it.energy_cost = 1
 		it.spawn_pool = _get_oven_pool(t)
 
@@ -92,8 +102,8 @@ func _init_database() -> void:
 		"Double-Door Chiller", "Beverage Dispenser", "Master Cryo Chiller"
 	]
 	var fridge_descs := [
-		"Tap to dispense chilled beverages! Uses 1 Energy.",
-		"A cool retro cooler keeping drinks icy fresh. Uses 1 Energy.",
+		"A compact mini icebox. Merge to tier 3 to dispense chilled drinks!",
+		"A cool retro cooler keeping drinks icy fresh. Merge to tier 3 to dispense chilled drinks!",
 		"Standard household fridge with chilled drinks. Uses 1 Energy.",
 		"Double-door chiller with rapid refreshment cooling. Uses 1 Energy.",
 		"Commercial glass-front beverage cooler. Uses 1 Energy.",
@@ -106,7 +116,10 @@ func _init_database() -> void:
 			fridge_names[t - 1], fridge_descs[t - 1],
 			Color(0.35, 0.72, 0.95), fridge_textures[t - 1]
 		)
-		it.is_spawner = true
+		it.min_spawner_tier = default_min_spawner_tier
+		it.is_spawner = (t >= default_min_spawner_tier)
+		it.max_charges = default_spawner_max_charges
+		it.cooldown_per_charge = default_spawner_cooldown_per_charge
 		it.energy_cost = 1
 		it.spawn_pool = _get_fridge_pool(t)
 
@@ -125,8 +138,8 @@ func _init_database() -> void:
 		"Chef's Cutlery Caddy", "Magnetic Tool Bar", "Master Prep Station", "Grand Kitchen Arsenal"
 	]
 	var rack_descs := [
-		"Tap to produce kitchen utensils! Uses 1 Energy.",
-		"Organized wooden stand holding basic utensils. Uses 1 Energy.",
+		"A small wooden pegboard. Merge to tier 3 to produce culinary gear!",
+		"Organized wooden stand holding basic utensils. Merge to tier 3 to produce culinary gear!",
 		"Stainless steel kitchen utensil rack. Uses 1 Energy.",
 		"Heavy-duty cutlery caddy with culinary gear. Uses 1 Energy.",
 		"Chef-grade magnetic organizer bar. Uses 1 Energy.",
@@ -140,7 +153,10 @@ func _init_database() -> void:
 			rack_names[t - 1], rack_descs[t - 1],
 			Color(0.65, 0.55, 0.75), rack_textures[t - 1]
 		)
-		it.is_spawner = true
+		it.min_spawner_tier = default_min_spawner_tier
+		it.is_spawner = (t >= default_min_spawner_tier)
+		it.max_charges = default_spawner_max_charges
+		it.cooldown_per_charge = default_spawner_cooldown_per_charge
 		it.energy_cost = 1
 		it.spawn_pool = _get_rack_pool(t)
 

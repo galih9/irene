@@ -29,13 +29,53 @@ func _ready() -> void:
 	update_inventory_display()
 	update_progression_display()
 
+func apply_custom_colors(shop_col: Color, inv_col: Color, prog_col: Color, border_col: Color = Color.TRANSPARENT) -> void:
+	if is_instance_valid(shop_btn):
+		_style_button(shop_btn, shop_col, border_col)
+	if is_instance_valid(inventory_btn):
+		_style_button(inventory_btn, inv_col, border_col)
+		_setup_inventory_styles()
+	if is_instance_valid(progression_btn):
+		_style_button(progression_btn, prog_col, border_col)
+
+func _style_button(btn: Button, bg_col: Color, border_col: Color) -> void:
+	if not is_instance_valid(btn):
+		return
+	var norm: StyleBoxFlat = btn.get_theme_stylebox("normal")
+	if norm is StyleBoxFlat:
+		norm = norm.duplicate()
+	else:
+		norm = StyleBoxFlat.new()
+		norm.corner_radius_top_left = 14
+		norm.corner_radius_top_right = 14
+		norm.corner_radius_bottom_right = 14
+		norm.corner_radius_bottom_left = 14
+		norm.border_width_left = 2
+		norm.border_width_top = 2
+		norm.border_width_right = 2
+		norm.border_width_bottom = 2
+
+	norm.bg_color = bg_col
+	if border_col.a > 0.0:
+		norm.border_color = border_col
+
+	var hover: StyleBoxFlat = norm.duplicate()
+	hover.bg_color = bg_col.lightened(0.12)
+
+	var pressed: StyleBoxFlat = norm.duplicate()
+	pressed.bg_color = bg_col.darkened(0.12)
+
+	btn.add_theme_stylebox_override("normal", norm)
+	btn.add_theme_stylebox_override("hover", hover)
+	btn.add_theme_stylebox_override("pressed", pressed)
+
 func _setup_inventory_styles() -> void:
 	var base_style := inventory_btn.get_theme_stylebox("normal")
 	if base_style is StyleBoxFlat:
 		_inv_normal_style = base_style.duplicate()
 		_inv_hover_style = base_style.duplicate()
-		_inv_hover_style.bg_color = Color(0.18, 0.25, 0.38, 0.98)
-		_inv_hover_style.border_color = Color(0.35, 0.8, 1.0, 1.0)
+		_inv_hover_style.bg_color = base_style.bg_color.lightened(0.18)
+		_inv_hover_style.border_color = Color(1.0, 0.9, 0.6, 1.0)
 		_inv_hover_style.border_width_left = 3
 		_inv_hover_style.border_width_top = 3
 		_inv_hover_style.border_width_right = 3

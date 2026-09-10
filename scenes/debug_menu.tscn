@@ -159,6 +159,31 @@ custom_minimum_size = Vector2(0, 38)
 layout_mode = 2
 text = "Instant Complete Active Quest"
 
+[node name="MechanicsTitle" type="Label" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.7, 0.8, 1)
+theme_override_font_sizes/font_size = 13
+text = "── BOXED & LOCKED ITEMS TEST ──"
+
+[node name="MechanicsGrid" type="HBoxContainer" parent="Panel/Margin/VBox/Scroll/Content"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="SpawnLockedEggBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/MechanicsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Locked Egg T2"
+
+[node name="SpawnBoxedLv2Btn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/MechanicsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Boxed (Lv.2)"
+
+[node name="SpawnBoxedLv3Btn" type="Button" parent="Panel/Margin/VBox/Scroll/Content/MechanicsGrid"]
+layout_mode = 2
+size_flags_horizontal = 3
+text = "Boxed (Lv.3)"
+
 [node name="SpawnTitle" type="Label" parent="Panel/Margin/VBox/Scroll/Content"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.72, 1, 1)

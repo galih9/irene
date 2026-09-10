@@ -78,3 +78,49 @@ func _on_options_pressed() -> void:
 func _on_debug_pressed() -> void:
 	SoundManager.play_pickup()
 	GameEvents.request_debug_toggle.emit()
+
+func apply_custom_colors(btn_col: Color, cont_col: Color, border_col: Color = Color.TRANSPARENT) -> void:
+	var buttons := [shop_btn, options_btn, debug_btn]
+	for btn in buttons:
+		if is_instance_valid(btn):
+			var sb: StyleBoxFlat = StyleBoxFlat.new()
+			sb.bg_color = btn_col
+			if border_col.a > 0.0:
+				sb.border_color = border_col
+				sb.border_width_left = 1
+				sb.border_width_top = 1
+				sb.border_width_right = 1
+				sb.border_width_bottom = 1
+			sb.corner_radius_top_left = 8
+			sb.corner_radius_top_right = 8
+			sb.corner_radius_bottom_right = 8
+			sb.corner_radius_bottom_left = 8
+			var hover_sb := sb.duplicate()
+			hover_sb.bg_color = btn_col.lightened(0.12)
+			var press_sb := sb.duplicate()
+			press_sb.bg_color = btn_col.darkened(0.12)
+			btn.add_theme_stylebox_override("normal", sb)
+			btn.add_theme_stylebox_override("hover", hover_sb)
+			btn.add_theme_stylebox_override("pressed", press_sb)
+
+	var pill_boxes := [
+		get_node_or_null("Margin/HBox/LevelBox"),
+		get_node_or_null("Margin/HBox/EnergyBox"),
+		get_node_or_null("Margin/HBox/CoinsBox"),
+		get_node_or_null("Margin/HBox/GemsBox")
+	]
+	for pbox in pill_boxes:
+		if is_instance_valid(pbox) and pbox is PanelContainer:
+			var psb := StyleBoxFlat.new()
+			psb.bg_color = cont_col
+			if border_col.a > 0.0:
+				psb.border_color = border_col
+				psb.border_width_left = 1
+				psb.border_width_top = 1
+				psb.border_width_right = 1
+				psb.border_width_bottom = 1
+			psb.corner_radius_top_left = 10
+			psb.corner_radius_top_right = 10
+			psb.corner_radius_bottom_right = 10
+			psb.corner_radius_bottom_left = 10
+			pbox.add_theme_stylebox_override("panel", psb)

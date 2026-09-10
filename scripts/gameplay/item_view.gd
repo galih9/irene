@@ -1,10 +1,34 @@
 class_name ItemView
 extends Node2D
 
+enum ItemState {
+	NORMAL = 0,
+	LOCKED = 1,
+	BOXED = 2
+}
+
+enum ProducerStatus {
+	NONE = 0,
+	READY = 1,
+	EXHAUST = 2
+}
+
 @export var data: ItemData:
 	set(val):
 		data = val
 		if is_inside_tree():
+			_update_visuals()
+
+@export var item_state: ItemState = ItemState.NORMAL:
+	set(val):
+		item_state = val
+		if is_inside_tree():
+			_update_visuals()
+
+@export var unlock_level: int = 1:
+	set(val):
+		unlock_level = val
+		if is_inside_tree() and item_state == ItemState.BOXED:
 			_update_visuals()
 
 var grid_coord: Vector2i = Vector2i(-1, -1)
@@ -14,6 +38,14 @@ var inventory_slot_idx: int = -1
 var is_dragging: bool = false
 var target_slot_pos: Vector2 = Vector2.ZERO
 
+# Producer state
+var producer_status: ProducerStatus = ProducerStatus.NONE
+var current_charges: int = 10
+var max_charges: int = 10
+var cooldown_per_charge: float = 5.0
+var current_cooldown: float = 0.0
+var _idle_tween: Tween = null
+
 @onready var visuals: Node2D = $Visuals
 @onready var sprite: Sprite2D = $Visuals/Sprite
 @onready var shadow: Sprite2D = $Shadow
@@ -21,6 +53,8 @@ var target_slot_pos: Vector2 = Vector2.ZERO
 @onready var tier_badge: PanelContainer = $Visuals/TierBadge
 @onready var tier_label: Label = $Visuals/TierBadge/TierLabel
 @onready var spawner_badge: PanelContainer = $Visuals/SpawnerBadge
+@onready var status_badge: PanelContainer = $Visuals/StatusBadge
+@onready var status_label: Label = $Visuals/StatusBadge/StatusLabel
 @onready var touch_area: Control = $TouchArea
 
 var _pulse_tween: Tween
@@ -32,44 +66,223 @@ func _ready() -> void:
 		_update_visuals()
 	glow.visible = false
 
-func setup(item_data: ItemData) -> void:
+func _process(delta: float) -> void:
+	if not data or not data.is_spawner or item_state != ItemState.NORMAL:
+		return
+
+	if current_cooldown > 0.0:
+		current_cooldown = maxf(0.0, current_cooldown - delta)
+		var missing_charges: int = int(ceil(current_cooldown / cooldown_per_charge))
+		var target_charges: int = clampi(max_charges - missing_charges, 0, max_charges)
+		if current_cooldown <= 0.0:
+			target_charges = max_charges
+
+		if target_charges > current_charges:
+			current_charges = target_charges
+			if current_charges > 0 and producer_status == ProducerStatus.EXHAUST:
+				producer_status = ProducerStatus.READY
+				_update_visuals()
+
+		if producer_status == ProducerStatus.EXHAUST and status_label and status_badge and status_badge.visible:
+			status_label.text = "%ds" % int(ceil(current_cooldown))
+
+func setup(item_data: ItemData, state: ItemState = ItemState.NORMAL, req_level: int = 1) -> void:
 	data = item_data
+	item_state = state
+	unlock_level = req_level
+	if data and data.is_spawner:
+		max_charges = data.max_charges
+		cooldown_per_charge = data.cooldown_per_charge
+		current_charges = max_charges
+		current_cooldown = 0.0
+		producer_status = ProducerStatus.READY
+	else:
+		producer_status = ProducerStatus.NONE
+		current_charges = 0
+		current_cooldown = 0.0
+	_update_visuals()
+
+func restore_spawner_state(charges: int, cooldown: float, status_val: int = -1) -> void:
+	if not data or not data.is_spawner:
+		return
+	max_charges = data.max_charges
+	cooldown_per_charge = data.cooldown_per_charge
+	current_charges = charges
+	current_cooldown = cooldown
+	if status_val >= 0:
+		producer_status = status_val as ProducerStatus
+	else:
+		producer_status = ProducerStatus.READY if current_charges > 0 else ProducerStatus.EXHAUST
+	_update_visuals()
+
+func is_normal() -> bool:
+	return item_state == ItemState.NORMAL
+
+func is_locked() -> bool:
+	return item_state == ItemState.LOCKED
+
+func is_boxed() -> bool:
+	return item_state == ItemState.BOXED
+
+func set_state(new_state: ItemState, req_level: int = 1) -> void:
+	item_state = new_state
+	unlock_level = req_level
+	_update_visuals()
+
+func unbox_to_locked() -> void:
+	item_state = ItemState.LOCKED
+	_update_visuals()
+	animate_unbox()
+
+func unlock_to_normal() -> void:
+	item_state = ItemState.NORMAL
 	_update_visuals()
 
 func _update_visuals() -> void:
 	if not data:
 		return
 
+	if item_state == ItemState.BOXED:
+		# Boxed status: use godot icon placeholder, hide tier, hide spawner
+		var box_tex: Texture2D = preload("res://icon.svg")
+		sprite.texture = box_tex
+		shadow.texture = box_tex
+		glow.texture = box_tex
+		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		_base_scale = 0.48
+
+		sprite.scale = Vector2(_base_scale, _base_scale)
+		shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
+		glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
+
+		tier_badge.visible = false
+		spawner_badge.visible = false
+		if status_badge and status_label:
+			status_badge.visible = true
+			status_label.text = "Lv.%d" % unlock_level
+		return
+
+	# Determine texture and scale for revealed items (NORMAL or LOCKED)
 	if data.icon_texture:
 		sprite.texture = data.icon_texture
 		shadow.texture = data.icon_texture
 		glow.texture = data.icon_texture
-		sprite.modulate = Color.WHITE
 		var tex_size := data.icon_texture.get_size()
 		var max_dim := maxf(tex_size.x, tex_size.y)
 		_base_scale = (70.0 / max_dim) * data.icon_scale if max_dim > 0.0 else 0.48
 	else:
-		sprite.texture = preload("res://icon.svg")
-		shadow.texture = preload("res://icon.svg")
-		glow.texture = preload("res://icon.svg")
-		sprite.modulate = data.color
+		var def_tex: Texture2D = preload("res://icon.svg")
+		sprite.texture = def_tex
+		shadow.texture = def_tex
+		glow.texture = def_tex
 		_base_scale = 0.48 * data.icon_scale
 
 	sprite.scale = Vector2(_base_scale, _base_scale)
 	shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
 	glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
 
-	# Update tier badge
-	if data.max_tier > 1:
-		tier_badge.visible = true
-		tier_label.text = "T%d" % data.tier
+	if item_state == ItemState.LOCKED:
+		# Locked status: disabled dark gray filter, show tier so user knows merge partner
+		sprite.modulate = Color(0.38, 0.38, 0.42, 1.0)
+		tier_badge.visible = (data.max_tier > 1)
+		if tier_badge.visible:
+			tier_label.text = "T%d" % data.tier
+		spawner_badge.visible = false
+		if status_badge:
+			status_badge.visible = false
+		stop_idle_animation()
 	else:
-		tier_badge.visible = false
+		# Normal status: active coloring and badges
+		tier_badge.visible = (data.max_tier > 1)
+		if tier_badge.visible:
+			tier_label.text = "T%d" % data.tier
 
-	# Spawner badge
-	spawner_badge.visible = data.is_spawner
+		if data.is_spawner:
+			if producer_status == ProducerStatus.EXHAUST or current_charges <= 0:
+				spawner_badge.visible = false
+				if status_badge and status_label:
+					status_badge.visible = true
+					status_label.text = "%ds" % int(ceil(current_cooldown))
+				sprite.modulate = Color(0.65, 0.65, 0.7, 1.0)
+				stop_idle_animation()
+			else:
+				spawner_badge.visible = true
+				if status_badge:
+					status_badge.visible = false
+				sprite.modulate = Color.WHITE if data.icon_texture else data.color
+				start_idle_animation()
+		else:
+			spawner_badge.visible = false
+			if status_badge:
+				status_badge.visible = false
+			sprite.modulate = Color.WHITE if data.icon_texture else data.color
+			stop_idle_animation()
+
+func consume_spawn_charge() -> bool:
+	if not data or not data.is_spawner or current_charges <= 0:
+		return false
+	current_charges -= 1
+	current_cooldown = minf(current_cooldown + cooldown_per_charge, float(max_charges) * cooldown_per_charge)
+	if current_charges <= 0:
+		current_charges = 0
+		producer_status = ProducerStatus.EXHAUST
+		stop_idle_animation()
+	else:
+		producer_status = ProducerStatus.READY
+	_update_visuals()
+	return true
+
+func is_spawner_ready() -> bool:
+	return data != null and data.is_spawner and item_state == ItemState.NORMAL and producer_status == ProducerStatus.READY and current_charges > 0
+
+func is_spawner_exhausted() -> bool:
+	return data != null and data.is_spawner and (producer_status == ProducerStatus.EXHAUST or current_charges <= 0)
+
+func get_spawner_status_string() -> String:
+	if not data or not data.is_spawner:
+		return "none"
+	match producer_status:
+		ProducerStatus.READY:
+			return "ready"
+		ProducerStatus.EXHAUST:
+			return "Exhaust"
+		_:
+			return "none"
+
+func start_idle_animation() -> void:
+	if _idle_tween and _idle_tween.is_valid():
+		return
+	if is_dragging or (glow and glow.visible):
+		return
+	if not data or not data.is_spawner or item_state != ItemState.NORMAL or producer_status != ProducerStatus.READY or current_charges <= 0:
+		return
+
+	_idle_tween = create_tween().set_loops()
+	_idle_tween.tween_property(visuals, "scale", Vector2(1.07, 0.94), 0.65).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.tween_property(visuals, "scale", Vector2(0.95, 1.05), 0.65).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_idle_tween.tween_property(visuals, "scale", Vector2.ONE, 0.45).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
+func stop_idle_animation() -> void:
+	if _idle_tween and _idle_tween.is_valid():
+		_idle_tween.kill()
+	_idle_tween = null
+	if not is_dragging and visuals:
+		visuals.scale = Vector2.ONE
+
+func animate_unbox() -> void:
+	# Juicy squash, stretch, and pop when opening a box into a locked item
+	visuals.scale = Vector2(0.6, 1.35)
+	var tween := create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visuals, "scale", Vector2.ONE, 0.45)
+
+	# Flash effect
+	var target_col := sprite.modulate
+	var flash_tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	flash_tween.tween_property(sprite, "modulate", target_col, 0.3).from(Color.WHITE * 2.0)
+	SoundManager.play_spawn()
 
 func animate_pickup() -> void:
+	stop_idle_animation()
 	is_dragging = true
 	z_index = 100
 	if _scale_tween:
@@ -92,15 +305,23 @@ func animate_drop(on_complete: Callable = Callable()) -> void:
 	_scale_tween.tween_property(shadow, "position", Vector2(0, 6), 0.2)
 	_scale_tween.tween_property(shadow, "scale", Vector2(_base_scale * 0.9, _base_scale * 0.9), 0.2)
 	_scale_tween.tween_property(shadow, "modulate:a", 0.25, 0.2)
-	if on_complete.is_valid():
-		_scale_tween.finished.connect(on_complete)
+	_scale_tween.finished.connect(func():
+		if is_spawner_ready():
+			start_idle_animation()
+		if on_complete.is_valid():
+			on_complete.call()
+	)
 	SoundManager.play_drop()
 
 func animate_snap_to(target_pos: Vector2, on_complete: Callable = Callable()) -> void:
 	var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "position", target_pos, 0.12)
-	if on_complete.is_valid():
-		tween.finished.connect(on_complete)
+	tween.finished.connect(func():
+		if is_spawner_ready():
+			start_idle_animation()
+		if on_complete.is_valid():
+			on_complete.call()
+	)
 
 func animate_bounce_back(origin_pos: Vector2) -> void:
 	is_dragging = false
@@ -113,6 +334,10 @@ func animate_bounce_back(origin_pos: Vector2) -> void:
 	sc_tween.tween_property(shadow, "position", Vector2(0, 6), 0.2)
 	sc_tween.tween_property(shadow, "scale", Vector2(_base_scale * 0.9, _base_scale * 0.9), 0.2)
 	sc_tween.tween_property(shadow, "modulate:a", 0.25, 0.2)
+	sc_tween.finished.connect(func():
+		if is_spawner_ready():
+			start_idle_animation()
+	)
 
 func animate_merge_pop() -> void:
 	# Juicy squash and stretch
@@ -174,6 +399,7 @@ func animate_spawn_flight(from_pos: Vector2, to_pos: Vector2, on_complete: Calla
 func set_merge_highlight(active: bool) -> void:
 	glow.visible = active
 	if active:
+		stop_idle_animation()
 		if _pulse_tween and _pulse_tween.is_valid():
 			_pulse_tween.kill()
 		_pulse_tween = create_tween().set_loops()
@@ -184,3 +410,5 @@ func set_merge_highlight(active: bool) -> void:
 			_pulse_tween.kill()
 		if not is_dragging:
 			visuals.scale = Vector2.ONE
+			if is_spawner_ready():
+				start_idle_animation()

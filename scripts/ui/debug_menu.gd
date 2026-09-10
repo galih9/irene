@@ -15,6 +15,10 @@ var quest_manager_ref: QuestManager = null
 @onready var fill_board_btn: Button = $Panel/Margin/VBox/Scroll/Content/BoardGrid/FillBtn
 @onready var complete_quest_btn: Button = $Panel/Margin/VBox/Scroll/Content/QuestBtn
 
+@onready var spawn_locked_egg_btn: Button = $Panel/Margin/VBox/Scroll/Content/MechanicsGrid/SpawnLockedEggBtn
+@onready var spawn_boxed_lv2_btn: Button = $Panel/Margin/VBox/Scroll/Content/MechanicsGrid/SpawnBoxedLv2Btn
+@onready var spawn_boxed_lv3_btn: Button = $Panel/Margin/VBox/Scroll/Content/MechanicsGrid/SpawnBoxedLv3Btn
+
 @onready var spawn_items_container: HFlowContainer = $Panel/Margin/VBox/Scroll/Content/SpawnItemsContainer
 
 func _ready() -> void:
@@ -45,6 +49,18 @@ func _ready() -> void:
 	complete_quest_btn.pressed.connect(func():
 		if quest_manager_ref:
 			quest_manager_ref.complete_active_quest_debug()
+	)
+
+	spawn_locked_egg_btn.pressed.connect(func():
+		_spawn_item_debug("egg_2", ItemView.ItemState.LOCKED)
+	)
+
+	spawn_boxed_lv2_btn.pressed.connect(func():
+		_spawn_item_debug("beef_2", ItemView.ItemState.BOXED, 2)
+	)
+
+	spawn_boxed_lv3_btn.pressed.connect(func():
+		_spawn_item_debug("cake_2", ItemView.ItemState.BOXED, 3)
 	)
 
 	_populate_spawn_buttons()
@@ -85,7 +101,7 @@ func _populate_spawn_buttons() -> void:
 
 		spawn_items_container.add_child(btn)
 
-func _spawn_item_debug(item_id: String) -> void:
+func _spawn_item_debug(item_id: String, state: int = ItemView.ItemState.NORMAL, req_lvl: int = 1) -> void:
 	if not board_ref:
 		return
 	var empty := board_ref.get_empty_cells()
@@ -94,5 +110,5 @@ func _spawn_item_debug(item_id: String) -> void:
 		GameEvents.show_floating_text.emit("Board is Full!", global_position + Vector2(330, 400), Color.RED)
 		return
 	var coord := empty[0]
-	board_ref.spawn_item_at(coord, item_id)
+	board_ref.spawn_item_at(coord, item_id, state, req_lvl)
 	SoundManager.play_spawn()

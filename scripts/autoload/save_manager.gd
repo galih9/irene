@@ -66,7 +66,7 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 			"slots": InventoryManager.get_slots()
 		},
 		"board": {
-			"cols": board_ref.cols if is_instance_valid(board_ref) else 6,
+			"cols": board_ref.cols if is_instance_valid(board_ref) else 7,
 			"rows": board_ref.rows if is_instance_valid(board_ref) else 9,
 			"items": board_ref.serialize_items() if is_instance_valid(board_ref) else []
 		},

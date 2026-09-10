@@ -1,4 +1,4 @@
-[gd_scene load_steps=5 format=3 uid="uid://c6f3a7m4h5j2r"]
+[gd_scene load_steps=6 format=3 uid="uid://c6f3a7m4h5j2r"]
 
 [ext_resource type="Script" path="res://scripts/gameplay/item_view.gd" id="1_item"]
 [ext_resource type="Texture2D" uid="uid://lp1xqunym3pe" path="res://icon.svg" id="2_icon"]
@@ -12,6 +12,13 @@ corner_radius_bottom_left = 6
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_spawner"]
 bg_color = Color(0.95, 0.65, 0.1, 0.95)
+corner_radius_top_left = 6
+corner_radius_top_right = 6
+corner_radius_bottom_right = 6
+corner_radius_bottom_left = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_status"]
+bg_color = Color(0.12, 0.14, 0.18, 0.92)
 corner_radius_top_left = 6
 corner_radius_top_right = 6
 corner_radius_bottom_right = 6
@@ -68,6 +75,24 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_spawner")
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "⚡"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="StatusBadge" type="PanelContainer" parent="Visuals"]
+visible = false
+offset_left = -34.0
+offset_top = -34.0
+offset_right = -10.0
+offset_bottom = -10.0
+theme_override_styles/panel = SubResource("StyleBoxFlat_status")
+
+[node name="StatusLabel" type="Label" parent="Visuals/StatusBadge"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.1, 0.1, 0.15, 0.9)
+theme_override_constants/outline_size = 2
+text = "🔒"
 horizontal_alignment = 1
 vertical_alignment = 1
 

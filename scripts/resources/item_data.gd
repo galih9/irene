@@ -16,6 +16,9 @@ extends Resource
 @export var is_spawner: bool = false
 @export var spawn_pool: Array[String] = []
 @export var energy_cost: int = 1
+@export var min_spawner_tier: int = 3
+@export var max_charges: int = 10
+@export var cooldown_per_charge: float = 5.0
 
 # Consumable attributes (e.g. Coins, Energy batteries)
 @export var is_consumable: bool = false
