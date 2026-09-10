@@ -8,16 +8,24 @@ extends Control
 @onready var items_container: VBoxContainer = $Panel/VBox/Scroll/ItemsContainer
 
 var _chains: Array[Dictionary] = [
-	{"id": "leaf", "name": "🥬 Greens"},
-	{"id": "egg", "name": "🥚 Eggs"},
-	{"id": "tools", "name": "🔧 Tools"},
-	{"id": "plant", "name": "🌱 Plants"},
-	{"id": "gem", "name": "💎 Gems"},
-	{"id": "coins", "name": "🪙 Coins"},
-	{"id": "energy", "name": "⚡ Energy"}
+	{"id": "foodbox", "name": "Foodbox"},
+	{"id": "oven", "name": "Oven"},
+	{"id": "fridge", "name": "Fridge"},
+	{"id": "rack", "name": "Rack"},
+	{"id": "egg", "name": "Eggs"},
+	{"id": "leaf", "name": "Leafs"},
+	{"id": "beef", "name": "Beef"},
+	{"id": "cake", "name": "Cake"},
+	{"id": "sandwich", "name": "Sandwich"},
+	{"id": "drink", "name": "Drink"},
+	{"id": "util", "name": "Utils"},
+	{"id": "exp", "name": "EXP"},
+	{"id": "gold", "name": "Gold"},
+	{"id": "energy", "name": "Energy"},
+	{"id": "diamond", "name": "Diamonds"}
 ]
 
-var _current_chain_id: String = "leaf"
+var _current_chain_id: String = "foodbox"
 var _tab_buttons: Dictionary = {} # chain_id -> Button
 
 func _ready() -> void:
@@ -205,8 +213,9 @@ func _create_item_row(item: ItemData) -> Control:
 		icon_lbl.anchors_preset = Control.PRESET_FULL_RECT
 		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		icon_lbl.text = "🔒"
-		icon_lbl.add_theme_font_size_override("font_size", 20)
+		icon_lbl.text = "Locked"
+		icon_lbl.add_theme_font_size_override("font_size", 14)
+		icon_lbl.add_theme_color_override("font_color", Color(0.65, 0.6, 0.68))
 		icon_box.add_child(icon_lbl)
 	hbox.add_child(icon_box)
 
@@ -243,7 +252,7 @@ func _create_item_row(item: ItemData) -> Control:
 
 	if not is_unlocked:
 		var locked_lbl := Label.new()
-		locked_lbl.text = "🔒 Locked"
+		locked_lbl.text = "Locked"
 		locked_lbl.add_theme_color_override("font_color", Color(0.6, 0.55, 0.62))
 		locked_lbl.add_theme_font_size_override("font_size", 12)
 		action_box.add_child(locked_lbl)
@@ -252,11 +261,13 @@ func _create_item_row(item: ItemData) -> Control:
 		var claim_btn := Button.new()
 		claim_btn.custom_minimum_size = Vector2(96, 38)
 		
-		var reward_str := "CLAIM\n🪙%d" % reward.coins
+		var reward_str := "CLAIM\n+%d Gold" % reward.coins
 		if reward.gems > 0:
-			reward_str += " 💎%d" % reward.gems
+			reward_str += " +%d Gems" % reward.gems
+		if reward.has("exp") and reward.exp > 0:
+			reward_str += " +%d EXP" % reward.exp
 		claim_btn.text = reward_str
-		claim_btn.add_theme_font_size_override("font_size", 12)
+		claim_btn.add_theme_font_size_override("font_size", 11)
 		claim_btn.add_theme_color_override("font_color", Color.WHITE)
 		claim_btn.add_theme_color_override("font_outline_color", Color(0.2, 0.12, 0.04, 0.7))
 		claim_btn.add_theme_constant_override("outline_size", 2)
@@ -280,9 +291,11 @@ func _create_item_row(item: ItemData) -> Control:
 			claim_btn.disabled = true
 			var res := ProgressionManager.claim_reward(item.id)
 			SoundManager.play_quest()
-			var msg := "+%d Coins!" % res.coins
+			var msg := "+%d Gold!" % res.coins
 			if res.gems > 0:
-				msg += " +%d Gems! 💎" % res.gems
+				msg += " +%d Gems!" % res.gems
+			if res.has("exp") and res.exp > 0:
+				msg += " +%d EXP!" % res.exp
 			GameEvents.show_floating_text.emit("Codex Reward!\n" + msg, panel.global_position + Vector2(250, 20), Color(0.4, 1.0, 0.4))
 			_update_header()
 			_load_chain(item.chain_id)
@@ -290,7 +303,7 @@ func _create_item_row(item: ItemData) -> Control:
 		action_box.add_child(claim_btn)
 	else:
 		var claimed_lbl := Label.new()
-		claimed_lbl.text = "✓ Claimed"
+		claimed_lbl.text = "Claimed"
 		claimed_lbl.add_theme_color_override("font_color", Color(0.42, 0.88, 0.55))
 		claimed_lbl.add_theme_font_size_override("font_size", 12)
 		action_box.add_child(claimed_lbl)

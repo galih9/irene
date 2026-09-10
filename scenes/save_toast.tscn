@@ -1,6 +1,7 @@
 [gd_scene format=3 uid="uid://c6u4m2j5x8qaq"]
 
 [ext_resource type="Script" path="res://scripts/ui/save_toast.gd" id="1_toast"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_progress.png" id="2_prog"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_toast"]
 bg_color = Color(0.15, 0.13, 0.16, 0.96)
@@ -55,11 +56,14 @@ mouse_filter = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="Icon" type="Label" parent="Panel/Margin/HBox"]
+[node name="Icon" type="TextureRect" parent="Panel/Margin/HBox"]
+custom_minimum_size = Vector2(24, 24)
 layout_mode = 2
-theme_override_font_sizes/font_size = 22
-text = "💾"
-vertical_alignment = 1
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("2_prog")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Label" type="Label" parent="Panel/Margin/HBox"]
 layout_mode = 2

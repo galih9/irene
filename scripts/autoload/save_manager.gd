@@ -90,7 +90,7 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		if is_auto_save:
 			toast_requested.emit("Saving, please do not exit the game...", 3.2)
 		else:
-			toast_requested.emit("Game Saved Successfully! 💾", 2.2)
+			toast_requested.emit("Game Saved Successfully!", 2.2)
 
 	save_completed.emit(true, is_auto_save)
 	return true
@@ -124,7 +124,9 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 		var prog: Dictionary = data["progression"]
 		ProgressionManager.load_data(
 			prog.get("unlocked_items", {}),
-			prog.get("claimed_rewards", {})
+			prog.get("claimed_rewards", {}),
+			int(prog.get("player_level", 1)),
+			int(prog.get("player_exp", 0))
 		)
 
 	# 3. Restore Inventory

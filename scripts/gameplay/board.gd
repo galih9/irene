@@ -428,7 +428,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 	if not EconomyManager.has_energy(spawner.data.energy_cost):
 		spawner.animate_wobble()
 		SoundManager.play_error()
-		GameEvents.show_floating_text.emit("Need Energy! ⚡", spawner.global_position + Vector2(0, -50), Color(1.0, 0.4, 0.4))
+		GameEvents.show_floating_text.emit("Need Energy!", spawner.global_position + Vector2(0, -50), Color(1.0, 0.4, 0.4))
 		return
 
 	var empty_cells := get_empty_cells()
@@ -465,10 +465,16 @@ func _trigger_consumable(item: ItemView) -> void:
 
 	if curr == "coins":
 		EconomyManager.add_coins(amt)
-		GameEvents.show_floating_text.emit("+%d Coins!" % amt, pos + Vector2(0, -40), Color(1.0, 0.85, 0.2))
+		GameEvents.show_floating_text.emit("+%d Gold!" % amt, pos + Vector2(0, -40), Color(1.0, 0.85, 0.2))
 	elif curr == "energy":
 		EconomyManager.add_energy(amt)
-		GameEvents.show_floating_text.emit("+%d Energy! ⚡" % amt, pos + Vector2(0, -40), Color(0.3, 1.0, 0.5))
+		GameEvents.show_floating_text.emit("+%d Energy!" % amt, pos + Vector2(0, -40), Color(0.3, 1.0, 0.5))
+	elif curr == "exp":
+		ProgressionManager.add_exp(amt)
+		GameEvents.show_floating_text.emit("+%d EXP!" % amt, pos + Vector2(0, -40), Color(0.85, 0.55, 1.0))
+	elif curr == "gems" or curr == "diamond":
+		EconomyManager.add_gems(amt)
+		GameEvents.show_floating_text.emit("+%d Diamonds!" % amt, pos + Vector2(0, -40), Color(0.45, 0.85, 1.0))
 
 	SoundManager.play_consume()
 	remove_item(item)
@@ -517,7 +523,7 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		if bottom_nav_bar:
 			var inv_btn: Control = bottom_nav_bar.get_inventory_button()
 			text_pos = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
-		GameEvents.show_floating_text.emit("Backpack Full! 🎒", text_pos, Color(1.0, 0.4, 0.4))
+		GameEvents.show_floating_text.emit("Backpack Full!", text_pos, Color(1.0, 0.4, 0.4))
 		_return_item_to_origin(item)
 		return
 
@@ -528,7 +534,7 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 			bottom_nav_bar.play_inventory_pulse()
 			var inv_btn: Control = bottom_nav_bar.get_inventory_button()
 			var text_pos: Vector2 = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
-			GameEvents.show_floating_text.emit("Stored %s! 🎒" % item.data.display_name, text_pos, Color(0.4, 0.85, 1.0))
+			GameEvents.show_floating_text.emit("Stored %s!" % item.data.display_name, text_pos, Color(0.4, 0.85, 1.0))
 		remove_item(item)
 		item.queue_free()
 		GameEvents.board_changed.emit()
@@ -593,7 +599,7 @@ func _sell_item(item: ItemView) -> void:
 	var value := item.data.sell_value
 	EconomyManager.add_coins(value)
 	SoundManager.play_consume()
-	GameEvents.show_floating_text.emit("+%d Coins (Sold)" % value, item.global_position + Vector2(0, -40), Color(1.0, 0.85, 0.2))
+	GameEvents.show_floating_text.emit("+%d Gold (Sold)" % value, item.global_position + Vector2(0, -40), Color(1.0, 0.85, 0.2))
 	remove_item(item)
 	item.queue_free()
 	GameEvents.board_changed.emit()
@@ -612,7 +618,11 @@ func clear_board() -> void:
 	GameEvents.board_changed.emit()
 
 func fill_board_random() -> void:
-	var sample_pool := ["tools_1", "tools_2", "plant_1", "plant_2", "gem_1", "coins_1", "energy_1"]
+	var sample_pool := [
+		"foodbox_1", "oven_1", "fridge_1", "rack_1",
+		"egg_1", "leaf_1", "beef_1", "cake_1", "sandwich_1", "drink_1", "util_1",
+		"gold_1", "energy_1", "exp_1", "diamond_1"
+	]
 	for c in range(cols):
 		for r in range(rows):
 			if _grid[c][r] == null:

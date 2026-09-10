@@ -1,6 +1,9 @@
-[gd_scene format=3 uid="uid://cfe16s1k6o3uy"]
+[gd_scene load_steps=9 format=3 uid="uid://cfe16s1k6o3uy"]
 
 [ext_resource type="Script" path="res://scripts/ui/bottom_nav_bar.gd" id="1_nav"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_progress.png" id="2_prog_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_inventory.png" id="3_inv_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_shop.png" id="4_shop_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog"]
 bg_color = Color(0.12, 0.14, 0.2, 0.95)
@@ -100,13 +103,17 @@ theme_override_constants/margin_bottom = 8
 [node name="VBox" type="VBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Icon" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "📖"
-horizontal_alignment = 1
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("2_prog_icon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
 layout_mode = 2
@@ -172,13 +179,17 @@ theme_override_constants/margin_bottom = 8
 [node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Icon" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "🎒"
-horizontal_alignment = 1
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("3_inv_icon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
 layout_mode = 2
@@ -220,13 +231,17 @@ theme_override_constants/margin_bottom = 8
 [node name="VBox" type="VBoxContainer" parent="HBoxContainer/ShopBtn/Margin"]
 layout_mode = 2
 mouse_filter = 2
+theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Icon" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
-theme_override_font_sizes/font_size = 28
-text = "🛒"
-horizontal_alignment = 1
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("4_shop_icon")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
 layout_mode = 2
@@ -241,5 +256,5 @@ horizontal_alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.82, 0.72, 1)
 theme_override_font_sizes/font_size = 10
-text = "GOLD & ⚡"
+text = "GOLD & ENERGY"
 horizontal_alignment = 1

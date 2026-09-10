@@ -1,6 +1,12 @@
-[gd_scene load_steps=6 format=3 uid="uid://b8q7x3v1m2n5r"]
+[gd_scene load_steps=12 format=3 uid="uid://b8q7x3v1m2n5r"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
+[ext_resource type="Texture2D" path="res://assets/exp/exp1.png" id="2_exp"]
+[ext_resource type="Texture2D" path="res://assets/energy/energy_1.png" id="3_energy"]
+[ext_resource type="Texture2D" path="res://assets/gold/gold1.png" id="4_gold"]
+[ext_resource type="Texture2D" path="res://assets/diamond/diamond_1.png" id="5_diamond"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_shop.png" id="6_shop_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_gear.png" id="7_gear_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_bg"]
 bg_color = Color(0.13, 0.12, 0.14, 0.98)
@@ -21,6 +27,20 @@ corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_bg"]
+bg_color = Color(0.15, 0.12, 0.2, 0.85)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_fill"]
+bg_color = Color(0.72, 0.42, 0.98, 1)
+corner_radius_top_left = 3
+corner_radius_top_right = 3
+corner_radius_bottom_right = 3
+corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_energy_bg"]
 bg_color = Color(0.12, 0.15, 0.2, 0.8)
@@ -61,111 +81,210 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/margin_left = 16
+theme_override_constants/margin_left = 14
 theme_override_constants/margin_top = 10
-theme_override_constants/margin_right = 16
+theme_override_constants/margin_right = 14
 theme_override_constants/margin_bottom = 10
 
 [node name="HBox" type="HBoxContainer" parent="Margin"]
 layout_mode = 2
-theme_override_constants/separation = 12
-
-[node name="CoinsBox" type="PanelContainer" parent="Margin/HBox"]
-custom_minimum_size = Vector2(115, 0)
-layout_mode = 2
-theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
-
-[node name="HBox" type="HBoxContainer" parent="Margin/HBox/CoinsBox"]
-layout_mode = 2
+theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Icon" type="Label" parent="Margin/HBox/CoinsBox/HBox"]
-layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "🪙"
-
-[node name="Value" type="Label" parent="Margin/HBox/CoinsBox/HBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.86, 0.35, 1)
-theme_override_colors/font_outline_color = Color(0.2, 0.12, 0.04, 0.7)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 16
-text = "150"
-
-[node name="GemsBox" type="PanelContainer" parent="Margin/HBox"]
+[node name="LevelBox" type="PanelContainer" parent="Margin/HBox"]
 custom_minimum_size = Vector2(95, 0)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
 
-[node name="HBox" type="HBoxContainer" parent="Margin/HBox/GemsBox"]
+[node name="Margin" type="MarginContainer" parent="Margin/HBox/LevelBox"]
 layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 6
+
+[node name="HBox" type="HBoxContainer" parent="Margin/HBox/LevelBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Icon" type="Label" parent="Margin/HBox/GemsBox/HBox"]
+[node name="Icon" type="TextureRect" parent="Margin/HBox/LevelBox/Margin/HBox"]
+custom_minimum_size = Vector2(28, 28)
 layout_mode = 2
-theme_override_font_sizes/font_size = 18
-text = "💎"
+size_flags_vertical = 4
+texture = ExtResource("2_exp")
+expand_mode = 1
+stretch_mode = 5
 
-[node name="Value" type="Label" parent="Margin/HBox/GemsBox/HBox"]
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox/LevelBox/Margin/HBox"]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.48, 0.88, 1, 1)
-theme_override_colors/font_outline_color = Color(0.06, 0.16, 0.22, 0.7)
+size_flags_horizontal = 3
+theme_override_constants/separation = 3
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="Margin/HBox/LevelBox/Margin/HBox/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.75, 1, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.08, 0.28, 0.7)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 16
-text = "25"
+theme_override_font_sizes/font_size = 14
+text = "Lv. 1"
+horizontal_alignment = 1
+
+[node name="ExpBar" type="ProgressBar" parent="Margin/HBox/LevelBox/Margin/HBox/VBox"]
+custom_minimum_size = Vector2(46, 5)
+layout_mode = 2
+theme_override_styles/background = SubResource("StyleBoxFlat_exp_bg")
+theme_override_styles/fill = SubResource("StyleBoxFlat_exp_fill")
+max_value = 10.0
+show_percentage = false
 
 [node name="EnergyBox" type="PanelContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(130, 0)
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
 
-[node name="VBox" type="VBoxContainer" parent="Margin/HBox/EnergyBox"]
+[node name="Margin" type="MarginContainer" parent="Margin/HBox/EnergyBox"]
 layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="Margin/HBox/EnergyBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Label" type="Label" parent="Margin/HBox/EnergyBox/VBox"]
+[node name="Icon" type="TextureRect" parent="Margin/HBox/EnergyBox/Margin/HBox"]
+custom_minimum_size = Vector2(28, 28)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("3_energy")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="VBox" type="VBoxContainer" parent="Margin/HBox/EnergyBox/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 2
+alignment = 1
+
+[node name="Label" type="Label" parent="Margin/HBox/EnergyBox/Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.42, 0.95, 0.65, 1)
 theme_override_colors/font_outline_color = Color(0.08, 0.22, 0.12, 0.7)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 14
-text = "⚡ 100/100"
+theme_override_font_sizes/font_size = 13
+text = "100/100"
 horizontal_alignment = 1
 
-[node name="ProgressBar" type="ProgressBar" parent="Margin/HBox/EnergyBox/VBox"]
-custom_minimum_size = Vector2(0, 8)
+[node name="ProgressBar" type="ProgressBar" parent="Margin/HBox/EnergyBox/Margin/HBox/VBox"]
+custom_minimum_size = Vector2(0, 6)
 layout_mode = 2
 theme_override_styles/background = SubResource("StyleBoxFlat_energy_bg")
 theme_override_styles/fill = SubResource("StyleBoxFlat_energy_fill")
 value = 100.0
 show_percentage = false
 
-[node name="TimerLabel" type="Label" parent="Margin/HBox/EnergyBox/VBox"]
+[node name="TimerLabel" type="Label" parent="Margin/HBox/EnergyBox/Margin/HBox/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.84, 0.78, 0.85)
 theme_override_font_sizes/font_size = 10
 text = "FULL"
 horizontal_alignment = 1
 
+[node name="CoinsBox" type="PanelContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(98, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+
+[node name="Margin" type="MarginContainer" parent="Margin/HBox/CoinsBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="Margin/HBox/CoinsBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Margin/HBox/CoinsBox/Margin/HBox"]
+custom_minimum_size = Vector2(26, 26)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("4_gold")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Value" type="Label" parent="Margin/HBox/CoinsBox/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.86, 0.35, 1)
+theme_override_colors/font_outline_color = Color(0.2, 0.12, 0.04, 0.7)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 15
+text = "150"
+
+[node name="GemsBox" type="PanelContainer" parent="Margin/HBox"]
+custom_minimum_size = Vector2(86, 0)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_pill")
+
+[node name="Margin" type="MarginContainer" parent="Margin/HBox/GemsBox"]
+layout_mode = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 4
+
+[node name="HBox" type="HBoxContainer" parent="Margin/HBox/GemsBox/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 5
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="Margin/HBox/GemsBox/Margin/HBox"]
+custom_minimum_size = Vector2(24, 24)
+layout_mode = 2
+size_flags_vertical = 4
+texture = ExtResource("5_diamond")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Value" type="Label" parent="Margin/HBox/GemsBox/Margin/HBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.88, 1, 1)
+theme_override_colors/font_outline_color = Color(0.06, 0.16, 0.22, 0.7)
+theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 15
+text = "25"
+
 [node name="ButtonsBox" type="HBoxContainer" parent="Margin/HBox"]
 layout_mode = 2
-theme_override_constants/separation = 8
+theme_override_constants/separation = 6
 
 [node name="ShopBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
-custom_minimum_size = Vector2(76, 0)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.92, 0.65, 1)
-theme_override_font_sizes/font_size = 13
-text = "🛒 SHOP"
+size_flags_vertical = 4
+icon = ExtResource("6_shop_icon")
+icon_alignment = 1
+expand_icon = true
 
 [node name="OptionsBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
-custom_minimum_size = Vector2(40, 0)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 16
-text = "⚙️"
+size_flags_vertical = 4
+icon = ExtResource("7_gear_icon")
+icon_alignment = 1
+expand_icon = true
 
 [node name="DebugBtn" type="Button" parent="Margin/HBox/ButtonsBox"]
-custom_minimum_size = Vector2(40, 0)
+custom_minimum_size = Vector2(40, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "🛠️"
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(0.85, 0.82, 0.75, 1)
+theme_override_font_sizes/font_size = 12
+text = "DBG"

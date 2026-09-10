@@ -12,6 +12,7 @@
 [ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background.jpeg" id="10_bg"]
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="11_opt"]
 [ext_resource type="PackedScene" uid="uid://c6u4m2j5x8qaq" path="res://scenes/save_toast.tscn" id="12_toast"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_trash.png" id="13_trash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sellbin"]
 bg_color = Color(0.16, 0.14, 0.17, 0.95)
@@ -130,10 +131,14 @@ grow_vertical = 2
 mouse_filter = 2
 alignment = 1
 
-[node name="Icon" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=413301706]
+[node name="Icon" type="TextureRect" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=413301706]
+custom_minimum_size = Vector2(26, 26)
 layout_mode = 2
-theme_override_font_sizes/font_size = 20
-text = "🗑️"
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("13_trash")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Text" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=1904344762]
 layout_mode = 2
@@ -141,7 +146,7 @@ theme_override_colors/font_color = Color(1, 0.88, 0.4, 1)
 theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.6)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 14
-text = "DROP ANY ITEM HERE TO SELL FOR COINS 🪙"
+text = "DROP ANY ITEM HERE TO SELL FOR GOLD"
 
 [node name="HelpBar" type="Panel" parent="CanvasLayer/UI" unique_id=256951875]
 layout_mode = 0
@@ -174,13 +179,13 @@ theme_override_constants/separation = 4
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.88, 0.5, 1)
 theme_override_font_sizes/font_size = 13
-text = "💡 QUICK GUIDE & CONTROLS"
+text = "QUICK GUIDE & CONTROLS"
 
 [node name="Tip1" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=2043963429]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.89, 0.84, 1)
 theme_override_font_sizes/font_size = 12
-text = "• Tap ⚡ Spawners (Toolbox / Ancient Tree) to generate items using 1 Energy."
+text = "• Tap Spawners (Foodbox, Oven, Fridge, Rack) to generate items using 1 Energy."
 
 [node name="Tip2" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1563960216]
 layout_mode = 2
@@ -192,19 +197,19 @@ text = "• Drag two identical tier items together to merge them into the next t
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.89, 0.84, 1)
 theme_override_font_sizes/font_size = 12
-text = "• Tap Coins or Batteries to collect their currency directly."
+text = "• Tap Gold, Energy, or EXP items to collect them directly."
 
 [node name="Tip4" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1953041726]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.89, 0.84, 1)
 theme_override_font_sizes/font_size = 12
-text = "• Deliver customer orders at the top to earn Coins and rare Gems."
+text = "• Deliver customer orders at the top to earn Gold, Diamonds, and EXP."
 
 [node name="Tip5" type="Label" parent="CanvasLayer/UI/HelpBar/Margin/VBox" unique_id=1295228428]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.89, 0.84, 1)
 theme_override_font_sizes/font_size = 12
-text = "• Tap 📖 CODEX for rewards, 🎒 BACKPACK for storage, 🛒 SHOP for energy & crates!"
+text = "• Tap CODEX for rewards, BACKPACK for storage, SHOP for energy & crates!"
 
 [node name="FloatingLayer" type="Node2D" parent="CanvasLayer" unique_id=164337634]
 z_index = 150

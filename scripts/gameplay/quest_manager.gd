@@ -35,34 +35,37 @@ func setup(board: Board, _inventory = null) -> void:
 func _init_starter_quests() -> void:
 	active_quests.clear()
 
-	# Quest 1: Basic Tool (Wrench + Hammer)
+	# Quest 1: Farm Breakfast (Egg + Fresh Herb)
 	var q1 := QuestData.new()
 	q1.id = "quest_1"
-	q1.customer_name = "Mechanic Rex"
-	q1.customer_color = Color(0.9, 0.55, 0.2)
-	q1.required_item_ids = ["tools_1", "tools_2"]
+	q1.customer_name = "Chef Luigi"
+	q1.customer_color = Color(0.85, 0.35, 0.3)
+	q1.required_item_ids = ["egg_1", "leaf_1"]
 	q1.reward_coins = 35
 	q1.reward_gems = 0
+	q1.reward_exp = 15
 	active_quests.append(q1)
 
-	# Quest 2: Kitchen Breakfast (Egg + Fresh Herb)
+	# Quest 2: Sweet Lunch (Cake + Toast)
 	var q2 := QuestData.new()
 	q2.id = "quest_2"
-	q2.customer_name = "Chef Luigi"
-	q2.customer_color = Color(0.85, 0.35, 0.3)
-	q2.required_item_ids = ["egg_1", "leaf_1"]
+	q2.customer_name = "Grandma Rose"
+	q2.customer_color = Color(0.9, 0.55, 0.2)
+	q2.required_item_ids = ["cake_1", "sandwich_1"]
 	q2.reward_coins = 45
-	q2.reward_gems = 2
+	q2.reward_gems = 1
+	q2.reward_exp = 20
 	active_quests.append(q2)
 
-	# Quest 3: Special Request (Hand Saw)
+	# Quest 3: Hearty Meal (Beef + Kitchen Spoon)
 	var q3 := QuestData.new()
 	q3.id = "quest_3"
 	q3.customer_name = "Mayor Bob"
 	q3.customer_color = Color(0.25, 0.6, 0.9)
-	q3.required_item_ids = ["tools_3"]
+	q3.required_item_ids = ["beef_1", "util_1"]
 	q3.reward_coins = 55
-	q3.reward_gems = 5
+	q3.reward_gems = 2
+	q3.reward_exp = 30
 	active_quests.append(q3)
 
 func _rebuild_cards() -> void:
@@ -115,14 +118,18 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 		EconomyManager.add_gems(quest.reward_gems)
 	if quest.reward_energy > 0:
 		EconomyManager.add_energy(quest.reward_energy)
+	if quest.reward_exp > 0:
+		ProgressionManager.add_exp(quest.reward_exp)
 
 	SoundManager.play_quest()
 
 	# Floating celebration
-	var reward_str: String = "+%d Coins!" % quest.reward_coins
+	var reward_str: String = "+%d Gold!" % quest.reward_coins
 	if quest.reward_gems > 0:
 		reward_str += " +%d Gems!" % quest.reward_gems
-	GameEvents.show_floating_text.emit("Quest Complete!\n" + reward_str, global_position + Vector2(332, 100), Color(0.3, 1.0, 0.4))
+	if quest.reward_exp > 0:
+		reward_str += " +%d EXP!" % quest.reward_exp
+	GameEvents.show_floating_text.emit("Order Complete!\n" + reward_str, global_position + Vector2(332, 100), Color(0.3, 1.0, 0.4))
 
 	# Replace with new quest
 	var idx := active_quests.find(quest)
@@ -161,11 +168,13 @@ func _generate_new_quest() -> QuestData:
 	var total_tier := 0
 
 	var possible_pools := [
-		["tools_1", "tools_2", "tools_3", "tools_4"],
-		["plant_1", "plant_2", "plant_3", "plant_4"],
-		["leaf_1", "leaf_2", "leaf_3", "leaf_4"],
 		["egg_1", "egg_2", "egg_3", "egg_4"],
-		["gem_1", "gem_2", "gem_3"]
+		["leaf_1", "leaf_2", "leaf_3", "leaf_4"],
+		["beef_1", "beef_2", "beef_3", "beef_4"],
+		["cake_1", "cake_2", "cake_3", "cake_4"],
+		["sandwich_1", "sandwich_2", "sandwich_3", "sandwich_4"],
+		["drink_1", "drink_2", "drink_3", "drink_4"],
+		["util_1", "util_2", "util_3", "util_4"]
 	]
 
 	for i in range(count):
@@ -178,7 +187,8 @@ func _generate_new_quest() -> QuestData:
 
 	q.required_item_ids = reqs
 	q.reward_coins = 20 + total_tier * 18 + randi() % 10
-	q.reward_gems = 3 if total_tier >= 4 else (1 if randf() < 0.35 else 0)
+	q.reward_gems = 2 if total_tier >= 4 else (1 if randf() < 0.35 else 0)
+	q.reward_exp = 10 + total_tier * 6
 
 	return q
 
@@ -188,6 +198,8 @@ func complete_active_quest_debug() -> void:
 		EconomyManager.add_coins(q.reward_coins)
 		if q.reward_gems > 0:
 			EconomyManager.add_gems(q.reward_gems)
+		if q.reward_exp > 0:
+			ProgressionManager.add_exp(q.reward_exp)
 		active_quests[0] = _generate_new_quest()
 		_rebuild_cards()
 		update_quest_status()
@@ -204,7 +216,8 @@ func serialize_quests() -> Array[Dictionary]:
 				"required_item_ids": q.required_item_ids.duplicate(),
 				"reward_coins": q.reward_coins,
 				"reward_gems": q.reward_gems,
-				"reward_energy": q.reward_energy
+				"reward_energy": q.reward_energy,
+				"reward_exp": q.reward_exp
 			})
 	return result
 
@@ -225,7 +238,7 @@ func load_quests(quests_data: Array) -> void:
 			q.reward_coins = int(entry.get("reward_coins", 25))
 			q.reward_gems = int(entry.get("reward_gems", 0))
 			q.reward_energy = int(entry.get("reward_energy", 0))
+			q.reward_exp = int(entry.get("reward_exp", 15))
 			active_quests.append(q)
 	_rebuild_cards()
 	update_quest_status()
-

@@ -7,86 +7,559 @@ func _ready() -> void:
 	_init_database()
 
 func _init_database() -> void:
-	# 1. Tools Chain
-	_register_item("tools_1", "tools", "Tools", 1, 5, "Wrench", "A basic wrench for fixing things.", Color(0.85, 0.85, 0.9))
-	_register_item("tools_2", "tools", "Tools", 2, 5, "Hammer", "A sturdy hammer to build with.", Color(0.4, 0.7, 0.95))
-	_register_item("tools_3", "tools", "Tools", 3, 5, "Hand Saw", "Sharp hand saw for cutting wood.", Color(0.2, 0.5, 0.9))
-	_register_item("tools_4", "tools", "Tools", 4, 5, "Power Drill", "Heavy duty motorized power drill.", Color(0.3, 0.35, 0.85))
-	var toolbox := _register_item("tools_5", "tools", "Tools", 5, 5, "Toolbox", "Tap to produce tool items! Uses 1 Energy.", Color(0.9, 0.25, 0.25))
-	toolbox.is_spawner = true
-	toolbox.energy_cost = 1
-	toolbox.spawn_pool = ["tools_1", "tools_1", "tools_1", "tools_2", "coins_1"]
+	_items.clear()
+	_chains.clear()
 
-	# 2. Plant Chain
-	_register_item("plant_1", "plant", "Plant", 1, 5, "Seed", "A tiny magical seed.", Color(0.75, 0.88, 0.55))
-	_register_item("plant_2", "plant", "Plant", 2, 5, "Sprout", "A fresh green sprout reaching up.", Color(0.45, 0.82, 0.3))
-	_register_item("plant_3", "plant", "Plant", 3, 5, "Wildflower", "A colorful blooming wildflower.", Color(0.92, 0.45, 0.7))
-	_register_item("plant_4", "plant", "Plant", 4, 5, "Berry Bush", "A lush bush rich with sweet berries.", Color(0.8, 0.25, 0.55))
-	var tree := _register_item("plant_5", "plant", "Plant", 5, 5, "Ancient Tree", "Tap to produce plant items! Uses 1 Energy.", Color(0.18, 0.65, 0.32))
-	tree.is_spawner = true
-	tree.energy_cost = 1
-	tree.spawn_pool = ["plant_1", "plant_1", "leaf_1", "plant_2", "energy_1"]
+	# =========================================================================
+	# 1. PRODUCER ITEMS
+	# =========================================================================
 
-	# 3. Gem Chain (valuable quest / sell items)
-	_register_item("gem_1", "gem", "Gem", 1, 4, "Gem Shard", "A shining fragment of a crystal.", Color(0.55, 0.9, 0.95))
-	_register_item("gem_2", "gem", "Gem", 2, 4, "Rough Crystal", "A clustered crystalline formation.", Color(0.35, 0.72, 1.0))
-	_register_item("gem_3", "gem", "Gem", 3, 4, "Cut Ruby", "A brilliant faceted ruby gemstone.", Color(0.95, 0.2, 0.38))
-	_register_item("gem_4", "gem", "Gem", 4, 4, "Royal Diamond", "The crowning jewel of the realm.", Color(1.0, 0.88, 0.28))
+	# 1.1 Foodbox Chain (produces egg, leafs)
+	var foodbox_textures := [
+		preload("res://assets/foodbox/food1.png"),
+		preload("res://assets/foodbox/food2.png"),
+		preload("res://assets/foodbox/food3.png"),
+		preload("res://assets/foodbox/food4.png"),
+		preload("res://assets/foodbox/food5.png"),
+		preload("res://assets/foodbox/food6.png")
+	]
+	var foodbox_names := [
+		"Wooden Foodbox", "Reinforced Foodbox", "Pantry Box",
+		"Chef's Produce Box", "Gourmet Harvest Crate", "Master Harvest Vault"
+	]
+	var foodbox_descs := [
+		"Tap to produce fresh farm eggs and greens! Uses 1 Energy.",
+		"A sturdy reinforced produce crate. Uses 1 Energy.",
+		"A well-stocked pantry box. Uses 1 Energy.",
+		"Chef's selection box with fresh eggs and herbs. Uses 1 Energy.",
+		"Gourmet crate packed with prime kitchen harvest. Uses 1 Energy.",
+		"The ultimate farm produce vault! Produces eggs and greens. Uses 1 Energy."
+	]
+	for t in range(1, 7):
+		var id := "foodbox_%d" % t
+		var it := _register_item(
+			id, "foodbox", "Foodbox", t, 6,
+			foodbox_names[t - 1], foodbox_descs[t - 1],
+			Color(0.88, 0.65, 0.35), foodbox_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.energy_cost = 1
+		it.spawn_pool = _get_foodbox_pool(t)
 
-	# 4. Coins Chain (Consumable)
-	var coin1 := _register_item("coins_1", "coins", "Coins", 1, 4, "Bronze Coin", "Double-tap to collect 5 Coins.", Color(0.85, 0.55, 0.25))
-	coin1.is_consumable = true
-	coin1.consume_currency = "coins"
-	coin1.consume_amount = 5
+	# 1.2 Oven Chain (produces beef, cake, sandwich)
+	var oven_textures := [
+		preload("res://assets/oven/oven_1.png"),
+		preload("res://assets/oven/oven_2.png"),
+		preload("res://assets/oven/oven_3.png"),
+		preload("res://assets/oven/oven_4.png"),
+		preload("res://assets/oven/oven_5.png"),
+		preload("res://assets/oven/oven_6.png")
+	]
+	var oven_names := [
+		"Clay Toaster", "Stone Stove", "Brick Baker",
+		"Stainless Oven", "Pastry Range", "Grand Master Oven"
+	]
+	var oven_descs := [
+		"Tap to bake beef, cakes, and sandwiches! Uses 1 Energy.",
+		"A sturdy stone hearth with steady baking heat. Uses 1 Energy.",
+		"Traditional brick oven for savory meats and cakes. Uses 1 Energy.",
+		"Precision stainless steel oven. Uses 1 Energy.",
+		"Professional dual-deck pastry and roast range. Uses 1 Energy.",
+		"Grand culinary oven! Bakes gourmet beef, cake and sandwiches. Uses 1 Energy."
+	]
+	for t in range(1, 7):
+		var id := "oven_%d" % t
+		var it := _register_item(
+			id, "oven", "Oven", t, 6,
+			oven_names[t - 1], oven_descs[t - 1],
+			Color(0.95, 0.45, 0.28), oven_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.energy_cost = 1
+		it.spawn_pool = _get_oven_pool(t)
 
-	var coin2 := _register_item("coins_2", "coins", "Coins", 2, 4, "Silver Coins", "Double-tap to collect 15 Coins.", Color(0.85, 0.88, 0.92))
-	coin2.is_consumable = true
-	coin2.consume_currency = "coins"
-	coin2.consume_amount = 15
+	# 1.3 Fridge Chain (produces drink)
+	var fridge_textures := [
+		preload("res://assets/fridge/fridge1.png"),
+		preload("res://assets/fridge/fridge2.png"),
+		preload("res://assets/fridge/fridge3.png"),
+		preload("res://assets/fridge/fridge4.png"),
+		preload("res://assets/fridge/fridge5.png"),
+		preload("res://assets/fridge/fridge6.png")
+	]
+	var fridge_names := [
+		"Mini Icebox", "Retro Cooler", "Kitchen Refrigerator",
+		"Double-Door Chiller", "Beverage Dispenser", "Master Cryo Chiller"
+	]
+	var fridge_descs := [
+		"Tap to dispense chilled beverages! Uses 1 Energy.",
+		"A cool retro cooler keeping drinks icy fresh. Uses 1 Energy.",
+		"Standard household fridge with chilled drinks. Uses 1 Energy.",
+		"Double-door chiller with rapid refreshment cooling. Uses 1 Energy.",
+		"Commercial glass-front beverage cooler. Uses 1 Energy.",
+		"Supreme cryo chiller! Dispenses premium drinks. Uses 1 Energy."
+	]
+	for t in range(1, 7):
+		var id := "fridge_%d" % t
+		var it := _register_item(
+			id, "fridge", "Fridge", t, 6,
+			fridge_names[t - 1], fridge_descs[t - 1],
+			Color(0.35, 0.72, 0.95), fridge_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.energy_cost = 1
+		it.spawn_pool = _get_fridge_pool(t)
 
-	var coin3 := _register_item("coins_3", "coins", "Coins", 3, 4, "Gold Pouch", "Double-tap to collect 40 Coins.", Color(1.0, 0.82, 0.1))
-	coin3.is_consumable = true
-	coin3.consume_currency = "coins"
-	coin3.consume_amount = 40
+	# 1.4 Rack Chain (produces utils)
+	var rack_textures := [
+		preload("res://assets/rack/rack1.png"),
+		preload("res://assets/rack/rack2.png"),
+		preload("res://assets/rack/rack3.png"),
+		preload("res://assets/rack/rack4.png"),
+		preload("res://assets/rack/rack5.png"),
+		preload("res://assets/rack/rack6.png"),
+		preload("res://assets/rack/rack7.png")
+	]
+	var rack_names := [
+		"Small Pegboard", "Wooden Utensil Stand", "Metal Tool Rack",
+		"Chef's Cutlery Caddy", "Magnetic Tool Bar", "Master Prep Station", "Grand Kitchen Arsenal"
+	]
+	var rack_descs := [
+		"Tap to produce kitchen utensils! Uses 1 Energy.",
+		"Organized wooden stand holding basic utensils. Uses 1 Energy.",
+		"Stainless steel kitchen utensil rack. Uses 1 Energy.",
+		"Heavy-duty cutlery caddy with culinary gear. Uses 1 Energy.",
+		"Chef-grade magnetic organizer bar. Uses 1 Energy.",
+		"Modular prep station with specialized cooking tools. Uses 1 Energy.",
+		"Supreme culinary arsenal! Produces kitchen utensils. Uses 1 Energy."
+	]
+	for t in range(1, 8):
+		var id := "rack_%d" % t
+		var it := _register_item(
+			id, "rack", "Rack", t, 7,
+			rack_names[t - 1], rack_descs[t - 1],
+			Color(0.65, 0.55, 0.75), rack_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.energy_cost = 1
+		it.spawn_pool = _get_rack_pool(t)
 
-	var coin4 := _register_item("coins_4", "coins", "Coins", 4, 4, "Treasure Chest", "Double-tap to collect 100 Coins!", Color(1.0, 0.62, 0.05))
-	coin4.is_consumable = true
-	coin4.consume_currency = "coins"
-	coin4.consume_amount = 100
+	# =========================================================================
+	# 2. NORMAL ITEMS (produced from producers)
+	# =========================================================================
 
-	# 5. Energy Chain (Consumable)
-	var energy1 := _register_item("energy_1", "energy", "Energy", 1, 3, "Energy Spark", "Double-tap to restore 5 Energy.", Color(0.3, 0.95, 0.6))
-	energy1.is_consumable = true
-	energy1.consume_currency = "energy"
-	energy1.consume_amount = 5
+	# 2.1 Egg Chain (produced from Foodbox)
+	var egg_textures := [
+		preload("res://assets/eggs/egg_0.png"),
+		preload("res://assets/eggs/egg_1.png"),
+		preload("res://assets/eggs/egg_2.png"),
+		preload("res://assets/eggs/egg_3.png"),
+		preload("res://assets/eggs/egg_4.png"),
+		preload("res://assets/eggs/egg_5.png")
+	]
+	var egg_names := [
+		"Fresh Egg", "Double Eggs", "Egg Trio",
+		"Egg Carton", "Egg Crate", "Egg Tub"
+	]
+	var egg_descs := [
+		"A smooth white egg, fresh from the farm.",
+		"Two fresh eggs, ready for breakfast.",
+		"A trio of farm eggs for baking recipes.",
+		"A half-dozen carton of farm-fresh eggs.",
+		"A sturdy wooden storage crate packed with eggs.",
+		"A wholesale tub of farm eggs! Max tier egg."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"egg_%d" % t, "egg", "Eggs", t, 6,
+			egg_names[t - 1], egg_descs[t - 1],
+			Color(0.96, 0.93, 0.88), egg_textures[t - 1]
+		)
 
-	var energy2 := _register_item("energy_2", "energy", "Energy", 2, 3, "Battery", "Double-tap to restore 15 Energy.", Color(0.2, 0.9, 0.3))
-	energy2.is_consumable = true
-	energy2.consume_currency = "energy"
-	energy2.consume_amount = 15
+	# 2.2 Leafs / Greens Chain (produced from Foodbox)
+	var leaf_textures := [
+		preload("res://assets/leafs/leaf_0.png"),
+		preload("res://assets/leafs/leaf_1.png"),
+		preload("res://assets/leafs/leaf_2.png"),
+		preload("res://assets/leafs/leaf_3.png"),
+		preload("res://assets/leafs/leaf_4.png")
+	]
+	var leaf_names := [
+		"Fresh Herb", "Crisp Celery", "Spinach Bundle",
+		"Crisp Cabbage", "Garden Salad"
+	]
+	var leaf_descs := [
+		"A fragrant culinary herb, fresh from the kitchen garden.",
+		"A crunchy stalk packed with aromatic flavor.",
+		"A vibrant bundle of farm-fresh spinach greens.",
+		"A hearty head of crisp green cabbage.",
+		"A colorful gourmet garden salad bowl! Max tier greens."
+	]
+	for t in range(1, 6):
+		_register_item(
+			"leaf_%d" % t, "leaf", "Leafs", t, 5,
+			leaf_names[t - 1], leaf_descs[t - 1],
+			Color(0.35, 0.82, 0.32), leaf_textures[t - 1]
+		)
 
-	var energy3 := _register_item("energy_3", "energy", "Energy", 3, 3, "Power Cell", "Double-tap to restore 35 Energy.", Color(0.1, 0.85, 0.95))
-	energy3.is_consumable = true
-	energy3.consume_currency = "energy"
-	energy3.consume_amount = 35
+	# 2.3 Beef Chain (produced from Oven)
+	var beef_textures := [
+		preload("res://assets/beef/beef_1.png"),
+		preload("res://assets/beef/beef_2.png"),
+		preload("res://assets/beef/beef_3.png"),
+		preload("res://assets/beef/beef_4.png"),
+		preload("res://assets/beef/beef_5.png"),
+		preload("res://assets/beef/beef_6.png"),
+		preload("res://assets/beef/beef_7.png")
+	]
+	var beef_names := [
+		"Ground Beef", "Meat Patty", "Beef Sausage",
+		"Rib Cut", "Marbled Steak", "Prime Roast", "Wagyu Feast"
+	]
+	var beef_descs := [
+		"Freshly minced premium beef.",
+		"A shaped seasoned beef patty ready to sizzle.",
+		"Spicy smoked beef sausage link.",
+		"A tender butcher's cut of prime beef ribs.",
+		"Heavily marbled steak cut with rich flavor.",
+		"Slow-roasted golden brown beef roast.",
+		"An extravagant five-star Wagyu beef feast! Max tier beef."
+	]
+	for t in range(1, 8):
+		_register_item(
+			"beef_%d" % t, "beef", "Beef", t, 7,
+			beef_names[t - 1], beef_descs[t - 1],
+			Color(0.85, 0.32, 0.3), beef_textures[t - 1]
+		)
 
-	# 6. Leaf / Greens Chain (Culinary produce)
-	_register_item("leaf_1", "leaf", "Greens", 1, 5, "Fresh Herb", "A fragrant culinary herb, fresh from the kitchen garden.", Color(0.4, 0.85, 0.3), preload("res://assets/leafs/leaf_0.png"))
-	_register_item("leaf_2", "leaf", "Greens", 2, 5, "Crisp Celery", "A crunchy stalk packed with aromatic flavor.", Color(0.35, 0.8, 0.28), preload("res://assets/leafs/leaf_1.png"))
-	_register_item("leaf_3", "leaf", "Greens", 3, 5, "Spinach Bundle", "A vibrant bundle of farm-fresh spinach greens.", Color(0.28, 0.75, 0.25), preload("res://assets/leafs/leaf_2.png"))
-	_register_item("leaf_4", "leaf", "Greens", 4, 5, "Crisp Cabbage", "A hearty head of crisp green cabbage.", Color(0.3, 0.78, 0.35), preload("res://assets/leafs/leaf_3.png"))
-	_register_item("leaf_5", "leaf", "Greens", 5, 5, "Garden Salad", "A colorful gourmet garden salad bowl! Max tier.", Color(0.25, 0.7, 0.3), preload("res://assets/leafs/leaf_4.png"))
+	# 2.4 Cake Chain (produced from Oven)
+	var cake_textures := [
+		preload("res://assets/cake/cake_1.png"),
+		preload("res://assets/cake/cake_2.png"),
+		preload("res://assets/cake/cake_3.png"),
+		preload("res://assets/cake/cake_4.png"),
+		preload("res://assets/cake/cake_5.png"),
+		preload("res://assets/cake/cake_6.png")
+	]
+	var cake_names := [
+		"Cupcake", "Berry Tart", "Sponge Roll",
+		"Cream Layer Cake", "Chocolate Gateau", "Royal Wedding Cake"
+	]
+	var cake_descs := [
+		"A sweet fluffy cupcake topped with swirl frosting.",
+		"A crisp buttery tart filled with berry custard.",
+		"Soft vanilla sponge rolled with sweet jam.",
+		"Delicate multi-layer frosted sponge cake.",
+		"Decadent dark chocolate dessert cake.",
+		"Magnificent towering multi-tier confection! Max tier cake."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"cake_%d" % t, "cake", "Cake", t, 6,
+			cake_names[t - 1], cake_descs[t - 1],
+			Color(0.96, 0.65, 0.78), cake_textures[t - 1]
+		)
 
-	# 7. Egg Chain (Farm eggs & baking)
-	_register_item("egg_1", "egg", "Eggs", 1, 6, "Fresh Egg", "A smooth white egg, fresh from the farm.", Color(0.95, 0.92, 0.88), preload("res://assets/eggs/egg_0.png"))
-	_register_item("egg_2", "egg", "Eggs", 2, 6, "Double Eggs", "Two fresh eggs, ready for breakfast.", Color(0.95, 0.92, 0.88), preload("res://assets/eggs/egg_1.png"))
-	_register_item("egg_3", "egg", "Eggs", 3, 6, "Egg Trio", "A trio of farm eggs for baking recipes.", Color(0.95, 0.92, 0.88), preload("res://assets/eggs/egg_2.png"))
-	_register_item("egg_4", "egg", "Eggs", 4, 6, "Egg Carton", "A half-dozen carton of fresh eggs.", Color(0.85, 0.75, 0.65), preload("res://assets/eggs/egg_3.png"))
-	_register_item("egg_5", "egg", "Eggs", 5, 6, "Egg Crate", "A sturdy storage container packed with eggs.", Color(0.65, 0.82, 0.92), preload("res://assets/eggs/egg_4.png"))
-	var egg_tub := _register_item("egg_6", "egg", "Eggs", 6, 6, "Egg Tub", "A wholesale tub of farm eggs! Tap to produce eggs! Uses 1 Energy.", Color(0.6, 0.8, 0.95), preload("res://assets/eggs/egg_5.png"))
-	egg_tub.is_spawner = true
-	egg_tub.energy_cost = 1
-	egg_tub.spawn_pool = ["egg_1", "egg_1", "egg_1", "egg_2", "leaf_1"]
+	# 2.5 Sandwich Chain (produced from Oven)
+	var sandwich_textures := [
+		preload("res://assets/sandwich/sandwich1.png"),
+		preload("res://assets/sandwich/sandwich2.png"),
+		preload("res://assets/sandwich/sandwich3.png"),
+		preload("res://assets/sandwich/sandwich4.png"),
+		preload("res://assets/sandwich/sandwich5.png"),
+		preload("res://assets/sandwich/sandwich6.png")
+	]
+	var sandwich_names := [
+		"Toast Slice", "Buttered Bread", "Club Sandwich",
+		"Submarine Roll", "Artisan Panini", "Gourmet Burger"
+	]
+	var sandwich_descs := [
+		"Warm toasted bread slice.",
+		"Fresh bread slices with rich creamy butter.",
+		"Triple-decker deli club sandwich.",
+		"Footlong toasted submarine sandwich.",
+		"Crispy pressed Italian panini sandwich.",
+		"Juicy towering gourmet burger with all toppings! Max tier sandwich."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"sandwich_%d" % t, "sandwich", "Sandwich", t, 6,
+			sandwich_names[t - 1], sandwich_descs[t - 1],
+			Color(0.92, 0.78, 0.42), sandwich_textures[t - 1]
+		)
+
+	# 2.6 Drink Chain (produced from Fridge)
+	var drink_textures := [
+		preload("res://assets/drink/drink_1.png"),
+		preload("res://assets/drink/drink_2.png"),
+		preload("res://assets/drink/drink_3.png"),
+		preload("res://assets/drink/drink_4.png"),
+		preload("res://assets/drink/drink_5.png")
+	]
+	var drink_names := [
+		"Water Glass", "Iced Lemonade", "Berry Smoothie",
+		"Milkshake", "Tropical Punch"
+	]
+	var drink_descs := [
+		"A refreshing glass of pure chilled spring water.",
+		"Zesty cold lemonade sweetened with cane sugar.",
+		"Thick blended smoothie with fresh summer berries.",
+		"Creamy frothy milkshake with vanilla whip.",
+		"Exotic blended tropical fruit punch! Max tier drink."
+	]
+	for t in range(1, 6):
+		_register_item(
+			"drink_%d" % t, "drink", "Drink", t, 5,
+			drink_names[t - 1], drink_descs[t - 1],
+			Color(0.35, 0.85, 0.95), drink_textures[t - 1]
+		)
+
+	# 2.7 Utils Chain (produced from Rack)
+	var util_textures := [
+		preload("res://assets/utils/util1.png"),
+		preload("res://assets/utils/util2.png"),
+		preload("res://assets/utils/util3.png"),
+		preload("res://assets/utils/util4.png"),
+		preload("res://assets/utils/util5.png"),
+		preload("res://assets/utils/util6.png"),
+		preload("res://assets/utils/util7.png"),
+		preload("res://assets/utils/util8.png"),
+		preload("res://assets/utils/util9.png"),
+		preload("res://assets/utils/util10.png"),
+		preload("res://assets/utils/util11.png"),
+		preload("res://assets/utils/util12.png")
+	]
+	var util_names := [
+		"Spoon", "Fork", "Table Knife",
+		"Wire Whisk", "Kitchen Spatula", "Soup Ladle",
+		"Rolling Pin", "Chef's Cleaver", "Vegetable Grater",
+		"Copper Kettle", "Cast Pot", "Golden Master Skillet"
+	]
+	var util_descs := [
+		"A basic dining spoon.",
+		"A shiny stainless steel fork.",
+		"A sharp table knife.",
+		"Flexible wire whisk for eggs and creams.",
+		"Heat-resistant cooking spatula.",
+		"Deep ladle for hot soups and sauces.",
+		"Smooth hardwood pastry rolling pin.",
+		"Heavy culinary cleaver for meat prep.",
+		"Four-sided stainless grating tool.",
+		"Charming whistling stovetop copper kettle.",
+		"Heavy-duty heirloom cast cooking pot.",
+		"The legendary golden chef's skillet! Max tier kitchen util."
+	]
+	for t in range(1, 13):
+		_register_item(
+			"util_%d" % t, "util", "Utils", t, 12,
+			util_names[t - 1], util_descs[t - 1],
+			Color(0.72, 0.76, 0.82), util_textures[t - 1]
+		)
+
+	# =========================================================================
+	# 3. CONSUMABLE ITEMS (EXP, Gold, Energy, Diamond)
+	# =========================================================================
+
+	# 3.1 EXP Chain (10 Tiers)
+	var exp_textures := [
+		preload("res://assets/exp/exp1.png"),
+		preload("res://assets/exp/exp2.png"),
+		preload("res://assets/exp/exp3.png"),
+		preload("res://assets/exp/exp4.png"),
+		preload("res://assets/exp/exp5.png"),
+		preload("res://assets/exp/exp6.png"),
+		preload("res://assets/exp/exp7.png"),
+		preload("res://assets/exp/exp8.png"),
+		preload("res://assets/exp/exp9.png"),
+		preload("res://assets/exp/exp10.png")
+	]
+	var exp_names := [
+		"Mini EXP Spark", "EXP Ember", "Glowing Shard",
+		"Radiant Star", "Luminous Orb", "Stellar Crystal",
+		"Astral Prism", "Cosmic Nova", "Celestial Beacon", "Infinite Core"
+	]
+	var exp_amounts := [1, 3, 8, 20, 50, 125, 320, 800, 2000, 5000]
+	for t in range(1, 11):
+		var it := _register_item(
+			"exp_%d" % t, "exp", "EXP", t, 10,
+			exp_names[t - 1], "Tap to collect %d EXP for your player level!" % exp_amounts[t - 1],
+			Color(0.78, 0.45, 1.0), exp_textures[t - 1]
+		)
+		it.is_consumable = true
+		it.consume_currency = "exp"
+		it.consume_amount = exp_amounts[t - 1]
+
+	# 3.2 Gold Chain (8 Tiers)
+	var gold_textures := [
+		preload("res://assets/gold/gold1.png"),
+		preload("res://assets/gold/gold2.png"),
+		preload("res://assets/gold/gold3.png"),
+		preload("res://assets/gold/gold4.png"),
+		preload("res://assets/gold/gold5.png"),
+		preload("res://assets/gold/gold6.png"),
+		preload("res://assets/gold/gold7.png"),
+		preload("res://assets/gold/gold8.png")
+	]
+	var gold_names := [
+		"Bronze Penny", "Silver Dime", "Gold Sovereign",
+		"Coin Stack", "Velvet Coin Pouch", "Leather Money Bag",
+		"Golden Coffer", "Royal Treasure Chest"
+	]
+	var gold_amounts := [5, 15, 40, 100, 250, 600, 1500, 4000]
+	for t in range(1, 9):
+		var it := _register_item(
+			"gold_%d" % t, "gold", "Gold", t, 8,
+			gold_names[t - 1], "Tap to collect %d Gold!" % gold_amounts[t - 1],
+			Color(1.0, 0.82, 0.2), gold_textures[t - 1]
+		)
+		it.is_consumable = true
+		it.consume_currency = "coins"
+		it.consume_amount = gold_amounts[t - 1]
+
+	# 3.3 Energy Chain (8 Tiers)
+	var energy_textures := [
+		preload("res://assets/energy/energy_1.png"),
+		preload("res://assets/energy/energy_2.png"),
+		preload("res://assets/energy/energy_3.png"),
+		preload("res://assets/energy/energy_4.png"),
+		preload("res://assets/energy/energy_5.png"),
+		preload("res://assets/energy/energy_6.png"),
+		preload("res://assets/energy/energy_7.png"),
+		preload("res://assets/energy/energy_8.png")
+	]
+	var energy_names := [
+		"Energy Spark", "Energy Droplet", "Energy Battery",
+		"Power Cell", "Plasma Capsule", "Turbo Reactor",
+		"Quantum Dynamo", "Infinity Matrix"
+	]
+	var energy_amounts := [5, 15, 35, 80, 180, 400, 900, 2000]
+	for t in range(1, 9):
+		var it := _register_item(
+			"energy_%d" % t, "energy", "Energy", t, 8,
+			energy_names[t - 1], "Tap to restore %d Energy!" % energy_amounts[t - 1],
+			Color(0.25, 0.92, 0.55), energy_textures[t - 1]
+		)
+		it.is_consumable = true
+		it.consume_currency = "energy"
+		it.consume_amount = energy_amounts[t - 1]
+
+	# 3.4 Diamond Chain (7 Tiers)
+	var diamond_textures := [
+		preload("res://assets/diamond/diamond_1.png"),
+		preload("res://assets/diamond/diamond_2.png"),
+		preload("res://assets/diamond/diamond_3.png"),
+		preload("res://assets/diamond/diamond_4.png"),
+		preload("res://assets/diamond/diamond_5.png"),
+		preload("res://assets/diamond/diamond_6.png"),
+		preload("res://assets/diamond/diamond_7.png")
+	]
+	var diamond_names := [
+		"Raw Diamond Shard", "Flawed Diamond", "Cut Diamond",
+		"Radiant Diamond", "Brilliant Solitaire", "Royal Crown Jewel", "Heart of Eternity"
+	]
+	var diamond_amounts := [1, 3, 8, 20, 50, 125, 300]
+	for t in range(1, 8):
+		var it := _register_item(
+			"diamond_%d" % t, "diamond", "Diamond", t, 7,
+			diamond_names[t - 1], "Tap to collect %d Diamonds!" % diamond_amounts[t - 1],
+			Color(0.45, 0.88, 1.0), diamond_textures[t - 1]
+		)
+		it.is_consumable = true
+		it.consume_currency = "gems"
+		it.consume_amount = diamond_amounts[t - 1]
+
+func _get_foodbox_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = ["egg_1", "egg_1", "leaf_1", "leaf_1"]
+	if tier >= 2:
+		pool.append("egg_2")
+	if tier >= 3:
+		pool.append("leaf_2")
+		pool.append("gold_1")
+	if tier >= 4:
+		pool.append("egg_2")
+		pool.append("leaf_2")
+		pool.append("exp_1")
+	if tier >= 5:
+		pool.append("egg_3")
+		pool.append("leaf_3")
+		pool.append("energy_1")
+	if tier >= 6:
+		pool.append("egg_3")
+		pool.append("leaf_3")
+		pool.append("exp_2")
+	return pool
+
+func _get_oven_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = ["beef_1", "cake_1", "sandwich_1"]
+	if tier >= 2:
+		pool.append("beef_1")
+		pool.append("cake_1")
+		pool.append("sandwich_1")
+	if tier >= 3:
+		pool.append("beef_2")
+		pool.append("cake_2")
+		pool.append("sandwich_2")
+		pool.append("gold_1")
+	if tier >= 4:
+		pool.append("beef_2")
+		pool.append("cake_2")
+		pool.append("sandwich_2")
+		pool.append("exp_1")
+	if tier >= 5:
+		pool.append("beef_3")
+		pool.append("cake_3")
+		pool.append("sandwich_3")
+	if tier >= 6:
+		pool.append("beef_3")
+		pool.append("cake_3")
+		pool.append("sandwich_3")
+		pool.append("exp_2")
+	return pool
+
+func _get_fridge_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = ["drink_1", "drink_1", "drink_1"]
+	if tier >= 2:
+		pool.append("drink_1")
+		pool.append("drink_2")
+	if tier >= 3:
+		pool.append("drink_2")
+		pool.append("gold_1")
+	if tier >= 4:
+		pool.append("drink_2")
+		pool.append("drink_3")
+		pool.append("energy_1")
+	if tier >= 5:
+		pool.append("drink_3")
+		pool.append("exp_1")
+	if tier >= 6:
+		pool.append("drink_3")
+		pool.append("drink_4")
+		pool.append("exp_2")
+	return pool
+
+func _get_rack_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = ["util_1", "util_1", "util_2"]
+	if tier >= 2:
+		pool.append("util_2")
+	if tier >= 3:
+		pool.append("util_2")
+		pool.append("util_3")
+		pool.append("gold_1")
+	if tier >= 4:
+		pool.append("util_3")
+		pool.append("exp_1")
+	if tier >= 5:
+		pool.append("util_3")
+		pool.append("util_4")
+		pool.append("energy_1")
+	if tier >= 6:
+		pool.append("util_4")
+		pool.append("util_5")
+		pool.append("exp_2")
+	if tier >= 7:
+		pool.append("util_5")
+		pool.append("diamond_1")
+	return pool
 
 func _register_item(id: String, chain_id: String, chain_name: String, tier: int, max_tier: int,
 		display_name: String, description: String, color: Color, texture: Texture2D = null) -> ItemData:
@@ -119,7 +592,7 @@ func has_item(id: String) -> bool:
 func get_spawner_drop(spawner_id: String) -> String:
 	var item: ItemData = get_item(spawner_id)
 	if not item or not item.is_spawner or item.spawn_pool.is_empty():
-		return "tools_1"
+		return "egg_1"
 	return item.spawn_pool[randi() % item.spawn_pool.size()]
 
 func get_all_items() -> Array:

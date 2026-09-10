@@ -3,6 +3,8 @@
 [ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background.jpeg" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c7m9n2b4k5x1y" path="res://scenes/option_modal.tscn" id="3_opt"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_gear.png" id="4_gear"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_kitchen.png" id="5_kitchen"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_card"]
 bg_color = Color(0.15, 0.13, 0.12, 0.94)
@@ -113,11 +115,14 @@ layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Icon" type="Label" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox"]
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
-theme_override_font_sizes/font_size = 36
-text = "🌱 🌿 🌸"
-horizontal_alignment = 1
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("5_kitchen")
+expand_mode = 1
+stretch_mode = 5
 
 [node name="Title" type="Label" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox"]
 layout_mode = 2
@@ -152,7 +157,7 @@ theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 20
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_continue")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_continue")
-text = "▶️ CONTINUE GAME"
+text = "CONTINUE GAME"
 
 [node name="SaveInfoLabel" type="Label" parent="UI/CenterContainer/VBox/Buttons"]
 layout_mode = 2
@@ -170,7 +175,7 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu")
-text = "✨ NEW GAME"
+text = "NEW GAME"
 
 [node name="OptionsBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons"]
 custom_minimum_size = Vector2(0, 62)
@@ -181,7 +186,10 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu")
-text = "⚙️ OPTIONS"
+icon = ExtResource("4_gear")
+icon_alignment = 0
+expand_icon = true
+text = "  OPTIONS"
 
 [node name="QuitBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons"]
 custom_minimum_size = Vector2(0, 56)
@@ -192,7 +200,7 @@ theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_menu")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_menu")
-text = "✕ QUIT"
+text = "QUIT"
 
 [node name="Modals" type="Control" parent="."]
 layout_mode = 1

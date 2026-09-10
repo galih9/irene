@@ -28,125 +28,148 @@ func _setup_shop_items() -> void:
 	for child in items_container.get_children():
 		child.queue_free()
 
-	# --- 1. RANDOM ITEM CRATES (GOLD / COINS) ---
-	_add_category_header("🎲 RANDOM ITEM CRATES (GOLD)")
+	# --- 1. RANDOM ITEM CRATES (GOLD) ---
+	_add_category_header("RANDOM ITEM CRATES (GOLD)")
 
-	_add_shop_entry("🎲 Random Tier 1 Item", "Spawns a random starter Tool, Plant, Egg, or Herb!", "coins", 25, func():
-		var pool := ["tools_1", "plant_1", "gem_1", "egg_1", "leaf_1"]
+	_add_shop_entry("Starter Produce Crate", "Spawns a random starter Egg, Herb, Meat, Cake, or Utensil!", "coins", 25, func():
+		var pool := ["egg_1", "leaf_1", "beef_1", "cake_1", "sandwich_1", "drink_1", "util_1"]
 		var picked: String = pool[randi() % pool.size()]
 		_spawn_reward_on_board(picked)
 	, true)
 
-	_add_shop_entry("🎁 Mystery Surprise Crate", "Spawns a random Tier 1-2 item or currency pouch!", "coins", 50, func():
-		var pool := ["tools_2", "plant_2", "gem_2", "coins_2", "energy_2", "tools_1", "plant_1", "egg_1", "egg_2", "leaf_1", "leaf_2"]
+	_add_shop_entry("Mystery Kitchen Crate", "Spawns a Tier 1-2 kitchen item, producer, or currency pouch!", "coins", 50, func():
+		var pool := [
+			"foodbox_1", "oven_1", "fridge_1", "rack_1",
+			"egg_2", "leaf_2", "beef_2", "cake_2", "sandwich_2", "drink_2", "util_2",
+			"gold_2", "energy_2"
+		]
 		var picked: String = pool[randi() % pool.size()]
 		_spawn_reward_on_board(picked)
 	, true)
 
-	_add_shop_entry("⭐ Lucky High-Tier Chest", "Spawns a valuable Tier 2-3 item directly on board!", "coins", 90, func():
-		var pool := ["tools_3", "plant_3", "gem_3", "coins_3", "energy_3", "egg_3", "leaf_3", "tools_2", "plant_2"]
+	_add_shop_entry("Lucky Chef's Vault", "Spawns a valuable Tier 2-3 item or producer directly on board!", "coins", 90, func():
+		var pool := [
+			"foodbox_2", "oven_2", "fridge_2", "rack_2",
+			"egg_3", "leaf_3", "beef_3", "cake_3", "sandwich_3", "drink_3", "util_3",
+			"exp_2", "diamond_1"
+		]
 		var picked: String = pool[randi() % pool.size()]
 		_spawn_reward_on_board(picked)
 	, true)
 
-	# --- 2. ENERGY REFILLS (GOLD / COINS) ---
-	_add_category_header("⚡ ENERGY PURCHASES (GOLD)")
+	# --- 2. ENERGY REFILLS (GOLD) ---
+	_add_category_header("ENERGY REFILLS (GOLD)")
 
-	_add_shop_entry("⚡ Quick Spark (+25 Energy)", "Restores 25 Energy to keep merging!", "coins", 20, func():
+	_add_shop_entry("Quick Spark (+25 Energy)", "Restores 25 Energy to keep merging!", "coins", 20, func():
 		EconomyManager.add_energy(25)
-		GameEvents.show_floating_text.emit("+25 Energy! ⚡", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
+		GameEvents.show_floating_text.emit("+25 Energy!", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
 	, false)
 
-	_add_shop_entry("⚡ Energy Surge (+60 Energy)", "Great value! Restores 60 Energy instantly.", "coins", 45, func():
+	_add_shop_entry("Energy Surge (+60 Energy)", "Great value! Restores 60 Energy instantly.", "coins", 45, func():
 		EconomyManager.add_energy(60)
-		GameEvents.show_floating_text.emit("+60 Energy! ⚡", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
+		GameEvents.show_floating_text.emit("+60 Energy!", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
 	, false)
 
-	_add_shop_entry("⚡ Maximum Charge (+100 Energy)", "Completely refills your entire energy tank!", "coins", 70, func():
+	_add_shop_entry("Maximum Charge (+100 Energy)", "Completely refills your entire energy tank!", "coins", 70, func():
 		EconomyManager.add_energy(100)
-		GameEvents.show_floating_text.emit("+100 Max Energy! ⚡", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
+		GameEvents.show_floating_text.emit("+100 Max Energy!", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
 	, false)
 
 	# --- 3. SPECIFIC ITEMS & DAILY FREE ---
-	_add_category_header("🌱 DIRECT SUPPLIES & GIFTS")
+	_add_category_header("DIRECT SUPPLIES & GIFTS")
 
-	_add_shop_entry("🥚 Fresh Egg (T1)", "Spawns a fresh farm egg.", "coins", 15, func():
+	_add_shop_entry("Wooden Foodbox (T1)", "Spawns a starter foodbox that produces eggs & greens.", "coins", 40, func():
+		_spawn_reward_on_board("foodbox_1")
+	, true)
+
+	_add_shop_entry("Clay Toaster (T1)", "Spawns a starter oven that produces beef, cakes & sandwiches.", "coins", 40, func():
+		_spawn_reward_on_board("oven_1")
+	, true)
+
+	_add_shop_entry("Mini Icebox (T1)", "Spawns a starter fridge that produces chilled drinks.", "coins", 40, func():
+		_spawn_reward_on_board("fridge_1")
+	, true)
+
+	_add_shop_entry("Small Pegboard (T1)", "Spawns a starter rack that produces kitchen utensils.", "coins", 40, func():
+		_spawn_reward_on_board("rack_1")
+	, true)
+
+	_add_shop_entry("Fresh Egg (T1)", "Spawns a fresh farm egg.", "coins", 15, func():
 		_spawn_reward_on_board("egg_1")
 	, true)
 
-	_add_shop_entry("🥬 Fresh Herb (T1)", "Spawns a garden culinary herb.", "coins", 15, func():
+	_add_shop_entry("Fresh Herb (T1)", "Spawns a garden culinary herb.", "coins", 15, func():
 		_spawn_reward_on_board("leaf_1")
 	, true)
 
-	_add_shop_entry("🔧 Starter Wrench (T1)", "Spawns a Tier 1 Wrench.", "coins", 15, func():
-		_spawn_reward_on_board("tools_1")
+	_add_shop_entry("Raw Diamond Shard (T1)", "Spawns a shining diamond shard.", "gems", 4, func():
+		_spawn_reward_on_board("diamond_1")
 	, true)
 
-	_add_shop_entry("🌱 Starter Seed (T1)", "Spawns a Tier 1 Seed.", "coins", 15, func():
-		_spawn_reward_on_board("plant_1")
-	, true)
-
-	_add_shop_entry("💎 Rare Crystal Shard (T1)", "Spawns a shining crystal shard.", "gems", 4, func():
-		_spawn_reward_on_board("gem_1")
-	, true)
-
-	_add_shop_entry("🌟 Free Daily Energy (+25)", "A daily gift to keep you going!", "free", 0, func():
+	_add_shop_entry("Free Daily Energy (+25)", "A daily gift to keep you going!", "free", 0, func():
 		EconomyManager.add_energy(25)
-		GameEvents.show_floating_text.emit("+25 Free Energy! ⚡", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
+		GameEvents.show_floating_text.emit("+25 Free Energy!", global_position + Vector2(310, 360), Color(0.3, 1.0, 0.5))
 	, false)
 
 func _add_category_header(title: String) -> void:
 	var lbl := Label.new()
 	lbl.text = title
-	lbl.add_theme_color_override("font_color", Color(0.72, 0.9, 1.0))
-	lbl.add_theme_font_size_override("font_size", 13)
+	lbl.add_theme_font_size_override("font_size", 14)
+	lbl.add_theme_color_override("font_color", Color(1.0, 0.82, 0.4))
+	lbl.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.05, 0.8))
+	lbl.add_theme_constant_override("outline_size", 2)
 	items_container.add_child(lbl)
 
 func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount: int, on_buy: Callable, requires_board_space: bool) -> void:
 	var row := PanelContainer.new()
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.18, 0.16, 0.2, 0.95)
-	style.border_color = Color(0.35, 0.3, 0.4, 0.7)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 10
-	style.corner_radius_top_right = 10
-	style.corner_radius_bottom_right = 10
-	style.corner_radius_bottom_left = 10
-	row.add_theme_stylebox_override("panel", style)
+	row.custom_minimum_size = Vector2(0, 68)
+
+	var row_style := StyleBoxFlat.new()
+	row_style.bg_color = Color(0.18, 0.16, 0.22, 0.95)
+	row_style.border_width_left = 1
+	row_style.border_width_top = 1
+	row_style.border_width_right = 1
+	row_style.border_width_bottom = 1
+	row_style.border_color = Color(0.35, 0.3, 0.4, 0.6)
+	row_style.corner_radius_top_left = 10
+	row_style.corner_radius_top_right = 10
+	row_style.corner_radius_bottom_right = 10
+	row_style.corner_radius_bottom_left = 10
+	row.add_theme_stylebox_override("panel", row_style)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 14)
+	margin.add_theme_constant_override("margin_right", 14)
+	margin.add_theme_constant_override("margin_top", 8)
+	margin.add_theme_constant_override("margin_bottom", 8)
+	row.add_child(margin)
 
 	var hbox := HBoxContainer.new()
 	hbox.add_theme_constant_override("separation", 12)
-
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 12)
-	margin.add_theme_constant_override("margin_top", 10)
-	margin.add_theme_constant_override("margin_right", 12)
-	margin.add_theme_constant_override("margin_bottom", 10)
 	margin.add_child(hbox)
-	row.add_child(margin)
 
 	var vbox := VBoxContainer.new()
 	vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 
-	var lbl_title := Label.new()
-	lbl_title.text = title
-	lbl_title.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
-	lbl_title.add_theme_font_size_override("font_size", 15)
+	var t_lbl := Label.new()
+	t_lbl.text = title
+	t_lbl.add_theme_font_size_override("font_size", 14)
+	t_lbl.add_theme_color_override("font_color", Color.WHITE)
+	vbox.add_child(t_lbl)
 
-	var lbl_desc := Label.new()
-	lbl_desc.text = desc
-	lbl_desc.add_theme_color_override("font_color", Color(0.85, 0.82, 0.76))
-	lbl_desc.add_theme_font_size_override("font_size", 12)
+	var d_lbl := Label.new()
+	d_lbl.text = desc
+	d_lbl.add_theme_font_size_override("font_size", 11)
+	d_lbl.add_theme_color_override("font_color", Color(0.78, 0.74, 0.7))
+	d_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	vbox.add_child(d_lbl)
 
-	vbox.add_child(lbl_title)
-	vbox.add_child(lbl_desc)
 	hbox.add_child(vbox)
 
 	var buy_btn := Button.new()
-	buy_btn.custom_minimum_size = Vector2(94, 40)
+	buy_btn.custom_minimum_size = Vector2(86, 42)
+	buy_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 	buy_btn.add_theme_font_size_override("font_size", 13)
 	buy_btn.add_theme_color_override("font_color", Color.WHITE)
 	buy_btn.add_theme_color_override("font_outline_color", Color(0.18, 0.12, 0.08, 0.7))
@@ -159,10 +182,10 @@ func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount
 	btn_style.corner_radius_bottom_left = 8
 
 	if cost_type == "coins":
-		buy_btn.text = "🪙 %d" % cost_amount
+		buy_btn.text = "%d Gold" % cost_amount
 		btn_style.bg_color = Color(0.92, 0.68, 0.16)
 	elif cost_type == "gems":
-		buy_btn.text = "💎 %d" % cost_amount
+		buy_btn.text = "%d Gems" % cost_amount
 		btn_style.bg_color = Color(0.25, 0.68, 0.9)
 	else:
 		buy_btn.text = "FREE!"
@@ -182,13 +205,13 @@ func _handle_purchase(cost_type: String, cost_amount: int, on_buy: Callable, req
 	if requires_board_space:
 		if not board_ref or board_ref.get_empty_cells().is_empty():
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Board is Full! ⚠️", global_position + Vector2(310, 360), Color(1.0, 0.4, 0.4))
+			GameEvents.show_floating_text.emit("Board is Full!", global_position + Vector2(310, 360), Color(1.0, 0.4, 0.4))
 			return
 
 	if cost_type == "coins":
 		if not EconomyManager.spend_coins(cost_amount):
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Not enough Coins!", global_position + Vector2(310, 360), Color(1.0, 0.4, 0.4))
+			GameEvents.show_floating_text.emit("Not enough Gold!", global_position + Vector2(310, 360), Color(1.0, 0.4, 0.4))
 			return
 	elif cost_type == "gems":
 		if not EconomyManager.spend_gems(cost_amount):
@@ -196,15 +219,14 @@ func _handle_purchase(cost_type: String, cost_amount: int, on_buy: Callable, req
 			GameEvents.show_floating_text.emit("Not enough Gems!", global_position + Vector2(310, 360), Color(1.0, 0.4, 0.4))
 			return
 
-	SoundManager.play_consume()
+	SoundManager.play_buy()
 	on_buy.call()
 
 func _spawn_reward_on_board(item_id: String) -> void:
 	if not board_ref:
 		return
-	var empty_cells := board_ref.get_empty_cells()
-	if empty_cells.is_empty():
+	var empty := board_ref.get_empty_cells()
+	if empty.is_empty():
 		return
-
-	var coord := empty_cells[randi() % empty_cells.size()]
+	var coord := empty[0]
 	board_ref.spawn_item_flight(global_position + Vector2(310, 360), coord, item_id)

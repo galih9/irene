@@ -54,9 +54,9 @@ func _on_sfx_pressed() -> void:
 func _update_sfx_button() -> void:
 	if is_instance_valid(sfx_btn):
 		if SoundManager.sfx_enabled:
-			sfx_btn.text = "🔊 SOUND EFFECTS: ON"
+			sfx_btn.text = "SOUND EFFECTS: ON"
 		else:
-			sfx_btn.text = "🔇 SOUND EFFECTS: OFF"
+			sfx_btn.text = "SOUND EFFECTS: OFF"
 
 func _on_menu_pressed() -> void:
 	SoundManager.play_pickup()

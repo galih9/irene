@@ -29,7 +29,7 @@ func _update_save_state() -> void:
 
 	if has_save:
 		var info := SaveManager.get_save_info()
-		save_info_label.text = "Saved: %s  •  %d 🪙  %d 💎  %d ⚡" % [
+		save_info_label.text = "Saved: %s  •  %d Gold  %d Gems  %d Energy" % [
 			info.get("timestamp", ""),
 			info.get("coins", 0),
 			info.get("gems", 0),

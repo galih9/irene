@@ -8,6 +8,7 @@ var quest_manager_ref: QuestManager = null
 @onready var add_coins_btn: Button = $Panel/Margin/VBox/Scroll/Content/EcoGrid/AddCoinsBtn
 @onready var add_gems_btn: Button = $Panel/Margin/VBox/Scroll/Content/EcoGrid/AddGemsBtn
 @onready var add_energy_btn: Button = $Panel/Margin/VBox/Scroll/Content/EcoGrid/AddEnergyBtn
+@onready var add_exp_btn: Button = $Panel/Margin/VBox/Scroll/Content/EcoGrid/AddExpBtn
 @onready var inf_energy_check: CheckBox = $Panel/Margin/VBox/Scroll/Content/InfEnergyCheck
 
 @onready var clear_board_btn: Button = $Panel/Margin/VBox/Scroll/Content/BoardGrid/ClearBtn
@@ -24,6 +25,8 @@ func _ready() -> void:
 	add_coins_btn.pressed.connect(func(): EconomyManager.add_coins(250))
 	add_gems_btn.pressed.connect(func(): EconomyManager.add_gems(50))
 	add_energy_btn.pressed.connect(func(): EconomyManager.add_energy(50))
+	if has_node("Panel/Margin/VBox/Scroll/Content/EcoGrid/AddExpBtn"):
+		add_exp_btn.pressed.connect(func(): ProgressionManager.add_exp(50))
 
 	inf_energy_check.toggled.connect(func(toggled: bool):
 		EconomyManager.infinite_energy = toggled

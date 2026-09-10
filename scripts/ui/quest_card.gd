@@ -31,9 +31,11 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 	customer_avatar.add_theme_stylebox_override("panel", av_style)
 
 	# Rewards
-	var rewards_text: String = "💰 +%d" % quest.reward_coins
+	var rewards_text: String = "+%d Gold" % quest.reward_coins
 	if quest.reward_gems > 0:
-		rewards_text += "  💎 +%d" % quest.reward_gems
+		rewards_text += "  +%d Gems" % quest.reward_gems
+	if quest.reward_exp > 0:
+		rewards_text += "  +%d EXP" % quest.reward_exp
 	reward_label.text = rewards_text
 
 	# Requirements

@@ -58,32 +58,34 @@ func _setup_initial_board() -> void:
 	board.clear_board()
 
 	# Place primary spawners in the center
-	board.spawn_item_at(Vector2i(2, 4), "plant_5") # Ancient Tree (Plant spawner)
-	board.spawn_item_at(Vector2i(4, 4), "tools_5") # Toolbox (Tool spawner)
+	board.spawn_item_at(Vector2i(2, 4), "foodbox_1") # Foodbox (Eggs & Leafs)
+	board.spawn_item_at(Vector2i(3, 4), "oven_1")    # Oven (Beef, Cake, Sandwich)
+	board.spawn_item_at(Vector2i(2, 5), "fridge_1")  # Fridge (Drink)
+	board.spawn_item_at(Vector2i(3, 5), "rack_1")    # Rack (Utils)
 
 	# Place starter items ready to merge
-	board.spawn_item_at(Vector2i(2, 3), "tools_1") # Wrench
-	board.spawn_item_at(Vector2i(4, 3), "tools_1") # Wrench (merge -> Hammer)
+	board.spawn_item_at(Vector2i(1, 3), "egg_1")      # Fresh Egg
+	board.spawn_item_at(Vector2i(4, 3), "egg_1")      # Fresh Egg (merge -> Double Eggs)
 
-	board.spawn_item_at(Vector2i(2, 5), "plant_1") # Seed
-	board.spawn_item_at(Vector2i(4, 5), "plant_1") # Seed (merge -> Sprout)
+	board.spawn_item_at(Vector2i(1, 4), "leaf_1")     # Fresh Herb
+	board.spawn_item_at(Vector2i(4, 4), "leaf_1")     # Fresh Herb (merge -> Crisp Celery)
 
-	# New Farm & Kitchen items (Eggs & Herbs) ready to merge
-	board.spawn_item_at(Vector2i(1, 3), "egg_1") # Fresh Egg
-	board.spawn_item_at(Vector2i(5, 3), "egg_1") # Fresh Egg (merge -> Double Eggs)
+	board.spawn_item_at(Vector2i(1, 5), "cake_1")     # Cupcake
+	board.spawn_item_at(Vector2i(4, 5), "cake_1")     # Cupcake (merge -> Berry Tart)
 
-	board.spawn_item_at(Vector2i(1, 5), "leaf_1") # Fresh Herb
-	board.spawn_item_at(Vector2i(5, 5), "leaf_1") # Fresh Herb (merge -> Crisp Celery)
+	board.spawn_item_at(Vector2i(1, 6), "sandwich_1") # Toast Slice
+	board.spawn_item_at(Vector2i(4, 6), "sandwich_1") # Toast Slice (merge -> Buttered Bread)
 
-	# Place consumables & rare
-	board.spawn_item_at(Vector2i(3, 2), "coins_1") # Bronze coin
-	board.spawn_item_at(Vector2i(3, 6), "energy_1") # Energy spark
-	board.spawn_item_at(Vector2i(3, 4), "gem_1") # Gem shard
+	# Place consumables
+	board.spawn_item_at(Vector2i(2, 2), "gold_1")     # Gold
+	board.spawn_item_at(Vector2i(3, 2), "energy_1")   # Energy
+	board.spawn_item_at(Vector2i(2, 6), "exp_1")      # EXP Spark
+	board.spawn_item_at(Vector2i(3, 6), "diamond_1")  # Diamond Shard
 
 	# Put a starter bonus item in backpack inventory slot
 	InventoryManager.clear_all()
-	InventoryManager.add_item("tools_2") # Hammer
-	ProgressionManager.unlock_item("tools_2", true)
+	InventoryManager.add_item("beef_1")
+	ProgressionManager.unlock_item("beef_1", true)
 
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()

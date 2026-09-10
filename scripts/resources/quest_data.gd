@@ -8,3 +8,4 @@ extends Resource
 @export var reward_coins: int = 25
 @export var reward_gems: int = 0
 @export var reward_energy: int = 0
+@export var reward_exp: int = 15

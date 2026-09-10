@@ -3,7 +3,7 @@ extends Control
 
 @onready var panel: PanelContainer = $Panel
 @onready var message_label: Label = $Panel/Margin/HBox/Label
-@onready var icon_label: Label = $Panel/Margin/HBox/Icon
+@onready var icon_label: TextureRect = $Panel/Margin/HBox/Icon
 
 var _anim_tween: Tween = null
 var _original_y: float = 0.0

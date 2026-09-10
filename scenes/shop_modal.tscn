@@ -78,7 +78,7 @@ theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.8)
 theme_override_constants/shadow_offset_y = 2
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 22
-text = "🛒 GENERAL STORE"
+text = "GENERAL STORE"
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox/Header"]
 custom_minimum_size = Vector2(42, 42)
