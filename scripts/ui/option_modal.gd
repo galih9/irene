@@ -3,6 +3,7 @@ extends Control
 
 @onready var close_btn: Button = $Panel/Margin/VBox/Header/CloseBtn
 @onready var save_btn: Button = $Panel/Margin/VBox/Content/SaveBtn
+@onready var bgm_btn: Button = $Panel/Margin/VBox/Content/BgmBtn
 @onready var sfx_btn: Button = $Panel/Margin/VBox/Content/SfxBtn
 @onready var menu_btn: Button = $Panel/Margin/VBox/Content/MenuBtn
 @onready var debug_btn: Button = $Panel/Margin/VBox/Content/DebugBtn
@@ -14,16 +15,19 @@ func _ready() -> void:
 	close_btn.pressed.connect(close_modal)
 	resume_btn.pressed.connect(close_modal)
 	save_btn.pressed.connect(_on_save_pressed)
+	bgm_btn.pressed.connect(_on_bgm_pressed)
 	sfx_btn.pressed.connect(_on_sfx_pressed)
 	menu_btn.pressed.connect(_on_menu_pressed)
 	debug_btn.pressed.connect(_on_debug_pressed)
 
 	GameEvents.request_options_open.connect(open_modal)
+	_update_bgm_button()
 	_update_sfx_button()
 
 func open_modal() -> void:
 	visible = true
 	status_label.text = ""
+	_update_bgm_button()
 	_update_sfx_button()
 	scale = Vector2(0.9, 0.9)
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -44,6 +48,18 @@ func _on_save_pressed() -> void:
 	else:
 		status_label.text = "Failed to save game! ✖"
 		status_label.add_theme_color_override("font_color", Color(1.0, 0.4, 0.4))
+
+func _on_bgm_pressed() -> void:
+	SoundManager.play_click()
+	SoundManager.toggle_bgm()
+	_update_bgm_button()
+
+func _update_bgm_button() -> void:
+	if is_instance_valid(bgm_btn):
+		if SoundManager.bgm_enabled:
+			bgm_btn.text = "MUSIC: ON"
+		else:
+			bgm_btn.text = "MUSIC: OFF"
 
 func _on_sfx_pressed() -> void:
 	var enabled := SoundManager.toggle_sfx()

@@ -63,7 +63,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.65)
 
 [node name="Panel" type="Panel" parent="."]
-custom_minimum_size = Vector2(580, 620)
+custom_minimum_size = Vector2(580, 680)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -71,9 +71,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -290.0
-offset_top = -310.0
+offset_top = -340.0
 offset_right = 290.0
-offset_bottom = 310.0
+offset_bottom = 340.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
@@ -141,6 +141,15 @@ theme_override_colors/font_color = Color(0.45, 0.95, 0.65, 1)
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 vertical_alignment = 1
+
+[node name="BgmBtn" type="Button" parent="Panel/Margin/VBox/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.96, 0.92, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_normal")
+text = "MUSIC: ON"
 
 [node name="SfxBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 54)

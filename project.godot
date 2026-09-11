@@ -24,6 +24,7 @@ SoundManager="*res://scripts/autoload/sound_manager.gd"
 ProgressionManager="*res://scripts/autoload/progression_manager.gd"
 InventoryManager="*res://scripts/autoload/inventory_manager.gd"
 SaveManager="*res://scripts/autoload/save_manager.gd"
+CursorManager="*res://scripts/autoload/cursor_manager.gd"
 
 [display]
 
@@ -32,6 +33,8 @@ window/size/viewport_height=1600
 window/stretch/mode="canvas_items"
 window/stretch/aspect="expand"
 window/handheld/orientation=1
+mouse_cursor/custom_image="res://assets/cursor/pointer_a.png"
+mouse_cursor/custom_image_hotspot=Vector2(10, 6)
 
 [gui]
 

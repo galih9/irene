@@ -72,7 +72,8 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		},
 		"quests": quest_manager_ref.serialize_quests() if is_instance_valid(quest_manager_ref) else [],
 		"settings": {
-			"sfx_enabled": SoundManager.sfx_enabled
+			"sfx_enabled": SoundManager.sfx_enabled,
+			"bgm_enabled": SoundManager.bgm_enabled
 		}
 	}
 
@@ -151,6 +152,7 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 	if data.has("settings"):
 		var settings: Dictionary = data["settings"]
 		SoundManager.sfx_enabled = settings.get("sfx_enabled", true)
+		SoundManager.set_bgm_enabled(settings.get("bgm_enabled", true))
 
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()

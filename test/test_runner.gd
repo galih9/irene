@@ -312,6 +312,14 @@ func _ready() -> void:
 	assert(SoundManager.sfx_enabled == not orig_sfx, "SFX toggle must toggle SoundManager.sfx_enabled")
 	option_inst._on_sfx_pressed()
 	assert(SoundManager.sfx_enabled == orig_sfx, "SFX toggle must restore state")
+
+	assert(option_inst.bgm_btn != null, "BgmBtn must exist in OptionModal")
+	var orig_bgm := SoundManager.bgm_enabled
+	option_inst._on_bgm_pressed()
+	assert(SoundManager.bgm_enabled == not orig_bgm, "BGM toggle must toggle SoundManager.bgm_enabled")
+	option_inst._on_bgm_pressed()
+	assert(SoundManager.bgm_enabled == orig_bgm, "BGM toggle must restore state")
+
 	option_inst.queue_free()
 	print("✔ Option Modal verified!")
 
@@ -596,6 +604,98 @@ func _ready() -> void:
 
 	main_inst_test.queue_free()
 	print("✔ UI Custom Theme Colors & Matching verified!")
+
+	# 17. Test Custom Cursor System
+	print("\n--- Testing Custom Cursor System ---")
+	assert(CursorManager != null, "CursorManager autoload must exist")
+	assert(CursorManager.CURSOR_ARROW_TEX != null, "Arrow cursor texture must be loaded")
+	assert(CursorManager.CURSOR_POINTING_HAND_TEX != null, "Pointing hand cursor texture must be loaded")
+	assert(CursorManager.CURSOR_DRAG_TEX != null, "Drag hand cursor texture must be loaded")
+	assert(CursorManager.CURSOR_CAN_DROP_TEX != null, "Can drop cursor texture must be loaded")
+	assert(CursorManager.CURSOR_FORBIDDEN_TEX != null, "Forbidden cursor texture must be loaded")
+
+	CursorManager.set_drag_cursor()
+	CursorManager.set_can_drop_cursor()
+	CursorManager.set_forbidden_cursor()
+	CursorManager.reset_cursor()
+
+	var test_btn := Button.new()
+	add_child(test_btn)
+	assert(test_btn.mouse_default_cursor_shape == Control.CURSOR_POINTING_HAND, "Button must automatically receive POINTING_HAND cursor shape")
+	test_btn.queue_free()
+
+	# Test board hover cursor states
+	var cursor_test_board: Board = board_scene.instantiate()
+	add_child(cursor_test_board)
+	cursor_test_board.clear_board()
+
+	# Normal item -> hand open (CURSOR_CAN_DROP)
+	cursor_test_board.spawn_item_at(Vector2i(1, 1), "beef_1", ItemView.ItemState.NORMAL)
+	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(1, 1)))
+	assert(CursorManager.current_cursor_shape == Input.CURSOR_CAN_DROP, "Hovering movable item must set CURSOR_CAN_DROP (hand open)")
+
+	# Locked item -> disabled cursor (CURSOR_FORBIDDEN)
+	cursor_test_board.spawn_item_at(Vector2i(2, 2), "beef_2", ItemView.ItemState.LOCKED)
+	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(2, 2)))
+	assert(CursorManager.current_cursor_shape == Input.CURSOR_FORBIDDEN, "Hovering locked item must set CURSOR_FORBIDDEN")
+
+	# Boxed item -> disabled cursor (CURSOR_FORBIDDEN)
+	cursor_test_board.spawn_item_at(Vector2i(3, 3), "beef_3", ItemView.ItemState.BOXED, 5)
+	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(3, 3)))
+	assert(CursorManager.current_cursor_shape == Input.CURSOR_FORBIDDEN, "Hovering boxed item must set CURSOR_FORBIDDEN")
+
+	# Empty cell -> arrow cursor (CURSOR_ARROW)
+	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(0, 0)))
+	assert(CursorManager.current_cursor_shape == Input.CURSOR_ARROW, "Hovering empty cell must reset to CURSOR_ARROW")
+
+	# Dragging item -> hand closed (CURSOR_DRAG)
+	cursor_test_board._active_item = cursor_test_board.get_item_at(Vector2i(1, 1))
+	cursor_test_board._is_dragging = true
+	cursor_test_board._update_hover_feedback(cursor_test_board.to_global(cursor_test_board.get_cell_center(0, 0)))
+	assert(CursorManager.current_cursor_shape == Input.CURSOR_DRAG, "Dragging item over cell must keep CURSOR_DRAG (hand closed)")
+	cursor_test_board._active_item = null
+	cursor_test_board._is_dragging = false
+	CursorManager.reset_cursor()
+
+	cursor_test_board.queue_free()
+	print("✔ Custom Cursor System verified!")
+
+	# 18. Test Looped BGM System
+	print("\n--- Testing Looped BGM System ---")
+	assert(SoundManager._bgm_player != null, "BGM player must exist in SoundManager")
+	assert(SoundManager._bgm_player.stream is AudioStreamMP3, "BGM stream must be AudioStreamMP3")
+	var bgm_stream: AudioStreamMP3 = SoundManager._bgm_player.stream as AudioStreamMP3
+	assert(bgm_stream.loop == true, "BGM stream loop property must be true")
+
+	var initial_bgm := SoundManager.bgm_enabled
+	SoundManager.set_bgm_enabled(false)
+	assert(SoundManager.bgm_enabled == false, "set_bgm_enabled(false) must update state")
+	assert(not SoundManager._bgm_player.playing, "BGM player must stop when disabled")
+	SoundManager.set_bgm_enabled(true)
+	assert(SoundManager.bgm_enabled == true, "set_bgm_enabled(true) must update state")
+	SoundManager.set_bgm_enabled(initial_bgm)
+	print("✔ Looped BGM System verified!")
+
+	# 19. Test Sound Effects (Kenney SFX Audio Pool)
+	print("\n--- Testing Kenney SFX Audio Pool ---")
+	assert(SoundManager._sfx_players.size() == 8, "SFX player pool must have 8 players")
+	assert(SoundManager.STREAM_PICKUP != null, "STREAM_PICKUP must be loaded")
+	assert(SoundManager.STREAM_ERROR != null, "STREAM_ERROR must be loaded")
+	assert("error_004" in SoundManager.STREAM_ERROR.resource_path, "STREAM_ERROR must use error_004.ogg")
+	assert("click" in SoundManager.STREAM_PICKUP.resource_path, "STREAM_PICKUP must use click sound")
+
+	# Trigger all gameplay SFX methods to ensure no exceptions or missing streams
+	SoundManager.play_pickup()
+	SoundManager.play_drop()
+	SoundManager.play_merge()
+	SoundManager.play_spawn()
+	SoundManager.play_consume()
+	SoundManager.play_quest()
+	SoundManager.play_error()
+	SoundManager.play_click()
+	SoundManager.play_open()
+	SoundManager.play_close()
+	print("✔ Kenney SFX Audio Pool verified!")
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)

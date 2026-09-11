@@ -1,114 +1,140 @@
 extends Node
 
-var _player: AudioStreamPlayer
-var _generator: AudioStreamGenerator
-var _playback: AudioStreamGeneratorPlayback
-
+# --- Audio Settings ---
+var bgm_enabled: bool = true
 var sfx_enabled: bool = true
 
-const SAMPLE_RATE: float = 22050.0
+var bgm_volume_db: float = -12.0
+var sfx_volume_db: float = -2.0
+
+# --- Audio Players ---
+var _bgm_player: AudioStreamPlayer
+const SFX_POOL_SIZE: int = 8
+var _sfx_players: Array[AudioStreamPlayer] = []
+var _sfx_index: int = 0
+
+# --- Preloaded Audio Assets ---
+const BGM_PATH: String = "res://assets/bgm/bgm.mp3"
+
+const STREAM_PICKUP: AudioStream = preload("res://assets/bgm/click3.ogg")
+const STREAM_DROP: AudioStream = preload("res://assets/bgm/drop_001.ogg")
+const STREAM_MERGE: AudioStream = preload("res://assets/bgm/glass_001.ogg")
+const STREAM_SPAWN: AudioStream = preload("res://assets/bgm/drop_002.ogg")
+const STREAM_CONSUME: AudioStream = preload("res://assets/bgm/confirmation_001.ogg")
+const STREAM_QUEST: AudioStream = preload("res://assets/bgm/confirmation_002.ogg")
+const STREAM_ERROR: AudioStream = preload("res://assets/bgm/error_004.ogg")
+const STREAM_CLICK: AudioStream = preload("res://assets/bgm/click1.ogg")
+const STREAM_OPEN: AudioStream = preload("res://assets/bgm/open_001.ogg")
+const STREAM_CLOSE: AudioStream = preload("res://assets/bgm/close_001.ogg")
+
+func _ready() -> void:
+	# 1. Initialize BGM Player
+	_bgm_player = AudioStreamPlayer.new()
+	_bgm_player.name = "BGMPlayer"
+	var bgm_stream := load(BGM_PATH)
+	if bgm_stream is AudioStreamMP3:
+		bgm_stream.loop = true
+	_bgm_player.stream = bgm_stream
+	_bgm_player.volume_db = bgm_volume_db
+	add_child(_bgm_player)
+
+	# 2. Initialize SFX Voice Pool
+	for i in range(SFX_POOL_SIZE):
+		var player := AudioStreamPlayer.new()
+		player.name = "SFXPlayer_%d" % i
+		player.volume_db = sfx_volume_db
+		add_child(player)
+		_sfx_players.append(player)
+
+	# 3. Start BGM if enabled
+	if bgm_enabled:
+		play_bgm()
+
+# ==============================================================================
+# BGM Management
+# ==============================================================================
+
+func play_bgm() -> void:
+	if not _bgm_player or not bgm_enabled:
+		return
+	if not _bgm_player.playing:
+		_bgm_player.play()
+
+func stop_bgm() -> void:
+	if _bgm_player and _bgm_player.playing:
+		_bgm_player.stop()
+
+func toggle_bgm() -> bool:
+	set_bgm_enabled(not bgm_enabled)
+	return bgm_enabled
+
+func set_bgm_enabled(enabled: bool) -> void:
+	bgm_enabled = enabled
+	if not is_instance_valid(_bgm_player):
+		return
+	if bgm_enabled:
+		play_bgm()
+	else:
+		stop_bgm()
+
+func set_bgm_volume(vol_db: float) -> void:
+	bgm_volume_db = vol_db
+	if is_instance_valid(_bgm_player):
+		_bgm_player.volume_db = bgm_volume_db
+
+# ==============================================================================
+# SFX Management
+# ==============================================================================
 
 func toggle_sfx() -> bool:
 	sfx_enabled = not sfx_enabled
 	return sfx_enabled
 
-func _ready() -> void:
-	_player = AudioStreamPlayer.new()
-	_generator = AudioStreamGenerator.new()
-	_generator.mix_rate = SAMPLE_RATE
-	_generator.buffer_length = 0.2
-	_player.stream = _generator
-	add_child(_player)
-	_player.play()
-	_playback = _player.get_stream_playback() as AudioStreamGeneratorPlayback
+func set_sfx_enabled(enabled: bool) -> void:
+	sfx_enabled = enabled
 
+func play_sfx(stream: AudioStream, volume_offset_db: float = 0.0, pitch_variance: float = 0.0) -> void:
+	if not sfx_enabled or stream == null or _sfx_players.is_empty():
+		return
+
+	var player := _sfx_players[_sfx_index]
+	_sfx_index = (_sfx_index + 1) % _sfx_players.size()
+
+	player.stream = stream
+	player.volume_db = sfx_volume_db + volume_offset_db
+	if pitch_variance > 0.0:
+		player.pitch_scale = randf_range(1.0 - pitch_variance, 1.0 + pitch_variance)
+	else:
+		player.pitch_scale = 1.0
+	player.play()
+
+# Specific Gameplay Sound Events
 func play_pickup() -> void:
-	_play_chirp(400.0, 650.0, 0.06, 0.25)
+	play_sfx(STREAM_PICKUP, 0.0, 0.04)
 
 func play_drop() -> void:
-	_play_tone(220.0, 0.06, 0.2, 0.8)
+	play_sfx(STREAM_DROP, 0.0, 0.04)
 
 func play_merge() -> void:
-	_play_chord([523.25, 659.25, 783.99], 0.22, 0.3)
+	play_sfx(STREAM_MERGE, 1.5, 0.04)
 
 func play_spawn() -> void:
-	_play_chirp(300.0, 580.0, 0.08, 0.25)
+	play_sfx(STREAM_SPAWN, 0.0, 0.03)
 
 func play_consume() -> void:
-	_play_chirp(600.0, 950.0, 0.12, 0.3)
+	play_sfx(STREAM_CONSUME, 1.0, 0.03)
 
 func play_quest() -> void:
-	_play_arpeggio([523.25, 659.25, 783.99, 1046.5], 0.08, 0.3)
+	play_sfx(STREAM_QUEST, 2.0, 0.0)
 
 func play_error() -> void:
-	_play_buzz(130.0, 0.14, 0.25)
+	play_sfx(STREAM_ERROR, -1.0, 0.0)
 
-func _play_tone(freq: float, duration: float, volume: float = 0.3, decay: float = 1.0) -> void:
-	if not sfx_enabled or not _playback:
-		return
-	var frames := int(duration * SAMPLE_RATE)
-	var available := _playback.get_frames_available()
-	frames = mini(frames, available)
-	var phase := 0.0
-	var phase_step := TAU * freq / SAMPLE_RATE
-	for i in range(frames):
-		var env := pow(1.0 - float(i) / float(frames), decay) * volume
-		var sample := sin(phase) * env
-		_playback.push_frame(Vector2(sample, sample))
-		phase = fmod(phase + phase_step, TAU)
+func play_click() -> void:
+	play_sfx(STREAM_CLICK, -2.0, 0.04)
 
-func _play_chirp(start_freq: float, end_freq: float, duration: float, volume: float = 0.3) -> void:
-	if not sfx_enabled or not _playback:
-		return
-	var frames := int(duration * SAMPLE_RATE)
-	var available := _playback.get_frames_available()
-	frames = mini(frames, available)
-	var phase := 0.0
-	for i in range(frames):
-		var t := float(i) / float(frames)
-		var freq := lerpf(start_freq, end_freq, t)
-		var env := (1.0 - t) * volume
-		var sample := sin(phase) * env
-		_playback.push_frame(Vector2(sample, sample))
-		phase = fmod(phase + TAU * freq / SAMPLE_RATE, TAU)
+func play_open() -> void:
+	play_sfx(STREAM_OPEN, -1.0, 0.02)
 
-func _play_buzz(freq: float, duration: float, volume: float = 0.3) -> void:
-	if not sfx_enabled or not _playback:
-		return
-	var frames := int(duration * SAMPLE_RATE)
-	var available := _playback.get_frames_available()
-	frames = mini(frames, available)
-	var phase := 0.0
-	var phase_step := TAU * freq / SAMPLE_RATE
-	for i in range(frames):
-		var env := (1.0 - float(i) / float(frames)) * volume
-		# Square wave
-		var sample := (1.0 if sin(phase) > 0.0 else -1.0) * env
-		_playback.push_frame(Vector2(sample, sample))
-		phase = fmod(phase + phase_step, TAU)
-
-func _play_chord(frequencies: Array, duration: float, volume: float = 0.3) -> void:
-	if not sfx_enabled or not _playback:
-		return
-	var frames := int(duration * SAMPLE_RATE)
-	var available := _playback.get_frames_available()
-	frames = mini(frames, available)
-	var phases: Array[float] = []
-	phases.resize(frequencies.size())
-	phases.fill(0.0)
-	var vol_per_voice := volume / float(frequencies.size())
-
-	for i in range(frames):
-		var env := pow(1.0 - float(i) / float(frames), 0.7)
-		var sample := 0.0
-		for idx in range(frequencies.size()):
-			var f: float = frequencies[idx]
-			sample += sin(phases[idx]) * vol_per_voice * env
-			phases[idx] = fmod(phases[idx] + TAU * f / SAMPLE_RATE, TAU)
-		_playback.push_frame(Vector2(sample, sample))
-
-func _play_arpeggio(frequencies: Array, note_duration: float, volume: float = 0.3) -> void:
-	if not _playback:
-		return
-	for f in frequencies:
-		_play_tone(f, note_duration, volume, 0.8)
+func play_close() -> void:
+	play_sfx(STREAM_CLOSE, -1.0, 0.02)
