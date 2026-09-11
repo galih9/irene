@@ -16,7 +16,7 @@ var _sfx_index: int = 0
 # --- Preloaded Audio Assets ---
 const BGM_PATH: String = "res://assets/bgm/bgm.mp3"
 
-const STREAM_PICKUP: AudioStream = preload("res://assets/bgm/click3.ogg")
+const STREAM_PICKUP: AudioStream = preload("res://assets/bgm/switch_001.ogg")
 const STREAM_DROP: AudioStream = preload("res://assets/bgm/drop_001.ogg")
 const STREAM_MERGE: AudioStream = preload("res://assets/bgm/glass_001.ogg")
 const STREAM_SPAWN: AudioStream = preload("res://assets/bgm/drop_002.ogg")
@@ -26,6 +26,26 @@ const STREAM_ERROR: AudioStream = preload("res://assets/bgm/error_004.ogg")
 const STREAM_CLICK: AudioStream = preload("res://assets/bgm/click1.ogg")
 const STREAM_OPEN: AudioStream = preload("res://assets/bgm/open_001.ogg")
 const STREAM_CLOSE: AudioStream = preload("res://assets/bgm/close_001.ogg")
+
+# Distinct merge sounds mapped by chain ID
+const CHAIN_MERGE_SOUNDS: Dictionary = {
+	"foodbox": preload("res://assets/bgm/switch_002.ogg"),
+	"oven": preload("res://assets/bgm/maximize_004.ogg"),
+	"fridge": preload("res://assets/bgm/glass_002.ogg"),
+	"rack": preload("res://assets/bgm/scratch_001.ogg"),
+	"egg": preload("res://assets/bgm/drop_003.ogg"),
+	"leaf": preload("res://assets/bgm/switch_003.ogg"),
+	"beef": preload("res://assets/bgm/drop_001.ogg"),
+	"cake": preload("res://assets/bgm/glass_003.ogg"),
+	"sandwich": preload("res://assets/bgm/switch_007.ogg"),
+	"drink": preload("res://assets/bgm/glass_004.ogg"),
+	"util": preload("res://assets/bgm/glass_005.ogg"),
+	"exp": preload("res://assets/bgm/confirmation_002.ogg"),
+	"gold": preload("res://assets/bgm/confirmation_003.ogg"),
+	"energy": preload("res://assets/bgm/confirmation_004.ogg"),
+	"diamond": preload("res://assets/bgm/glass_006.ogg"),
+	"chest": preload("res://assets/bgm/maximize_006.ogg"),
+}
 
 func _ready() -> void:
 	# 1. Initialize BGM Player
@@ -93,7 +113,7 @@ func toggle_sfx() -> bool:
 func set_sfx_enabled(enabled: bool) -> void:
 	sfx_enabled = enabled
 
-func play_sfx(stream: AudioStream, volume_offset_db: float = 0.0, pitch_variance: float = 0.0) -> void:
+func play_sfx(stream: AudioStream, volume_offset_db: float = 0.0, pitch_variance: float = 0.0, base_pitch: float = 1.0) -> void:
 	if not sfx_enabled or stream == null or _sfx_players.is_empty():
 		return
 
@@ -103,9 +123,9 @@ func play_sfx(stream: AudioStream, volume_offset_db: float = 0.0, pitch_variance
 	player.stream = stream
 	player.volume_db = sfx_volume_db + volume_offset_db
 	if pitch_variance > 0.0:
-		player.pitch_scale = randf_range(1.0 - pitch_variance, 1.0 + pitch_variance)
+		player.pitch_scale = base_pitch * randf_range(1.0 - pitch_variance, 1.0 + pitch_variance)
 	else:
-		player.pitch_scale = 1.0
+		player.pitch_scale = base_pitch
 	player.play()
 
 # Specific Gameplay Sound Events
@@ -115,8 +135,19 @@ func play_pickup() -> void:
 func play_drop() -> void:
 	play_sfx(STREAM_DROP, 0.0, 0.04)
 
-func play_merge() -> void:
-	play_sfx(STREAM_MERGE, 1.5, 0.04)
+func play_merge(item_data: ItemData = null) -> void:
+	var stream: AudioStream = STREAM_MERGE
+	var tier: int = 1
+	if item_data != null:
+		tier = item_data.tier
+		if item_data.merge_sound != null:
+			stream = item_data.merge_sound
+		elif CHAIN_MERGE_SOUNDS.has(item_data.chain_id):
+			stream = CHAIN_MERGE_SOUNDS[item_data.chain_id]
+
+	# Higher tiers produce higher pitch for a delightful progression feel
+	var pitch: float = 1.0 + float(tier - 1) * 0.06
+	play_sfx(stream, 1.5, 0.03, pitch)
 
 func play_spawn() -> void:
 	play_sfx(STREAM_SPAWN, 0.0, 0.03)

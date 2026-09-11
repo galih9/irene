@@ -19,6 +19,10 @@ extends Resource
 @export var min_spawner_tier: int = 3
 @export var max_charges: int = 10
 @export var cooldown_per_charge: float = 5.0
+@export var disappears_when_exhausted: bool = false
+
+# Audio customization
+@export var merge_sound: AudioStream = null
 
 # Consumable attributes (e.g. Coins, Energy batteries)
 @export var is_consumable: bool = false

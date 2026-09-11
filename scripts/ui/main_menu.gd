@@ -7,6 +7,7 @@ extends Control
 @onready var options_btn: Button = $UI/CenterContainer/VBox/Buttons/OptionsBtn
 @onready var quit_btn: Button = $UI/CenterContainer/VBox/Buttons/QuitBtn
 @onready var title_badge: Control = $UI/CenterContainer/VBox/TitleContainer
+@onready var menu_container: Control = $UI/CenterContainer
 
 @onready var option_modal: OptionModal = $Modals/OptionModal
 
@@ -15,6 +16,9 @@ func _ready() -> void:
 	new_game_btn.pressed.connect(_on_new_game_pressed)
 	options_btn.pressed.connect(_on_options_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
+
+	if option_modal:
+		option_modal.closed.connect(_on_options_closed)
 
 	if OS.has_feature("web"):
 		quit_btn.visible = false
@@ -49,22 +53,32 @@ func _animate_title() -> void:
 	tween.tween_property(title_badge, "scale", Vector2(0.98, 0.98), 1.6)
 
 func _on_continue_pressed() -> void:
-	SoundManager.play_pickup()
+	SoundManager.play_click()
 	SaveManager.should_load_on_start = true
 	get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_new_game_pressed() -> void:
-	SoundManager.play_pickup()
+	SoundManager.play_click()
 	SaveManager.should_load_on_start = false
 	get_tree().change_scene_to_file("res://main.tscn")
 
 func _on_options_pressed() -> void:
-	SoundManager.play_pickup()
+	SoundManager.play_click()
 	if option_modal:
-		# In main menu, we can hide the MenuBtn inside OptionModal since we are already on Main Menu
+		# Hide the main menu UI when opening options
+		menu_container.visible = false
+		option_modal.open_modal()
+		# In main menu, hide MenuBtn and SaveBtn (no game in progress yet), adjust ResumeBtn to "BACK"
 		if option_modal.has_node("Panel/Margin/VBox/Content/MenuBtn"):
 			option_modal.get_node("Panel/Margin/VBox/Content/MenuBtn").visible = false
-		option_modal.open_modal()
+		if option_modal.has_node("Panel/Margin/VBox/Content/SaveBtn"):
+			option_modal.get_node("Panel/Margin/VBox/Content/SaveBtn").visible = false
+		if option_modal.has_node("Panel/Margin/VBox/Content/ResumeBtn"):
+			option_modal.get_node("Panel/Margin/VBox/Content/ResumeBtn").text = "BACK"
+
+func _on_options_closed() -> void:
+	# Restore the main menu UI when closing options
+	menu_container.visible = true
 
 func _on_quit_pressed() -> void:
 	SoundManager.play_drop()

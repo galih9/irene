@@ -1,7 +1,7 @@
 class_name Board
 extends Node2D
 
-@export_group("Grid Dimensions")
+@export_group("Grid Dimensions & Spacing")
 @export var cols: int = 7:
 	set(val):
 		cols = val
@@ -24,13 +24,27 @@ extends Node2D
 		if is_inside_tree():
 			_apply_board_styling()
 			_create_cells()
+			_reposition_items()
 
-@export var cell_spacing: float = 8.0:
+@export var cell_spacing: float = 5.0:
 	set(val):
 		cell_spacing = val
 		if is_inside_tree():
 			_apply_board_styling()
 			_create_cells()
+			_reposition_items()
+
+@export var board_margin: float = 12.0:
+	set(val):
+		board_margin = val
+		if is_inside_tree():
+			_apply_board_styling()
+
+var tile_margin: float:
+	get:
+		return cell_spacing
+	set(val):
+		cell_spacing = val
 
 @export_group("Board Styling")
 @export var board_bg_color: Color = Color(0.1, 0.12, 0.16, 0.95):
@@ -54,14 +68,39 @@ extends Node2D
 		_apply_board_styling()
 
 @export_group("Tile Styling")
+@export var use_chess_pattern: bool = true:
+	set(val):
+		use_chess_pattern = val
+		_apply_cells_styling()
+
 @export var tile_bg_color: Color = Color(0.18, 0.21, 0.27, 0.9):
 	set(val):
 		tile_bg_color = val
 		_apply_cells_styling()
 
+@export var tile_bg_alt_color: Color = Color(0.24, 0.28, 0.35, 0.9):
+	set(val):
+		tile_bg_alt_color = val
+		_apply_cells_styling()
+
+@export var tile_locked_bg_color: Color = Color(0.10, 0.11, 0.14, 0.95):
+	set(val):
+		tile_locked_bg_color = val
+		_apply_cells_styling()
+
+@export var tile_locked_bg_alt_color: Color = Color(0.13, 0.14, 0.18, 0.95):
+	set(val):
+		tile_locked_bg_alt_color = val
+		_apply_cells_styling()
+
 @export var tile_border_color: Color = Color(0.28, 0.32, 0.4, 0.5):
 	set(val):
 		tile_border_color = val
+		_apply_cells_styling()
+
+@export var tile_locked_border_color: Color = Color(0.20, 0.22, 0.26, 0.6):
+	set(val):
+		tile_locked_border_color = val
 		_apply_cells_styling()
 
 @export var tile_hover_empty_color: Color = Color(0.28, 0.38, 0.52, 0.95):
@@ -77,16 +116,6 @@ extends Node2D
 @export var tile_corner_radius: int = 12:
 	set(val):
 		tile_corner_radius = val
-		_apply_cells_styling()
-
-@export var tile_locked_bg_color: Color = Color(0.10, 0.11, 0.14, 0.95):
-	set(val):
-		tile_locked_bg_color = val
-		_apply_cells_styling()
-
-@export var tile_locked_border_color: Color = Color(0.20, 0.22, 0.26, 0.6):
-	set(val):
-		tile_locked_border_color = val
 		_apply_cells_styling()
 
 const DRAG_THRESHOLD: float = 12.0
@@ -122,6 +151,10 @@ func _ready() -> void:
 	_create_cells()
 	GameEvents.player_leveled_up.connect(_on_player_leveled_up)
 	GameEvents.board_changed.connect(update_all_cells_lock_visuals)
+	GameEvents.board_changed.connect(func():
+		if not _is_dragging and is_inside_tree():
+			_update_hover_cursor(get_global_mouse_position())
+	)
 
 func _on_player_leveled_up(new_level: int) -> void:
 	check_boxed_items_unlock(new_level)
@@ -137,10 +170,10 @@ func _apply_board_styling() -> void:
 		return
 	var b_width := get_board_width()
 	var b_height := get_board_height()
-	background_panel.offset_left = -12.0
-	background_panel.offset_top = -12.0
-	background_panel.offset_right = b_width + 12.0
-	background_panel.offset_bottom = b_height + 12.0
+	background_panel.offset_left = -board_margin
+	background_panel.offset_top = -board_margin
+	background_panel.offset_right = b_width + board_margin
+	background_panel.offset_bottom = b_height + board_margin
 
 	if cells_container:
 		cells_container.size = Vector2(b_width, b_height)
@@ -164,12 +197,26 @@ func _apply_board_styling() -> void:
 
 	background_panel.add_theme_stylebox_override("panel", style)
 
+func _style_cell(cell: BoardCell, c: int, r: int) -> void:
+	var is_alt := (c + r) % 2 == 1
+	var bg: Color = tile_bg_alt_color if (use_chess_pattern and is_alt) else tile_bg_color
+	var locked_bg: Color = tile_locked_bg_alt_color if (use_chess_pattern and is_alt) else tile_locked_bg_color
+	cell.setup_style(bg, tile_border_color, tile_hover_empty_color, tile_hover_merge_color, tile_corner_radius, locked_bg, tile_locked_border_color)
+
 func _apply_cells_styling() -> void:
 	for c in range(_cells.size()):
 		for r in range(_cells[c].size()):
 			var cell: BoardCell = _cells[c][r]
 			if is_instance_valid(cell):
-				cell.setup_style(tile_bg_color, tile_border_color, tile_hover_empty_color, tile_hover_merge_color, tile_corner_radius, tile_locked_bg_color, tile_locked_border_color)
+				_style_cell(cell, c, r)
+
+func _reposition_items() -> void:
+	for c in range(_grid.size()):
+		for r in range(_grid[c].size()):
+			var item: ItemView = _grid[c][r]
+			if is_instance_valid(item) and not item.is_dragging:
+				item.position = get_cell_center(c, r)
+				item.target_slot_pos = item.position
 
 func _init_grid() -> void:
 	_grid.clear()
@@ -198,7 +245,7 @@ func _create_cells() -> void:
 			cell.size = Vector2(cell_size, cell_size)
 			cell.position = get_cell_top_left(c, r)
 			cells_container.add_child(cell)
-			cell.setup_style(tile_bg_color, tile_border_color, tile_hover_empty_color, tile_hover_merge_color, tile_corner_radius, tile_locked_bg_color, tile_locked_border_color)
+			_style_cell(cell, c, r)
 			_cells[c][r] = cell
 
 func get_cell_top_left(col: int, row: int) -> Vector2:
@@ -262,7 +309,7 @@ func get_empty_cells() -> Array[Vector2i]:
 				empty.append(Vector2i(c, r))
 	return empty
 
-func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemState.NORMAL, req_level: int = 1) -> ItemView:
+func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemState.NORMAL, req_level: int = 1, b_var: int = -1, w_var: int = -1) -> ItemView:
 	if not is_valid_coord(coord):
 		return null
 	var data := ItemDatabase.get_item(item_id)
@@ -276,7 +323,7 @@ func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemS
 
 	var item: ItemView = item_view_scene.instantiate()
 	items_container.add_child(item)
-	item.setup(data, state as ItemView.ItemState, req_level)
+	item.setup(data, state as ItemView.ItemState, req_level, b_var, w_var)
 	set_item_at(coord, item)
 	if state == ItemView.ItemState.NORMAL:
 		ProgressionManager.unlock_item(item_id, true)
@@ -315,8 +362,40 @@ func _unhandled_input(event: InputEvent) -> void:
 				_handle_press(mb.global_position)
 			else:
 				_handle_release(mb.global_position)
-	elif event is InputEventMouseMotion and _active_item:
-		_handle_motion(event.global_position)
+	elif event is InputEventMouseMotion:
+		if _active_item:
+			_handle_motion(event.global_position)
+		else:
+			_update_hover_cursor(event.global_position)
+
+func _update_hover_cursor(mouse_pos: Vector2) -> void:
+	if _is_dragging:
+		CursorManager.set_drag_cursor()
+		return
+
+	var coord := world_to_grid(mouse_pos)
+	if not is_valid_coord(coord):
+		CursorManager.reset_cursor()
+		return
+
+	var item := get_item_at(coord)
+	if not item:
+		CursorManager.reset_cursor()
+		return
+
+	if item.is_boxed() or item.is_locked():
+		CursorManager.set_forbidden_cursor()
+		return
+
+	if item.data and item.data.is_spawner:
+		if item.is_spawner_exhausted():
+			CursorManager.set_exclamation_cursor()
+		else:
+			CursorManager.set_pointing_cursor()
+		return
+
+	# Normal item
+	CursorManager.set_can_drop_cursor()
 
 func _handle_press(mouse_pos: Vector2) -> void:
 	var coord := world_to_grid(mouse_pos)
@@ -363,6 +442,7 @@ func _handle_motion(mouse_pos: Vector2) -> void:
 			_is_dragging = true
 			_active_item.animate_pickup()
 			GameEvents.item_drag_started.emit(_active_item)
+			CursorManager.set_drag_cursor()
 		else:
 			return
 
@@ -373,6 +453,7 @@ func _handle_motion(mouse_pos: Vector2) -> void:
 	_update_hover_feedback(mouse_pos)
 
 func _update_hover_feedback(mouse_pos: Vector2) -> void:
+	CursorManager.set_drag_cursor()
 	_clear_hover_feedback()
 
 	# 1. Over board
@@ -430,30 +511,36 @@ func _handle_release(mouse_pos: Vector2) -> void:
 	if not _is_dragging:
 		# It's a tap/click!
 		_handle_item_tap(item)
+		_update_hover_cursor(mouse_pos)
 		return
 
 	# Finish drag
 	item.animate_drop()
 	GameEvents.item_drag_ended.emit(item)
+	_is_dragging = false
 
 	# Check Sell Bin drop
 	if sell_bin and sell_bin.get_global_rect().has_point(mouse_pos):
 		_sell_item(item)
+		_update_hover_cursor(mouse_pos)
 		return
 
 	# Check Inventory dropzone button
 	if bottom_nav_bar and bottom_nav_bar.is_pos_inside_inventory_button(mouse_pos):
 		_drop_into_inventory_button(item)
+		_update_hover_cursor(mouse_pos)
 		return
 
 	# Check Board drop
 	var target_coord := world_to_grid(mouse_pos)
 	if is_valid_coord(target_coord):
 		_drop_into_board(item, target_coord)
+		_update_hover_cursor(mouse_pos)
 		return
 
 	# Dropped outside: bounce back to origin
 	_return_item_to_origin(item)
+	_update_hover_cursor(mouse_pos)
 
 func _handle_item_tap(item: ItemView) -> void:
 	# 1. Spawner tap
@@ -516,6 +603,20 @@ func _trigger_spawner(spawner: ItemView) -> void:
 			best_coord = ec
 
 	spawn_item_flight(spawner.global_position, best_coord, drop_id)
+
+	# If the spawner is consumable (e.g. Chest) and exhausted, it vanishes!
+	if spawner.data.disappears_when_exhausted and spawner.current_charges <= 0:
+		remove_item(spawner)
+		SoundManager.play_consume()
+		GameEvents.show_floating_text.emit("Chest Emptied!", spawner.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.35))
+		var vanish_tween := spawner.create_tween().set_parallel(true)
+		vanish_tween.tween_property(spawner, "scale", Vector2.ZERO, 0.28).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+		vanish_tween.tween_property(spawner, "modulate:a", 0.0, 0.25)
+		vanish_tween.finished.connect(func():
+			if is_instance_valid(spawner):
+				spawner.queue_free()
+		)
+		GameEvents.board_changed.emit()
 
 func _trigger_consumable(item: ItemView) -> void:
 	var amt := item.data.consume_amount
@@ -765,7 +866,9 @@ func serialize_items() -> Array[Dictionary]:
 					"row": r,
 					"item_id": it.data.id,
 					"item_state": int(it.item_state),
-					"unlock_level": it.unlock_level
+					"unlock_level": it.unlock_level,
+					"box_variant": it.box_variant,
+					"web_variant": it.web_variant
 				}
 				if it.data.is_spawner:
 					dict["spawner_charges"] = it.current_charges
@@ -782,8 +885,10 @@ func load_items(items_data: Array) -> void:
 		var item_id: String = str(entry.get("item_id", ""))
 		var state_val: int = int(entry.get("item_state", ItemView.ItemState.NORMAL))
 		var req_level: int = int(entry.get("unlock_level", 1))
+		var b_var: int = int(entry.get("box_variant", -1))
+		var w_var: int = int(entry.get("web_variant", -1))
 		if is_valid_coord(Vector2i(c, r)) and not item_id.is_empty():
-			var spawned := spawn_item_at(Vector2i(c, r), item_id, state_val, req_level)
+			var spawned := spawn_item_at(Vector2i(c, r), item_id, state_val, req_level, b_var, w_var)
 			if spawned and entry.has("spawner_charges"):
 				var charges: int = int(entry.get("spawner_charges", spawned.max_charges))
 				var cooldown: float = float(entry.get("spawner_cooldown", 0.0))

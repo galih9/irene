@@ -7,6 +7,7 @@ const CURSOR_DRAG_TEX: Texture2D = preload("res://assets/cursor/hand_closed.png"
 const CURSOR_CAN_DROP_TEX: Texture2D = preload("res://assets/cursor/hand_open.png")
 const CURSOR_FORBIDDEN_TEX: Texture2D = preload("res://assets/cursor/disabled.png")
 const CURSOR_HELP_TEX: Texture2D = preload("res://assets/cursor/mark_question_pointer_b.png")
+const CURSOR_EXCLAMATION_TEX: Texture2D = preload("res://assets/cursor/mark_exclamation_pointer_b.png")
 const CURSOR_WAIT_TEX: Texture2D = preload("res://assets/cursor/progress_full.png")
 
 # Exact pixel hotspots based on asset geometry (32x32)
@@ -16,7 +17,10 @@ const HOTSPOT_DRAG: Vector2 = Vector2(16, 16)
 const HOTSPOT_CAN_DROP: Vector2 = Vector2(16, 14)
 const HOTSPOT_FORBIDDEN: Vector2 = Vector2(16, 16)
 const HOTSPOT_HELP: Vector2 = Vector2(10, 6)
+const HOTSPOT_EXCLAMATION: Vector2 = Vector2(10, 6)
 const HOTSPOT_WAIT: Vector2 = Vector2(16, 16)
+
+const CURSOR_EXCLAMATION: Input.CursorShape = Input.CURSOR_HELP
 
 func _ready() -> void:
 	register_all_cursors()
@@ -31,6 +35,8 @@ func register_all_cursors() -> void:
 	Input.set_custom_mouse_cursor(CURSOR_CAN_DROP_TEX, Input.CURSOR_CAN_DROP, HOTSPOT_CAN_DROP)
 	Input.set_custom_mouse_cursor(CURSOR_FORBIDDEN_TEX, Input.CURSOR_FORBIDDEN, HOTSPOT_FORBIDDEN)
 	Input.set_custom_mouse_cursor(CURSOR_HELP_TEX, Input.CURSOR_HELP, HOTSPOT_HELP)
+	Input.set_custom_mouse_cursor(CURSOR_EXCLAMATION_TEX, CURSOR_EXCLAMATION, HOTSPOT_EXCLAMATION)
+	Input.set_custom_mouse_cursor(CURSOR_EXCLAMATION_TEX, Input.CURSOR_CROSS, HOTSPOT_EXCLAMATION)
 	Input.set_custom_mouse_cursor(CURSOR_WAIT_TEX, Input.CURSOR_WAIT, HOTSPOT_WAIT)
 	Input.set_custom_mouse_cursor(CURSOR_WAIT_TEX, Input.CURSOR_BUSY, HOTSPOT_WAIT)
 
@@ -59,8 +65,20 @@ func reset_cursor() -> void:
 func set_drag_cursor() -> void:
 	set_cursor(Input.CURSOR_DRAG)
 
+func set_closed_hand_cursor() -> void:
+	set_cursor(Input.CURSOR_DRAG)
+
 func set_can_drop_cursor() -> void:
 	set_cursor(Input.CURSOR_CAN_DROP)
+
+func set_open_hand_cursor() -> void:
+	set_cursor(Input.CURSOR_CAN_DROP)
+
+func set_pointing_cursor() -> void:
+	set_cursor(Input.CURSOR_POINTING_HAND)
+
+func set_exclamation_cursor() -> void:
+	set_cursor(CURSOR_EXCLAMATION)
 
 func set_forbidden_cursor() -> void:
 	set_cursor(Input.CURSOR_FORBIDDEN)

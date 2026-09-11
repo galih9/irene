@@ -484,6 +484,43 @@ func _init_database() -> void:
 		it.consume_currency = "gems"
 		it.consume_amount = diamond_amounts[t - 1]
 
+	# =========================================================================
+	# 4. SPECIAL REWARD CHESTS (Hybrid Spawner + Consumable)
+	# =========================================================================
+	var chest_texture := preload("res://icon.svg")
+	var chest_names := [
+		"Producer Supply Chest", "Grand Producer Chest"
+	]
+	var chest_descs := [
+		"A special supply chest filled with kitchen appliances! Tap to spawn tier 1 Oven or Fridge. Exhausts and vanishes after 5 uses. Merge to reset charges!",
+		"A grand culinary chest! Tap to spawn tier 1 Oven, Fridge, Rack, or Foodbox. Exhausts and vanishes after 5 uses. Merge to reset charges!"
+	]
+	var chest_colors := [
+		Color(0.95, 0.65, 0.25), Color(1.0, 0.85, 0.35)
+	]
+	var chest_pools: Array[Array] = [
+		["oven_1", "fridge_1"],
+		["oven_1", "fridge_1", "rack_1", "foodbox_1"]
+	]
+
+	for t in range(1, 3):
+		var id := "chest_%d" % t
+		var it := _register_item(
+			id, "chest", "Chest", t, 2,
+			chest_names[t - 1], chest_descs[t - 1],
+			chest_colors[t - 1], chest_texture
+		)
+		it.is_spawner = true
+		it.min_spawner_tier = 1
+		it.max_charges = 5
+		it.cooldown_per_charge = 0.0
+		it.energy_cost = 0
+		it.disappears_when_exhausted = true
+		var pool: Array[String] = []
+		for p in chest_pools[t - 1]:
+			pool.append(str(p))
+		it.spawn_pool = pool
+
 func _get_foodbox_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = ["egg_1", "egg_1", "leaf_1", "leaf_1"]
 	if tier >= 2:

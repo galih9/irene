@@ -13,6 +13,32 @@ enum ProducerStatus {
 	EXHAUST = 2
 }
 
+const BOX_TEXTURES: Array[Texture2D] = [
+	preload("res://assets/box/box1.png"),
+	preload("res://assets/box/box2.png"),
+	preload("res://assets/box/box3.png"),
+	preload("res://assets/box/box4.png"),
+	preload("res://assets/box/box5.png"),
+]
+
+const WEB_TEXTURES: Array[Texture2D] = [
+	preload("res://assets/box/web1.png"),
+	preload("res://assets/box/web2.png"),
+	preload("res://assets/box/web3.png"),
+	preload("res://assets/box/web4.png"),
+	preload("res://assets/box/web5.png"),
+	preload("res://assets/box/web6.png"),
+]
+
+const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
+
+@export_group("Locked Item Visuals")
+@export var locked_item_modulate: Color = LOCKED_ITEM_MODULATE:
+	set(val):
+		locked_item_modulate = val
+		if is_inside_tree() and item_state == ItemState.LOCKED:
+			_update_visuals()
+
 @export var data: ItemData:
 	set(val):
 		data = val
@@ -29,6 +55,18 @@ enum ProducerStatus {
 	set(val):
 		unlock_level = val
 		if is_inside_tree() and item_state == ItemState.BOXED:
+			_update_visuals()
+
+@export var box_variant: int = -1:
+	set(val):
+		box_variant = val
+		if is_inside_tree() and item_state == ItemState.BOXED:
+			_update_visuals()
+
+@export var web_variant: int = -1:
+	set(val):
+		web_variant = val
+		if is_inside_tree() and (item_state == ItemState.BOXED or item_state == ItemState.LOCKED):
 			_update_visuals()
 
 var grid_coord: Vector2i = Vector2i(-1, -1)
@@ -48,11 +86,13 @@ var _idle_tween: Tween = null
 
 @onready var visuals: Node2D = $Visuals
 @onready var sprite: Sprite2D = $Visuals/Sprite
+@onready var web_sprite: Sprite2D = $Visuals.get_node_or_null("WebSprite")
 @onready var shadow: Sprite2D = $Shadow
 @onready var glow: Sprite2D = $Visuals/Glow
 @onready var tier_badge: PanelContainer = $Visuals/TierBadge
 @onready var tier_label: Label = $Visuals/TierBadge/TierLabel
 @onready var spawner_badge: PanelContainer = $Visuals/SpawnerBadge
+@onready var spawner_label: Label = $Visuals/SpawnerBadge/SpawnerLabel
 @onready var status_badge: PanelContainer = $Visuals/StatusBadge
 @onready var status_label: Label = $Visuals/StatusBadge/StatusLabel
 @onready var touch_area: Control = $TouchArea
@@ -86,10 +126,44 @@ func _process(delta: float) -> void:
 		if producer_status == ProducerStatus.EXHAUST and status_label and status_badge and status_badge.visible:
 			status_label.text = "%ds" % int(ceil(current_cooldown))
 
-func setup(item_data: ItemData, state: ItemState = ItemState.NORMAL, req_level: int = 1) -> void:
+func get_box_texture() -> Texture2D:
+	if BOX_TEXTURES.is_empty():
+		return null
+	var idx: int = 0
+	if box_variant >= 0:
+		idx = box_variant % BOX_TEXTURES.size()
+	else:
+		var seed_val: int = unlock_level * 7
+		if grid_coord != Vector2i(-1, -1):
+			seed_val += grid_coord.x * 13 + grid_coord.y * 7
+		elif data:
+			seed_val += abs(data.id.hash())
+		idx = abs(seed_val) % BOX_TEXTURES.size()
+	return BOX_TEXTURES[idx]
+
+func get_web_texture() -> Texture2D:
+	if WEB_TEXTURES.is_empty():
+		return null
+	var idx: int = 0
+	if web_variant >= 0:
+		idx = web_variant % WEB_TEXTURES.size()
+	else:
+		var seed_val: int = (unlock_level + 3) * 11
+		if grid_coord != Vector2i(-1, -1):
+			seed_val += grid_coord.x * 17 + grid_coord.y * 19
+		elif data:
+			seed_val += abs(data.id.hash())
+		idx = abs(seed_val) % WEB_TEXTURES.size()
+	return WEB_TEXTURES[idx]
+
+func setup(item_data: ItemData, state: ItemState = ItemState.NORMAL, req_level: int = 1, b_var: int = -1, w_var: int = -1) -> void:
 	data = item_data
 	item_state = state
 	unlock_level = req_level
+	if b_var >= 0:
+		box_variant = b_var
+	if w_var >= 0:
+		web_variant = w_var
 	if data and data.is_spawner:
 		max_charges = data.max_charges
 		cooldown_per_charge = data.cooldown_per_charge
@@ -142,18 +216,39 @@ func _update_visuals() -> void:
 	if not data:
 		return
 
+	if not web_sprite and visuals:
+		web_sprite = visuals.get_node_or_null("WebSprite")
+		if not web_sprite:
+			web_sprite = Sprite2D.new()
+			web_sprite.name = "WebSprite"
+			visuals.add_child(web_sprite)
+			if sprite:
+				visuals.move_child(web_sprite, sprite.get_index() + 1)
+
 	if item_state == ItemState.BOXED:
-		# Boxed status: use godot icon placeholder, hide tier, hide spawner
-		var box_tex: Texture2D = preload("res://icon.svg")
+		# Boxed status: use box texture variants, hide tier, hide spawner
+		var box_tex: Texture2D = get_box_texture()
 		sprite.texture = box_tex
 		shadow.texture = box_tex
 		glow.texture = box_tex
 		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		_base_scale = 0.48
+		var tex_size := box_tex.get_size() if box_tex else Vector2(432, 432)
+		var max_dim := maxf(tex_size.x, tex_size.y)
+		_base_scale = (74.0 / max_dim) if max_dim > 0.0 else 0.48
 
 		sprite.scale = Vector2(_base_scale, _base_scale)
 		shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
 		glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
+
+		# Stacked web on top of boxed item
+		if web_sprite:
+			var web_tex: Texture2D = get_web_texture()
+			web_sprite.texture = web_tex
+			var web_dim := maxf(web_tex.get_width(), web_tex.get_height()) if web_tex else 94.0
+			var web_scale := (78.0 / web_dim) if web_dim > 0.0 else 0.8
+			web_sprite.scale = Vector2(web_scale, web_scale)
+			web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
+			web_sprite.visible = true
 
 		tier_badge.visible = false
 		spawner_badge.visible = false
@@ -182,8 +277,18 @@ func _update_visuals() -> void:
 	glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
 
 	if item_state == ItemState.LOCKED:
-		# Locked status: disabled dark gray filter, show tier so user knows merge partner
-		sprite.modulate = Color(0.38, 0.38, 0.42, 1.0)
+		# Locked status: disabled dark gray filter (more grayish and more transparent)
+		sprite.modulate = locked_item_modulate
+		# Stacked web on top of locked item
+		if web_sprite:
+			var web_tex: Texture2D = get_web_texture()
+			web_sprite.texture = web_tex
+			var web_dim := maxf(web_tex.get_width(), web_tex.get_height()) if web_tex else 94.0
+			var web_scale := (76.0 / web_dim) if web_dim > 0.0 else 0.8
+			web_sprite.scale = Vector2(web_scale, web_scale)
+			web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
+			web_sprite.visible = true
+
 		tier_badge.visible = (data.max_tier > 1)
 		if tier_badge.visible:
 			tier_label.text = "T%d" % data.tier
@@ -192,14 +297,30 @@ func _update_visuals() -> void:
 			status_badge.visible = false
 		stop_idle_animation()
 	else:
-		# Normal status: active coloring and badges
+		# Normal status: active coloring and badges, hide web
+		if web_sprite:
+			web_sprite.visible = false
+
 		tier_badge.visible = (data.max_tier > 1)
 		if tier_badge.visible:
 			tier_label.text = "T%d" % data.tier
 
 		if data.is_spawner:
-			if producer_status == ProducerStatus.EXHAUST or current_charges <= 0:
+			if data.disappears_when_exhausted:
+				spawner_badge.visible = (current_charges > 0)
+				if is_instance_valid(spawner_label):
+					spawner_label.text = str(current_charges)
+				if status_badge:
+					status_badge.visible = false
+				sprite.modulate = Color.WHITE if data.icon_texture else data.color
+				if current_charges > 0:
+					start_idle_animation()
+				else:
+					stop_idle_animation()
+			elif producer_status == ProducerStatus.EXHAUST or current_charges <= 0:
 				spawner_badge.visible = false
+				if is_instance_valid(spawner_label):
+					spawner_label.text = "⚡"
 				if status_badge and status_label:
 					status_badge.visible = true
 					status_label.text = "%ds" % int(ceil(current_cooldown))
@@ -207,6 +328,8 @@ func _update_visuals() -> void:
 				stop_idle_animation()
 			else:
 				spawner_badge.visible = true
+				if is_instance_valid(spawner_label):
+					spawner_label.text = "⚡"
 				if status_badge:
 					status_badge.visible = false
 				sprite.modulate = Color.WHITE if data.icon_texture else data.color
@@ -292,7 +415,7 @@ func animate_pickup() -> void:
 	_scale_tween.tween_property(shadow, "position", Vector2(0, 16), 0.15)
 	_scale_tween.tween_property(shadow, "scale", Vector2(_base_scale * 1.05, _base_scale * 1.05), 0.15)
 	_scale_tween.tween_property(shadow, "modulate:a", 0.45, 0.15)
-	SoundManager.play_pickup()
+	SoundManager.play_drop()
 
 func animate_drop(on_complete: Callable = Callable()) -> void:
 	is_dragging = false
@@ -350,7 +473,7 @@ func animate_merge_pop() -> void:
 	sprite.modulate = Color.WHITE * 1.8
 	var flash_tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	flash_tween.tween_property(sprite, "modulate", orig_color, 0.25)
-	SoundManager.play_merge()
+	SoundManager.play_merge(data)
 
 func animate_spawner_tap() -> void:
 	# Mechanical button press

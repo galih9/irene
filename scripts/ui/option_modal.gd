@@ -1,6 +1,10 @@
 class_name OptionModal
 extends Control
 
+signal closed()
+
+var _is_closing: bool = false
+
 @onready var close_btn: Button = $Panel/Margin/VBox/Header/CloseBtn
 @onready var save_btn: Button = $Panel/Margin/VBox/Content/SaveBtn
 @onready var bgm_btn: Button = $Panel/Margin/VBox/Content/BgmBtn
@@ -25,22 +29,36 @@ func _ready() -> void:
 	_update_sfx_button()
 
 func open_modal() -> void:
+	_is_closing = false
 	visible = true
 	status_label.text = ""
 	_update_bgm_button()
 	_update_sfx_button()
+	if is_instance_valid(menu_btn):
+		menu_btn.visible = true
+	if is_instance_valid(save_btn):
+		save_btn.visible = true
+	if is_instance_valid(resume_btn):
+		resume_btn.text = "RESUME GAME"
 	scale = Vector2(0.9, 0.9)
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
 
 func close_modal() -> void:
+	if _is_closing or not visible:
+		return
+	_is_closing = true
 	SoundManager.play_drop()
 	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
 	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
-	tween.finished.connect(func(): visible = false)
+	tween.finished.connect(func():
+		visible = false
+		_is_closing = false
+		closed.emit()
+	)
 
 func _on_save_pressed() -> void:
-	SoundManager.play_pickup()
+	SoundManager.play_click()
 	var success := SaveManager.save_game(true, false)
 	if success:
 		status_label.text = "Game saved successfully! ✔"
@@ -64,7 +82,7 @@ func _update_bgm_button() -> void:
 func _on_sfx_pressed() -> void:
 	var enabled := SoundManager.toggle_sfx()
 	if enabled:
-		SoundManager.play_pickup()
+		SoundManager.play_click()
 	_update_sfx_button()
 
 func _update_sfx_button() -> void:
@@ -75,7 +93,7 @@ func _update_sfx_button() -> void:
 			sfx_btn.text = "SOUND EFFECTS: OFF"
 
 func _on_menu_pressed() -> void:
-	SoundManager.play_pickup()
+	SoundManager.play_click()
 	# Auto-save before returning to main menu
 	SaveManager.save_game(false, false)
 	SaveManager.is_gameplay_active = false

@@ -228,6 +228,13 @@ func _ready() -> void:
 	assert(test_board.rows == 9, "Board must have 9 rows")
 	var cells_cnt: int = test_board.get_node("CellsContainer").get_child_count()
 	assert(cells_cnt == 63, "Board must have 63 cells (7x9 = 63), got %d" % cells_cnt)
+	assert(test_board.cell_spacing == 5.0, "Board default cell_spacing must be 5.0 (tiles closer)")
+	assert(test_board.tile_margin == 5.0, "Board tile_margin alias must match cell_spacing")
+	assert(test_board.use_chess_pattern == true, "use_chess_pattern must default to true")
+	var cell_0_0: BoardCell = test_board._cells[0][0]
+	var cell_1_0: BoardCell = test_board._cells[1][0]
+	assert(cell_0_0.cell_bg_color.is_equal_approx(test_board.tile_bg_color), "Cell (0, 0) should use tile_bg_color")
+	assert(cell_1_0.cell_bg_color.is_equal_approx(test_board.tile_bg_alt_color), "Cell (1, 0) should use tile_bg_alt_color (lighter tone)")
 
 	test_board.queue_free()
 	print("✔ 7x9 Board verified!")
@@ -334,6 +341,17 @@ func _ready() -> void:
 	assert(menu_inst.options_btn != null, "OptionsBtn must exist in MainMenu")
 	assert(menu_inst.quit_btn != null, "QuitBtn must exist in MainMenu")
 
+	# Test opening options modal hides main menu UI
+	assert(menu_inst.menu_container.visible == true, "Menu container should be visible initially")
+	menu_inst._on_options_pressed()
+	assert(menu_inst.menu_container.visible == false, "Menu container should hide when options opens")
+	assert(menu_inst.option_modal.visible == true, "Option modal should be visible when opened")
+
+	# Test closing options modal restores main menu UI
+	menu_inst.option_modal.close_modal()
+	menu_inst._on_options_closed()
+	assert(menu_inst.menu_container.visible == true, "Menu container should be restored when options closes")
+
 	menu_inst.queue_free()
 	print("✔ Main Menu Scene verified!")
 
@@ -354,6 +372,9 @@ func _ready() -> void:
 	assert(boxed_item.spawner_badge.visible == false, "Spawner badge must be hidden on boxed item")
 	assert(boxed_item.status_badge.visible == true, "Status badge should be visible on boxed item")
 	assert(boxed_item.status_label.text == "Lv.2", "Status badge should display Lv.2")
+	assert(boxed_item.sprite.texture in ItemView.BOX_TEXTURES, "Boxed item must use a texture from BOX_TEXTURES")
+	assert(boxed_item.web_sprite.visible == true, "Web sprite must be visible on boxed item")
+	assert(boxed_item.web_sprite.texture in ItemView.WEB_TEXTURES, "Web sprite must use a texture from WEB_TEXTURES")
 
 	# Verify interaction blocked
 	var tracker := {"text": ""}
@@ -370,7 +391,9 @@ func _ready() -> void:
 	assert(locked_item.is_locked() == true, "Item must be locked")
 	assert(locked_item.is_normal() == false, "Locked item cannot be normal")
 	assert(locked_item.is_boxed() == false, "Locked item cannot be boxed")
-	assert(locked_item.sprite.modulate.is_equal_approx(Color(0.38, 0.38, 0.42, 1.0)), "Locked item must have disabled dark gray modulate")
+	assert(locked_item.sprite.modulate.is_equal_approx(ItemView.LOCKED_ITEM_MODULATE), "Locked item must have disabled dark gray modulate")
+	assert(locked_item.web_sprite.visible == true, "Web sprite must be visible on locked item")
+	assert(locked_item.web_sprite.texture in ItemView.WEB_TEXTURES, "Web sprite must use a texture from WEB_TEXTURES")
 	assert(locked_item.tier_badge.visible == true, "Tier badge must be visible on locked item")
 	assert(locked_item.status_badge.visible == false, "Status badge should be hidden on locked item (uses tile + item filter)")
 
@@ -385,6 +408,7 @@ func _ready() -> void:
 
 	# 13.3 Locked item cannot be swapped with normal item
 	var other_item := mech_board.spawn_item_at(Vector2i(1, 1), "leaf_1", ItemView.ItemState.NORMAL)
+	assert(other_item.web_sprite.visible == false, "Normal item must hide web sprite")
 	tracker["text"] = ""
 	mech_board._drop_into_board(other_item, Vector2i(4, 4))
 	assert(mech_board.get_item_at(Vector2i(4, 4)) == locked_item, "Locked item must stay in cell (4, 4)")
@@ -407,6 +431,7 @@ func _ready() -> void:
 	assert(merged_result.data.tier == 3, "Result tier must be 3")
 	assert(merged_result.is_normal() == true, "Result must now be a normal (unlocked) item")
 	assert(merged_result.is_locked() == false, "Result must not be locked")
+	assert(merged_result.web_sprite.visible == false, "Web sprite must be hidden on unlocked item")
 	assert(merged_result.status_badge.visible == false, "Status badge should be hidden on unlocked normal item")
 	assert(mech_board.get_item_at(Vector2i(4, 5)) == null, "Cell (4, 5) source item should be cleared")
 
@@ -422,7 +447,8 @@ func _ready() -> void:
 	assert(ProgressionManager.player_level >= 2, "Player should now be at least Level 2")
 	assert(boxed_level_item.is_locked() == true, "Boxed item should have unboxed into locked item on level-up to 2")
 	assert(boxed_level_item.is_boxed() == false, "Item should no longer be boxed")
-	assert(boxed_level_item.sprite.modulate.is_equal_approx(Color(0.38, 0.38, 0.42, 1.0)), "Unboxed item must now have disabled dark gray filter")
+	assert(boxed_level_item.sprite.modulate.is_equal_approx(ItemView.LOCKED_ITEM_MODULATE), "Unboxed item must now have disabled dark gray filter")
+	assert(boxed_level_item.web_sprite.visible == true, "Unboxed item must now have visible web sprite")
 
 	# 13.6 Usable items on board filters out locked and boxed
 	mech_board.clear_board()
@@ -584,26 +610,29 @@ func _ready() -> void:
 
 	print("✔ Initial Board First Experience Layout verified!")
 
-	# 16. Test UI Custom Theme Colors & Matching
-	print("\n--- Testing UI Custom Theme Colors & Matching ---")
+	# 16. Test UI Scene-Configured Styles & No Script Overwrite
+	print("\n--- Testing UI Scene-Configured Styles & No Script Overwrite ---")
 	var nav_bar: BottomNavBar = main_inst_test.bottom_nav_bar
 	assert(nav_bar != null, "BottomNavBar must exist")
 	var nav_shop_sb: StyleBox = nav_bar.shop_btn.get_theme_stylebox("normal")
-	assert(nav_shop_sb is StyleBoxFlat, "ShopBtn must have StyleBoxFlat")
-	assert(nav_shop_sb.bg_color.is_equal_approx(main_board.board_bg_color), "ShopBtn color must match board_bg_color")
+	assert(nav_shop_sb is StyleBoxFlat, "ShopBtn must have StyleBoxFlat configured from scene")
 
-	var help_bar: Panel = main_inst_test.get_node("CanvasLayer/UI/HelpBar")
-	var help_sb: StyleBox = help_bar.get_theme_stylebox("panel")
-	assert(help_sb is StyleBoxFlat, "HelpBar must have StyleBoxFlat")
-	assert(help_sb.bg_color.is_equal_approx(main_board.board_bg_color), "HelpBar color must match board_bg_color")
+	var nav_inv_sb: StyleBox = nav_bar.inventory_btn.get_theme_stylebox("normal")
+	assert(nav_inv_sb is StyleBoxFlat, "InventoryBtn must have StyleBoxFlat configured from scene")
+
+	var nav_prog_sb: StyleBox = nav_bar.progression_btn.get_theme_stylebox("normal")
+	assert(nav_prog_sb is StyleBoxFlat, "ProgressionBtn must have StyleBoxFlat configured from scene")
 
 	var sell_bin_pnl: Panel = main_inst_test.sell_bin
 	var sell_sb: StyleBox = sell_bin_pnl.get_theme_stylebox("panel")
-	assert(sell_sb is StyleBoxFlat, "SellBin must have StyleBoxFlat")
-	assert(sell_sb.bg_color.is_equal_approx(main_board.board_bg_color), "SellBin color must match board_bg_color")
+	assert(sell_sb is StyleBoxFlat, "SellBin must have StyleBoxFlat configured from scene")
+
+	var hud_shop_btn: Button = main_inst_test.hud.get_node("Margin/HBox/ButtonsBox/ShopBtn")
+	var hud_shop_sb: StyleBox = hud_shop_btn.get_theme_stylebox("normal")
+	assert(hud_shop_sb is StyleBoxFlat, "HUD ShopBtn must have StyleBoxFlat configured from scene")
 
 	main_inst_test.queue_free()
-	print("✔ UI Custom Theme Colors & Matching verified!")
+	print("✔ UI Scene-Configured Styles verified!")
 
 	# 17. Test Custom Cursor System
 	print("\n--- Testing Custom Cursor System ---")
@@ -613,10 +642,13 @@ func _ready() -> void:
 	assert(CursorManager.CURSOR_DRAG_TEX != null, "Drag hand cursor texture must be loaded")
 	assert(CursorManager.CURSOR_CAN_DROP_TEX != null, "Can drop cursor texture must be loaded")
 	assert(CursorManager.CURSOR_FORBIDDEN_TEX != null, "Forbidden cursor texture must be loaded")
+	assert(CursorManager.CURSOR_EXCLAMATION_TEX != null, "Exclamation cursor texture must be loaded")
 
 	CursorManager.set_drag_cursor()
 	CursorManager.set_can_drop_cursor()
 	CursorManager.set_forbidden_cursor()
+	CursorManager.set_pointing_cursor()
+	CursorManager.set_exclamation_cursor()
 	CursorManager.reset_cursor()
 
 	var test_btn := Button.new()
@@ -633,6 +665,17 @@ func _ready() -> void:
 	cursor_test_board.spawn_item_at(Vector2i(1, 1), "beef_1", ItemView.ItemState.NORMAL)
 	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(1, 1)))
 	assert(CursorManager.current_cursor_shape == Input.CURSOR_CAN_DROP, "Hovering movable item must set CURSOR_CAN_DROP (hand open)")
+
+	# Spawner ready to spawn -> pointing hand (CURSOR_POINTING_HAND)
+	var spawner_item := cursor_test_board.spawn_item_at(Vector2i(4, 4), "foodbox_3", ItemView.ItemState.NORMAL)
+	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(4, 4)))
+	assert(CursorManager.current_cursor_shape == Input.CURSOR_POINTING_HAND, "Hovering ready spawner item must set CURSOR_POINTING_HAND (point hand)")
+
+	# Spawner on exhaust -> mark exclamation cursor (CURSOR_EXCLAMATION)
+	spawner_item.current_charges = 0
+	spawner_item.producer_status = ItemView.ProducerStatus.EXHAUST
+	cursor_test_board._update_hover_cursor(cursor_test_board.to_global(cursor_test_board.get_cell_center(4, 4)))
+	assert(CursorManager.current_cursor_shape == CursorManager.CURSOR_EXCLAMATION, "Hovering exhausted spawner must set CURSOR_EXCLAMATION (mark exclamation)")
 
 	# Locked item -> disabled cursor (CURSOR_FORBIDDEN)
 	cursor_test_board.spawn_item_at(Vector2i(2, 2), "beef_2", ItemView.ItemState.LOCKED)
@@ -681,8 +724,12 @@ func _ready() -> void:
 	assert(SoundManager._sfx_players.size() == 8, "SFX player pool must have 8 players")
 	assert(SoundManager.STREAM_PICKUP != null, "STREAM_PICKUP must be loaded")
 	assert(SoundManager.STREAM_ERROR != null, "STREAM_ERROR must be loaded")
+	assert(SoundManager.STREAM_CLICK != null, "STREAM_CLICK must be loaded")
 	assert("error_004" in SoundManager.STREAM_ERROR.resource_path, "STREAM_ERROR must use error_004.ogg")
-	assert("click" in SoundManager.STREAM_PICKUP.resource_path, "STREAM_PICKUP must use click sound")
+	assert(not "click" in SoundManager.STREAM_PICKUP.resource_path, "STREAM_PICKUP must not use click sound")
+	assert(not "pluck" in SoundManager.STREAM_PICKUP.resource_path, "STREAM_PICKUP must not use pluck sound")
+	assert("click" in SoundManager.STREAM_CLICK.resource_path, "STREAM_CLICK must use click sound")
+	assert(not "pluck" in SoundManager.STREAM_CLICK.resource_path, "STREAM_CLICK must not use pluck sound")
 
 	# Trigger all gameplay SFX methods to ensure no exceptions or missing streams
 	SoundManager.play_pickup()
@@ -696,6 +743,175 @@ func _ready() -> void:
 	SoundManager.play_open()
 	SoundManager.play_close()
 	print("✔ Kenney SFX Audio Pool verified!")
+
+	# 20. Test Distinct Merge Sounds per Item & Chain
+	print("\n--- Testing Distinct Merge Sounds per Item & Chain ---")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("foodbox"), "Must have merge sound for foodbox")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("oven"), "Must have merge sound for oven")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("fridge"), "Must have merge sound for fridge")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("egg"), "Must have merge sound for egg")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("beef"), "Must have merge sound for beef")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("cake"), "Must have merge sound for cake")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("chest"), "Must have merge sound for chest")
+	assert(SoundManager.CHAIN_MERGE_SOUNDS["chest"] != null, "Chest merge sound must be loaded")
+
+	# Test calling play_merge with various item data instances
+	var test_foodbox: ItemData = ItemDatabase.get_item("foodbox_3")
+	var test_beef: ItemData = ItemDatabase.get_item("beef_5")
+	var test_chest: ItemData = ItemDatabase.get_item("chest_1")
+	assert(test_foodbox != null, "foodbox_3 must exist")
+	assert(test_beef != null, "beef_5 must exist")
+	assert(test_chest != null, "chest_1 must exist")
+
+	SoundManager.play_merge(test_foodbox)
+	SoundManager.play_merge(test_beef)
+	SoundManager.play_merge(test_chest)
+	SoundManager.play_merge(null) # Test fallback
+	print("✔ Distinct Merge Sounds verified!")
+
+	# 21. Test Chest Item Data & Producer Drops
+	print("\n--- Testing Chest Item Data & Producer Drops ---")
+	var chest_1 := ItemDatabase.get_item("chest_1")
+	var chest_2 := ItemDatabase.get_item("chest_2")
+	assert(chest_1 != null, "chest_1 must exist in ItemDatabase")
+	assert(chest_2 != null, "chest_2 must exist in ItemDatabase")
+	assert(chest_1.chain_id == "chest", "chest_1 chain_id must be chest")
+	assert(chest_1.is_spawner == true, "chest_1 must be a spawner")
+	assert(chest_1.max_charges == 5, "chest_1 must have 5 max charges")
+	assert(chest_1.energy_cost == 0, "chest_1 must cost 0 energy")
+	assert(chest_1.disappears_when_exhausted == true, "chest_1 must disappear when exhausted")
+	assert(chest_1.spawn_pool.has("oven_1"), "chest_1 must spawn oven_1")
+	assert(chest_1.spawn_pool.has("fridge_1"), "chest_1 must spawn fridge_1")
+	assert(chest_2.spawn_pool.has("rack_1"), "chest_2 must spawn rack_1")
+	assert(chest_2.spawn_pool.has("foodbox_1"), "chest_2 must spawn foodbox_1")
+	print("✔ Chest Item Data & Producer Drops verified!")
+
+	# 22. Test Chest Gameplay Mechanics (Exhaustion Disappearance & Merge Reset)
+	print("\n--- Testing Chest Gameplay Mechanics ---")
+	var test_board_2: Board = board_scene.instantiate()
+	add_child(test_board_2)
+	test_board_2.clear_board()
+
+	# Test 5 spawn charges and disappearance on exhaust
+	var chest_view: ItemView = test_board_2.spawn_item_at(Vector2i(2, 2), "chest_1", ItemView.ItemState.NORMAL)
+	assert(chest_view != null, "chest_view must spawn")
+	assert(chest_view.current_charges == 5, "Initial charges must be 5")
+	assert(chest_view.spawner_label.text == "5", "Spawner badge must display remaining charges 5")
+
+	# Tap chest 5 times
+	for tap_idx in range(5):
+		assert(test_board_2.get_item_at(Vector2i(2, 2)) != null, "Chest should be on board before 5th tap completes")
+		test_board_2._trigger_spawner(chest_view)
+		if tap_idx < 4:
+			assert(chest_view.current_charges == (4 - tap_idx), "Charges should decrement properly")
+
+	# After 5th tap, chest should be removed from board
+	assert(test_board_2.get_item_at(Vector2i(2, 2)) == null, "Chest must vanish and be removed from board after 5 uses")
+
+	# Test merging two chests resets spawn counter
+	test_board_2.clear_board()
+	var c_view_a: ItemView = test_board_2.spawn_item_at(Vector2i(1, 1), "chest_1", ItemView.ItemState.NORMAL)
+	var c_view_b: ItemView = test_board_2.spawn_item_at(Vector2i(1, 2), "chest_1", ItemView.ItemState.NORMAL)
+	
+	# Tap A 3 times -> 2 charges left
+	test_board_2._trigger_spawner(c_view_a)
+	test_board_2._trigger_spawner(c_view_a)
+	test_board_2._trigger_spawner(c_view_a)
+	assert(c_view_a.current_charges == 2, "c_view_a should have 2 charges left")
+
+	# Merge A onto B -> should merge into chest_2 with fresh 5 charges!
+	test_board_2._execute_merge(c_view_a, c_view_b)
+	var merged_chest := test_board_2.get_item_at(Vector2i(1, 2))
+	assert(merged_chest != null, "Merged chest must exist at target cell")
+	assert(merged_chest.data.id == "chest_2", "Merged chest must be chest_2")
+	assert(merged_chest.current_charges == 5, "Merged chest charges must be reset to 5!")
+	assert(merged_chest.spawner_label.text == "5", "Merged chest badge must display 5")
+
+	test_board_2.queue_free()
+	print("✔ Chest Gameplay Mechanics (Disappearance & Charge Reset) verified!")
+
+	# 23. Test Temporary Reward Slot & FIFO Queue
+	print("\n--- Testing Temporary Reward Slot & FIFO Queue ---")
+	ProgressionManager.clear_reward_queue()
+	assert(ProgressionManager.has_pending_rewards() == false, "Queue must start empty")
+	assert(ProgressionManager.get_reward_count() == 0, "Queue count must be 0")
+
+	# Push rewards
+	ProgressionManager.push_reward("chest_1")
+	assert(ProgressionManager.has_pending_rewards() == true, "Queue must have pending rewards")
+	assert(ProgressionManager.get_reward_count() == 1, "Queue count must be 1")
+	assert(ProgressionManager.peek_reward() == "chest_1", "Peek reward must be chest_1")
+
+	ProgressionManager.push_reward("chest_2")
+	assert(ProgressionManager.get_reward_count() == 2, "Queue count must be 2")
+	assert(ProgressionManager.peek_reward() == "chest_1", "FIFO peek must still be chest_1")
+
+	# Test BottomNavBar reward slot UI
+	var nav_scene_2: PackedScene = load("res://scenes/bottom_nav_bar.tscn")
+	var reward_nav_bar: BottomNavBar = nav_scene_2.instantiate()
+	add_child(reward_nav_bar)
+
+	# Initially with 2 rewards, reward button should be visible and badge count "2"
+	reward_nav_bar.update_reward_slot_display()
+	assert(reward_nav_bar.reward_btn.visible == true, "Reward button must be visible when queue has items")
+	assert(reward_nav_bar.reward_badge.visible == true, "Badge must be visible when count > 1")
+	assert(reward_nav_bar.reward_badge_label.text == "2", "Badge must show count 2")
+
+	# Pop one reward
+	var popped_first := ProgressionManager.pop_reward()
+	assert(popped_first == "chest_1", "Popped first item must be chest_1 (FIFO)")
+	assert(ProgressionManager.get_reward_count() == 1, "Queue count must be 1")
+	assert(ProgressionManager.peek_reward() == "chest_2", "Next item must be chest_2")
+
+	reward_nav_bar.update_reward_slot_display()
+	assert(reward_nav_bar.reward_btn.visible == true, "Reward button must remain visible when 1 item left")
+	assert(reward_nav_bar.reward_badge.visible == false, "Badge must be hidden when count == 1")
+
+	# Test slot position layout ordering (leftmost vs rightmost)
+	reward_nav_bar.reward_slot_on_left = true
+	assert(reward_nav_bar.hbox.get_child(0) == reward_nav_bar.reward_btn, "When reward_slot_on_left is true, reward_btn must be child 0 (leftmost)")
+	reward_nav_bar.reward_slot_on_left = false
+	assert(reward_nav_bar.hbox.get_child(reward_nav_bar.hbox.get_child_count() - 1) == reward_nav_bar.reward_btn, "When reward_slot_on_left is false, reward_btn must be rightmost")
+	reward_nav_bar.reward_slot_on_left = true # reset to leftmost
+
+	# Pop second reward -> queue empty -> button hides
+	var popped_second := ProgressionManager.pop_reward()
+	assert(popped_second == "chest_2", "Popped second item must be chest_2")
+	assert(ProgressionManager.get_reward_count() == 0, "Queue count must be 0")
+	reward_nav_bar.update_reward_slot_display()
+	assert(reward_nav_bar.reward_btn.visible == false, "Reward button must be hidden when queue is empty")
+
+	reward_nav_bar.queue_free()
+	print("✔ Temporary Reward Slot & FIFO Queue verified!")
+
+	# 24. Test Codex Discovery Chest Rewards & Persistence
+	print("\n--- Testing Codex Discovery Chest Rewards & Persistence ---")
+	ProgressionManager.reset_all()
+
+	# egg_4 is tier 4 -> discovery should grant chest_1
+	var chest_rew := ProgressionManager.get_chest_reward_for_item("egg_4")
+	assert(chest_rew == "chest_1", "egg_4 milestone discovery must reward chest_1")
+
+	# egg_6 is max tier -> discovery should grant chest_2
+	var max_chest_rew := ProgressionManager.get_chest_reward_for_item("egg_6")
+	assert(max_chest_rew == "chest_2", "egg_6 max tier discovery must reward chest_2")
+
+	# Unlock and claim egg_4
+	ProgressionManager.unlock_item("egg_4")
+	var claim_res := ProgressionManager.claim_reward("egg_4")
+	assert(claim_res.has("chest"), "Claim result must include chest")
+	assert(claim_res.chest == "chest_1", "Claimed chest must be chest_1")
+	assert(ProgressionManager.get_reward_count() == 1, "Claiming must have added chest to reward queue")
+	assert(ProgressionManager.peek_reward() == "chest_1", "Reward queue must have chest_1")
+
+	# Test Save & Restore of Reward Queue
+	SaveManager.save_game(false)
+	ProgressionManager.clear_reward_queue()
+	assert(ProgressionManager.get_reward_count() == 0, "Cleared queue must be empty")
+	SaveManager.load_game()
+	assert(ProgressionManager.get_reward_count() == 1, "Restored queue must have 1 reward")
+	assert(ProgressionManager.peek_reward() == "chest_1", "Restored reward must be chest_1")
+	print("✔ Codex Discovery Chest Rewards & Persistence verified!")
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)

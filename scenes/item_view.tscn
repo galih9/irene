@@ -1,6 +1,6 @@
-[gd_scene load_steps=6 format=3 uid="uid://c6f3a7m4h5j2r"]
+[gd_scene format=3 uid="uid://c6f3a7m4h5j2r"]
 
-[ext_resource type="Script" path="res://scripts/gameplay/item_view.gd" id="1_item"]
+[ext_resource type="Script" uid="uid://ciculw8n4uxw2" path="res://scripts/gameplay/item_view.gd" id="1_item"]
 [ext_resource type="Texture2D" uid="uid://lp1xqunym3pe" path="res://icon.svg" id="2_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
@@ -24,46 +24,51 @@ corner_radius_top_right = 6
 corner_radius_bottom_right = 6
 corner_radius_bottom_left = 6
 
-[node name="ItemView" type="Node2D"]
+[node name="ItemView" type="Node2D" unique_id=2128409428]
 z_index = 10
 script = ExtResource("1_item")
 
-[node name="Shadow" type="Sprite2D" parent="."]
+[node name="Shadow" type="Sprite2D" parent="." unique_id=1791564848]
 modulate = Color(0, 0, 0, 0.25)
 position = Vector2(0, 6)
 scale = Vector2(0.42, 0.42)
 texture = ExtResource("2_icon")
 
-[node name="Visuals" type="Node2D" parent="."]
+[node name="Visuals" type="Node2D" parent="." unique_id=1711916616]
 
-[node name="Glow" type="Sprite2D" parent="Visuals"]
+[node name="Glow" type="Sprite2D" parent="Visuals" unique_id=110724120]
 visible = false
 modulate = Color(1, 1, 0.3, 0.5)
 scale = Vector2(0.56, 0.56)
 texture = ExtResource("2_icon")
 
-[node name="Sprite" type="Sprite2D" parent="Visuals"]
+[node name="Sprite" type="Sprite2D" parent="Visuals" unique_id=1972356557]
 scale = Vector2(0.48, 0.48)
 texture = ExtResource("2_icon")
 
-[node name="TierBadge" type="PanelContainer" parent="Visuals"]
+[node name="WebSprite" type="Sprite2D" parent="Visuals" unique_id=33176414]
+visible = false
+scale = Vector2(0.8, 0.8)
+
+[node name="TierBadge" type="PanelContainer" parent="Visuals" unique_id=420935868]
+visible = false
 offset_left = 6.0
 offset_top = 8.0
 offset_right = 34.0
 offset_bottom = 30.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
 
-[node name="TierLabel" type="Label" parent="Visuals/TierBadge"]
+[node name="TierLabel" type="Label" parent="Visuals/TierBadge" unique_id=111383993]
 layout_mode = 2
-theme_override_font_sizes/font_size = 13
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.18, 0.12, 0.08, 0.9)
 theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 13
 text = "T1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="SpawnerBadge" type="PanelContainer" parent="Visuals"]
+[node name="SpawnerBadge" type="PanelContainer" parent="Visuals" unique_id=1601193817]
 visible = false
 offset_left = -34.0
 offset_top = -34.0
@@ -71,14 +76,14 @@ offset_right = -10.0
 offset_bottom = -10.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_spawner")
 
-[node name="SpawnerLabel" type="Label" parent="Visuals/SpawnerBadge"]
+[node name="SpawnerLabel" type="Label" parent="Visuals/SpawnerBadge" unique_id=2075950304]
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 text = "⚡"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="StatusBadge" type="PanelContainer" parent="Visuals"]
+[node name="StatusBadge" type="PanelContainer" parent="Visuals" unique_id=767734912]
 visible = false
 offset_left = -34.0
 offset_top = -34.0
@@ -86,17 +91,17 @@ offset_right = -10.0
 offset_bottom = -10.0
 theme_override_styles/panel = SubResource("StyleBoxFlat_status")
 
-[node name="StatusLabel" type="Label" parent="Visuals/StatusBadge"]
+[node name="StatusLabel" type="Label" parent="Visuals/StatusBadge" unique_id=1596380629]
 layout_mode = 2
-theme_override_font_sizes/font_size = 12
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.1, 0.15, 0.9)
 theme_override_constants/outline_size = 2
+theme_override_font_sizes/font_size = 12
 text = "🔒"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="TouchArea" type="Control" parent="."]
+[node name="TouchArea" type="Control" parent="." unique_id=1211643289]
 layout_mode = 3
 anchors_preset = 0
 offset_left = -40.0

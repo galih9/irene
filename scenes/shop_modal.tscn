@@ -1,4 +1,4 @@
-[gd_scene load_steps=3 format=3 uid="uid://c3m7r5t1v9n8p"]
+[gd_scene load_steps=5 format=3 uid="uid://c3m7r5t1v9n8p"]
 
 [ext_resource type="Script" path="res://scripts/ui/shop_modal.gd" id="1_shop"]
 
@@ -14,8 +14,29 @@ corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
 shadow_color = Color(0.06, 0.04, 0.03, 0.6)
-shadow_size = 20
-shadow_offset = Vector2(0, 8)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn"]
+bg_color = Color(0.22, 0.2, 0.24, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.4, 0.36, 0.44, 0.7)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn_hover"]
+bg_color = Color(0.3, 0.26, 0.32, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.55, 0.48, 0.6, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
 
 [node name="ShopModal" type="Control"]
 z_index = 200
@@ -84,6 +105,8 @@ text = "GENERAL STORE"
 custom_minimum_size = Vector2(42, 42)
 layout_mode = 2
 theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
 text = "✕"
 
 [node name="Scroll" type="ScrollContainer" parent="Panel/VBox"]

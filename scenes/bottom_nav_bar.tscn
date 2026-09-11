@@ -1,54 +1,134 @@
-[gd_scene load_steps=9 format=3 uid="uid://cfe16s1k6o3uy"]
+[gd_scene format=3 uid="uid://cfe16s1k6o3uy"]
 
-[ext_resource type="Script" path="res://scripts/ui/bottom_nav_bar.gd" id="1_nav"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_progress.png" id="2_prog_icon"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_inventory.png" id="3_inv_icon"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_shop.png" id="4_shop_icon"]
+[ext_resource type="Script" uid="uid://dlq0wpbxccnna" path="res://scripts/ui/bottom_nav_bar.gd" id="1_nav"]
+[ext_resource type="Texture2D" uid="uid://cfgk28mw2n1n" path="res://assets/icon/icon_progress.png" id="2_prog_icon"]
+[ext_resource type="Texture2D" uid="uid://c6a3wyfdgf3w4" path="res://assets/icon/icon_inventory.png" id="3_inv_icon"]
+[ext_resource type="Texture2D" uid="uid://dx3plyblf8v4u" path="res://assets/icon/icon_shop.png" id="4_shop_icon"]
+[ext_resource type="Texture2D" uid="uid://lp1xqunym3pe" path="res://icon.svg" id="5_chest_icon"]
+[ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="6_yellow_btn"]
+[ext_resource type="Texture2D" uid="uid://dpifib2reoed2" path="res://assets/ui/green.png" id="7_green_btn"]
+[ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="8_blue_btn"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog"]
-bg_color = Color(0.12, 0.14, 0.2, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.7, 0.5, 0.9, 0.6)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0, 0, 0, 0.25)
-shadow_size = 4
-shadow_offset = Vector2(0, 2)
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn_focus"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv"]
-bg_color = Color(0.11, 0.15, 0.22, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.65, 0.9, 0.6)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0, 0, 0, 0.25)
-shadow_size = 4
-shadow_offset = Vector2(0, 2)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_normal"]
+texture = ExtResource("6_yellow_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop"]
-bg_color = Color(0.14, 0.13, 0.18, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.9, 0.65, 0.2, 0.6)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
-shadow_color = Color(0, 0, 0, 0.25)
-shadow_size = 4
-shadow_offset = Vector2(0, 2)
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_pressed"]
+texture = ExtResource("6_yellow_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_hover"]
+texture = ExtResource("6_yellow_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_disabled"]
+texture = ExtResource("6_yellow_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(0.6, 0.6, 0.6, 0.8)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_normal"]
+texture = ExtResource("7_green_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_pressed"]
+texture = ExtResource("7_green_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_hover"]
+texture = ExtResource("7_green_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_disabled"]
+texture = ExtResource("7_green_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(0.6, 0.6, 0.6, 0.8)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_normal"]
+texture = ExtResource("8_blue_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_pressed"]
+texture = ExtResource("8_blue_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(0.85, 0.85, 0.85, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_hover"]
+texture = ExtResource("8_blue_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_disabled"]
+texture = ExtResource("8_blue_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(0.6, 0.6, 0.6, 0.8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_badge"]
+bg_color = Color(0.96, 0.45, 0.12, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+shadow_color = Color(0, 0, 0, 0.4)
+shadow_size = 3
+
+[sub_resource type="LabelSettings" id="LabelSettings_mv58x"]
+font_size = 17
+outline_size = 4
+outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
 bg_color = Color(0.95, 0.25, 0.25, 1)
@@ -59,7 +139,7 @@ corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 3
 
-[node name="BottomNavBar" type="Control"]
+[node name="BottomNavBar" type="Control" unique_id=1987792505]
 custom_minimum_size = Vector2(664, 116)
 layout_mode = 3
 anchors_preset = 0
@@ -68,7 +148,7 @@ offset_bottom = 116.0
 mouse_filter = 2
 script = ExtResource("1_nav")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="."]
+[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1904366795]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -79,15 +159,17 @@ mouse_filter = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="ProgressionBtn" type="Button" parent="HBoxContainer"]
+[node name="RewardBtn" type="Button" parent="HBoxContainer" unique_id=754411710]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_prog")
-theme_override_styles/hover = SubResource("StyleBoxFlat_prog")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_prog")
+theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_yellow_hover")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_yellow_disabled")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
-[node name="Margin" type="MarginContainer" parent="HBoxContainer/ProgressionBtn"]
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/RewardBtn" unique_id=1523644759]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -100,14 +182,85 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin"]
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/RewardBtn/Margin" unique_id=1248095732]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="HBoxContainer/RewardBtn/Margin/VBox" unique_id=1339070041]
 custom_minimum_size = Vector2(34, 34)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("5_chest_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="HBoxContainer/RewardBtn/Margin/VBox" unique_id=1370615263]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
+theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.6)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 13
+text = "REWARD"
+horizontal_alignment = 1
+
+[node name="Badge" type="PanelContainer" parent="HBoxContainer/RewardBtn" unique_id=1515934976]
+visible = false
+layout_mode = 1
+anchors_preset = 1
+anchor_left = 1.0
+anchor_right = 1.0
+offset_left = -28.0
+offset_top = 6.0
+offset_right = -6.0
+offset_bottom = 28.0
+grow_horizontal = 0
+mouse_filter = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_reward_badge")
+
+[node name="BadgeLabel" type="Label" parent="HBoxContainer/RewardBtn/Badge" unique_id=1316357769]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.3, 0.1, 0, 0.8)
+theme_override_constants/outline_size = 1
+theme_override_font_sizes/font_size = 11
+text = "1"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="ProgressionBtn" type="Button" parent="HBoxContainer" unique_id=1872546336]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 1
+theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_green_disabled")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/ProgressionBtn" unique_id=1581260678]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 8
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 8
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin" unique_id=1285391623]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=1991458174]
+custom_minimum_size = Vector2(50, 34)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -115,23 +268,17 @@ texture = ExtResource("2_prog_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
+[node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=582060568]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.76, 1, 1)
 theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.25, 0.6)
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 13
-text = "CODEX"
+text = "Progress"
+label_settings = SubResource("LabelSettings_mv58x")
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.78, 0.72, 0.85, 1)
-theme_override_font_sizes/font_size = 10
-text = "DISCOVERY"
-horizontal_alignment = 1
-
-[node name="Badge" type="PanelContainer" parent="HBoxContainer/ProgressionBtn"]
+[node name="Badge" type="PanelContainer" parent="HBoxContainer/ProgressionBtn" unique_id=1063669346]
 visible = false
 layout_mode = 1
 anchors_preset = 1
@@ -145,7 +292,7 @@ grow_horizontal = 0
 mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_badge")
 
-[node name="BadgeLabel" type="Label" parent="HBoxContainer/ProgressionBtn/Badge"]
+[node name="BadgeLabel" type="Label" parent="HBoxContainer/ProgressionBtn/Badge" unique_id=1890732193]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.3, 0.05, 0.05, 0.8)
@@ -155,15 +302,17 @@ text = "1"
 horizontal_alignment = 1
 vertical_alignment = 1
 
-[node name="InventoryBtn" type="Button" parent="HBoxContainer"]
+[node name="InventoryBtn" type="Button" parent="HBoxContainer" unique_id=1461955712]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_inv")
-theme_override_styles/hover = SubResource("StyleBoxFlat_inv")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_inv")
+theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_blue_disabled")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
-[node name="Margin" type="MarginContainer" parent="HBoxContainer/InventoryBtn"]
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/InventoryBtn" unique_id=623402999]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -176,13 +325,13 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin"]
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin" unique_id=600821673]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/VBox" unique_id=906762838]
 custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -191,7 +340,7 @@ texture = ExtResource("3_inv_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+[node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox" unique_id=794071516]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.6, 0.88, 1, 1)
 theme_override_colors/font_outline_color = Color(0.08, 0.18, 0.25, 0.6)
@@ -200,22 +349,24 @@ theme_override_font_sizes/font_size = 13
 text = "BACKPACK"
 horizontal_alignment = 1
 
-[node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox"]
+[node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox" unique_id=363956078]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
 theme_override_font_sizes/font_size = 12
 text = "[0 / 8]"
 horizontal_alignment = 1
 
-[node name="ShopBtn" type="Button" parent="HBoxContainer"]
+[node name="ShopBtn" type="Button" parent="HBoxContainer" unique_id=1174259924]
 layout_mode = 2
 size_flags_horizontal = 3
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_shop")
-theme_override_styles/hover = SubResource("StyleBoxFlat_shop")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_shop")
+theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_yellow_hover")
+theme_override_styles/disabled = SubResource("StyleBoxTexture_yellow_disabled")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
-[node name="Margin" type="MarginContainer" parent="HBoxContainer/ShopBtn"]
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/ShopBtn" unique_id=1528112408]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -228,13 +379,13 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 8
 theme_override_constants/margin_bottom = 8
 
-[node name="VBox" type="VBoxContainer" parent="HBoxContainer/ShopBtn/Margin"]
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/ShopBtn/Margin" unique_id=1777440650]
 layout_mode = 2
 mouse_filter = 2
 theme_override_constants/separation = 4
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/VBox" unique_id=470514787]
 custom_minimum_size = Vector2(34, 34)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -243,7 +394,7 @@ texture = ExtResource("4_shop_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+[node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox" unique_id=2083285876]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.6)
@@ -252,7 +403,7 @@ theme_override_font_sizes/font_size = 13
 text = "SHOP"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox"]
+[node name="Subtitle" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox" unique_id=113215799]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.82, 0.72, 1)
 theme_override_font_sizes/font_size = 10

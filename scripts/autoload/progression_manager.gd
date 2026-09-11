@@ -8,6 +8,9 @@ var _claimed_rewards: Dictionary = {} # item_id -> bool
 var player_level: int = 1
 var player_exp: int = 0
 
+# Temporary Reward Queue (infinitely stackable FIFO)
+var _reward_queue: Array[String] = []
+
 func _ready() -> void:
 	GameEvents.item_merged.connect(_on_item_merged)
 	GameEvents.item_spawned.connect(_on_item_spawned)
@@ -32,7 +35,8 @@ func unlock_item(item_id: String, silent: bool = false) -> bool:
 		_claimed_rewards[item_id] = false
 
 	if not silent:
-		SoundManager.play_merge()
+		var item_data := ItemDatabase.get_item(item_id)
+		SoundManager.play_merge(item_data)
 
 	GameEvents.progression_changed.emit()
 	return true
@@ -42,6 +46,27 @@ func is_unlocked(item_id: String) -> bool:
 
 func is_claimed(item_id: String) -> bool:
 	return _claimed_rewards.get(item_id, false)
+
+func get_chest_reward_for_item(item_id: String) -> String:
+	var item := ItemDatabase.get_item(item_id)
+	if not item:
+		return ""
+	if item.chain_id == "chest":
+		return ""
+
+	# Discovering max tier items (tier >= 4) rewards Grand Producer Chest
+	if item.tier >= item.max_tier and item.max_tier >= 4:
+		return "chest_2"
+
+	# Discovering tier 3+ spawners rewards Producer Supply Chest
+	if item.is_spawner and item.tier >= 3:
+		return "chest_1"
+
+	# Discovering tier 4+ food/materials rewards Producer Supply Chest
+	if item.tier >= 4:
+		return "chest_1"
+
+	return ""
 
 func get_reward_for_item(item_id: String) -> Dictionary:
 	var item := ItemDatabase.get_item(item_id)
@@ -55,7 +80,8 @@ func get_reward_for_item(item_id: String) -> Dictionary:
 	elif tier >= 3:
 		gems = 1
 	var exp_reward := 5 + (tier - 1) * 8
-	return {"coins": coins, "gems": gems, "exp": exp_reward}
+	var chest_reward := get_chest_reward_for_item(item_id)
+	return {"coins": coins, "gems": gems, "exp": exp_reward, "chest": chest_reward}
 
 func claim_reward(item_id: String) -> Dictionary:
 	if not is_unlocked(item_id) or is_claimed(item_id):
@@ -70,9 +96,54 @@ func claim_reward(item_id: String) -> Dictionary:
 		EconomyManager.add_gems(reward.gems)
 	if reward.has("exp") and reward.exp > 0:
 		add_exp(reward.exp)
+	if reward.has("chest") and not str(reward.chest).is_empty():
+		push_reward(str(reward.chest))
 
 	GameEvents.progression_changed.emit()
 	return reward
+
+# =============================================================================
+# TEMPORARY REWARD SLOT QUEUE (FIFO)
+# =============================================================================
+
+func push_reward(item_id: String) -> void:
+	if item_id.is_empty():
+		return
+	_reward_queue.append(item_id)
+	GameEvents.reward_queue_changed.emit()
+
+func pop_reward() -> String:
+	if _reward_queue.is_empty():
+		return ""
+	var item_id: String = _reward_queue.pop_front()
+	GameEvents.reward_queue_changed.emit()
+	return item_id
+
+func peek_reward() -> String:
+	if _reward_queue.is_empty():
+		return ""
+	return _reward_queue[0]
+
+func get_reward_count() -> int:
+	return _reward_queue.size()
+
+func has_pending_rewards() -> bool:
+	return not _reward_queue.is_empty()
+
+func get_reward_queue() -> Array[String]:
+	return _reward_queue.duplicate()
+
+func load_reward_queue(items: Array) -> void:
+	_reward_queue.clear()
+	for it in items:
+		var s := str(it).strip_edges()
+		if not s.is_empty():
+			_reward_queue.append(s)
+	GameEvents.reward_queue_changed.emit()
+
+func clear_reward_queue() -> void:
+	_reward_queue.clear()
+	GameEvents.reward_queue_changed.emit()
 
 func get_unclaimed_count() -> int:
 	var count := 0
@@ -137,21 +208,25 @@ func serialize_data() -> Dictionary:
 		"unlocked_items": _unlocked_items.duplicate(),
 		"claimed_rewards": _claimed_rewards.duplicate(),
 		"player_level": player_level,
-		"player_exp": player_exp
+		"player_exp": player_exp,
+		"reward_queue": _reward_queue.duplicate()
 	}
 
-func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0) -> void:
+func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = []) -> void:
 	_unlocked_items = unlocked.duplicate()
 	_claimed_rewards = claimed.duplicate()
 	player_level = maxi(1, level)
 	player_exp = maxi(0, exp_val)
+	load_reward_queue(queue_data)
 	GameEvents.progression_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())
 
 func reset_all() -> void:
 	_unlocked_items.clear()
 	_claimed_rewards.clear()
+	_reward_queue.clear()
 	player_level = 1
 	player_exp = 0
 	GameEvents.progression_changed.emit()
+	GameEvents.reward_queue_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())

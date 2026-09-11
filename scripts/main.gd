@@ -15,18 +15,6 @@ extends Node2D
 @onready var option_modal: OptionModal = $CanvasLayer/Modals/OptionModal
 @onready var floating_layer: Node2D = $CanvasLayer/FloatingLayer
 
-@export_group("UI Theme Styling")
-@export var match_board_color: bool = true
-@export var custom_button_color: Color = Color.TRANSPARENT
-@export var custom_button_border_color: Color = Color.TRANSPARENT
-@export var custom_container_color: Color = Color.TRANSPARENT
-@export var custom_container_border_color: Color = Color.TRANSPARENT
-@export var custom_shop_btn_color: Color = Color.TRANSPARENT
-@export var custom_inventory_btn_color: Color = Color.TRANSPARENT
-@export var custom_progression_btn_color: Color = Color.TRANSPARENT
-@export var custom_guide_container_color: Color = Color.TRANSPARENT
-@export var custom_sell_bin_color: Color = Color.TRANSPARENT
-
 func _ready() -> void:
 	# Center the board horizontally based on current columns and cell size
 	board.position.x = (720.0 - board.get_board_width()) * 0.5
@@ -42,6 +30,10 @@ func _ready() -> void:
 	# Setup Quests
 	quest_manager.setup(board)
 
+	# Setup BottomNavBar reward slot
+	if is_instance_valid(bottom_nav_bar):
+		bottom_nav_bar.reward_slot_pressed.connect(_on_reward_slot_pressed)
+
 	# Listen to floating text signal
 	GameEvents.show_floating_text.connect(_on_show_floating_text)
 
@@ -50,9 +42,6 @@ func _ready() -> void:
 	SaveManager.quest_manager_ref = quest_manager
 	SaveManager.is_gameplay_active = true
 
-	# Apply UI Theme Colors
-	apply_ui_styling()
-
 	# Decide whether to load saved game or setup starter board
 	if SaveManager.should_load_on_start and SaveManager.has_save():
 		var load_success := SaveManager.load_game(board, quest_manager)
@@ -60,60 +49,6 @@ func _ready() -> void:
 			_setup_initial_board()
 	else:
 		_setup_initial_board()
-
-func apply_ui_styling() -> void:
-	var base_bg: Color = board.board_bg_color if is_instance_valid(board) else Color(0.827, 0.341, 0, 0.74)
-	var base_border: Color = board.board_border_color if is_instance_valid(board) else Color(0.827, 0.341, 0, 1.0)
-
-	var btn_bg: Color = custom_button_color if custom_button_color.a > 0.0 else base_bg
-	var btn_border: Color = custom_button_border_color if custom_button_border_color.a > 0.0 else base_border
-	var cont_bg: Color = custom_container_color if custom_container_color.a > 0.0 else base_bg
-	var cont_border: Color = custom_container_border_color if custom_container_border_color.a > 0.0 else base_border
-
-	var shop_col: Color = custom_shop_btn_color if custom_shop_btn_color.a > 0.0 else btn_bg
-	var inv_col: Color = custom_inventory_btn_color if custom_inventory_btn_color.a > 0.0 else btn_bg
-	var prog_col: Color = custom_progression_btn_color if custom_progression_btn_color.a > 0.0 else btn_bg
-	var guide_col: Color = custom_guide_container_color if custom_guide_container_color.a > 0.0 else cont_bg
-	var sell_col: Color = custom_sell_bin_color if custom_sell_bin_color.a > 0.0 else cont_bg
-
-	# Style BottomNavBar buttons
-	if is_instance_valid(bottom_nav_bar):
-		bottom_nav_bar.apply_custom_colors(shop_col, inv_col, prog_col, btn_border)
-
-	# Style HUD buttons and containers
-	if is_instance_valid(hud):
-		hud.apply_custom_colors(shop_col, cont_bg, cont_border)
-
-	# Style Guide Container (HelpBar)
-	var help_bar: Panel = get_node_or_null("CanvasLayer/UI/HelpBar")
-	if is_instance_valid(help_bar):
-		var hsb := StyleBoxFlat.new()
-		hsb.bg_color = guide_col
-		hsb.border_color = cont_border
-		hsb.border_width_left = 2
-		hsb.border_width_top = 2
-		hsb.border_width_right = 2
-		hsb.border_width_bottom = 2
-		hsb.corner_radius_top_left = 12
-		hsb.corner_radius_top_right = 12
-		hsb.corner_radius_bottom_right = 12
-		hsb.corner_radius_bottom_left = 12
-		help_bar.add_theme_stylebox_override("panel", hsb)
-
-	# Style SellBin
-	if is_instance_valid(sell_bin) and sell_bin is Panel:
-		var ssb := StyleBoxFlat.new()
-		ssb.bg_color = sell_col
-		ssb.border_color = cont_border
-		ssb.border_width_left = 2
-		ssb.border_width_top = 2
-		ssb.border_width_right = 2
-		ssb.border_width_bottom = 2
-		ssb.corner_radius_top_left = 12
-		ssb.corner_radius_top_right = 12
-		ssb.corner_radius_bottom_right = 12
-		ssb.corner_radius_bottom_left = 12
-		sell_bin.add_theme_stylebox_override("panel", ssb)
 
 func _exit_tree() -> void:
 	if SaveManager:
@@ -185,3 +120,30 @@ func _on_show_floating_text(text: String, world_pos: Vector2, color: Color) -> v
 	floating_layer.add_child(ft)
 	ft.global_position = world_pos
 	ft.setup(text, color)
+
+func _on_reward_slot_pressed() -> void:
+	if not is_instance_valid(board) or not is_instance_valid(bottom_nav_bar):
+		return
+	if not ProgressionManager.has_pending_rewards():
+		return
+
+	var empty_cells := board.get_empty_cells()
+	if empty_cells.is_empty():
+		SoundManager.play_error()
+		bottom_nav_bar.animate_reward_wobble()
+		var btn_pos := bottom_nav_bar.get_reward_button_pos()
+		GameEvents.show_floating_text.emit("Board is Full!", btn_pos + Vector2(0, -35), Color(1.0, 0.45, 0.45))
+		return
+
+	var reward_id := ProgressionManager.pop_reward()
+	if reward_id.is_empty():
+		return
+
+	var target_cell := empty_cells[0]
+	var btn_pos := bottom_nav_bar.get_reward_button_pos()
+	board.spawn_item_flight(btn_pos, target_cell, reward_id)
+	SoundManager.play_spawn()
+
+	var item_data := ItemDatabase.get_item(reward_id)
+	var item_name := item_data.display_name if item_data else reward_id
+	GameEvents.show_floating_text.emit("Placed %s!" % item_name, btn_pos + Vector2(0, -35), Color(0.4, 1.0, 0.5))

@@ -1,4 +1,4 @@
-[gd_scene load_steps=12 format=3 uid="uid://b8q7x3v1m2n5r"]
+[gd_scene load_steps=15 format=3 uid="uid://b8q7x3v1m2n5r"]
 
 [ext_resource type="Script" path="res://scripts/ui/hud.gd" id="1_hud"]
 [ext_resource type="Texture2D" path="res://assets/exp/exp1.png" id="2_exp"]
@@ -55,6 +55,42 @@ corner_radius_top_left = 4
 corner_radius_top_right = 4
 corner_radius_bottom_right = 4
 corner_radius_bottom_left = 4
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_btn"]
+bg_color = Color(0.2, 0.18, 0.22, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.36, 0.32, 0.38, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_btn_hover"]
+bg_color = Color(0.26, 0.23, 0.28, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.5, 0.45, 0.52, 0.8)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_btn_pressed"]
+bg_color = Color(0.15, 0.13, 0.17, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.3, 0.26, 0.32, 0.6)
+corner_radius_top_left = 8
+corner_radius_top_right = 8
+corner_radius_bottom_right = 8
+corner_radius_bottom_left = 8
 
 [node name="HUD" type="Control"]
 custom_minimum_size = Vector2(720, 105)
@@ -269,6 +305,9 @@ theme_override_constants/separation = 6
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_hud_btn_pressed")
 icon = ExtResource("6_shop_icon")
 icon_alignment = 1
 expand_icon = true
@@ -277,6 +316,9 @@ expand_icon = true
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_vertical = 4
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_hud_btn_pressed")
 icon = ExtResource("7_gear_icon")
 icon_alignment = 1
 expand_icon = true
@@ -287,4 +329,7 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(0.85, 0.82, 0.75, 1)
 theme_override_font_sizes/font_size = 12
+theme_override_styles/normal = SubResource("StyleBoxFlat_hud_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_hud_btn_hover")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_hud_btn_pressed")
 text = "DBG"

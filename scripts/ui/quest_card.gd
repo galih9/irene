@@ -58,7 +58,7 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 
 	# Deliver button state
 	deliver_btn.disabled = not is_ready_to_deliver
-	_update_btn_style(is_ready_to_deliver)
+	deliver_btn.text = "DELIVER!" if is_ready_to_deliver else "Incomplete"
 
 func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 	var box := Panel.new()
@@ -114,32 +114,6 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 	box.add_child(check_lbl)
 
 	return box
-
-func _update_btn_style(ready: bool) -> void:
-	var style := StyleBoxFlat.new()
-	if ready:
-		style.bg_color = Color(0.22, 0.72, 0.38)
-		style.border_color = Color(0.48, 0.96, 0.62)
-		deliver_btn.text = "DELIVER!"
-		deliver_btn.add_theme_color_override("font_color", Color.WHITE)
-		deliver_btn.add_theme_color_override("font_outline_color", Color(0.12, 0.32, 0.16, 0.8))
-		deliver_btn.add_theme_constant_override("outline_size", 2)
-	else:
-		style.bg_color = Color(0.22, 0.2, 0.22)
-		style.border_color = Color(0.35, 0.3, 0.35)
-		deliver_btn.text = "Incomplete"
-		deliver_btn.add_theme_color_override("font_color", Color(0.7, 0.66, 0.64))
-		deliver_btn.add_theme_constant_override("outline_size", 0)
-	style.border_width_left = 1
-	style.border_width_top = 1
-	style.border_width_right = 1
-	style.border_width_bottom = 1
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_right = 8
-	style.corner_radius_bottom_left = 8
-	deliver_btn.add_theme_stylebox_override("normal", style)
-	deliver_btn.add_theme_stylebox_override("disabled", style)
 
 func _on_deliver_pressed() -> void:
 	if is_ready_to_deliver and quest_data:

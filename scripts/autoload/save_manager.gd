@@ -127,7 +127,8 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 			prog.get("unlocked_items", {}),
 			prog.get("claimed_rewards", {}),
 			int(prog.get("player_level", 1)),
-			int(prog.get("player_exp", 0))
+			int(prog.get("player_exp", 0)),
+			prog.get("reward_queue", [])
 		)
 
 	# 3. Restore Inventory

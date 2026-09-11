@@ -22,7 +22,8 @@ var _chains: Array[Dictionary] = [
 	{"id": "exp", "name": "EXP"},
 	{"id": "gold", "name": "Gold"},
 	{"id": "energy", "name": "Energy"},
-	{"id": "diamond", "name": "Diamonds"}
+	{"id": "diamond", "name": "Diamonds"},
+	{"id": "chest", "name": "Chests"}
 ]
 
 var _current_chain_id: String = "foodbox"
@@ -266,6 +267,8 @@ func _create_item_row(item: ItemData) -> Control:
 			reward_str += " +%d Gems" % reward.gems
 		if reward.has("exp") and reward.exp > 0:
 			reward_str += " +%d EXP" % reward.exp
+		if reward.has("chest") and not str(reward.chest).is_empty():
+			reward_str += "\n+🎁 Chest!"
 		claim_btn.text = reward_str
 		claim_btn.add_theme_font_size_override("font_size", 11)
 		claim_btn.add_theme_color_override("font_color", Color.WHITE)
@@ -296,6 +299,8 @@ func _create_item_row(item: ItemData) -> Control:
 				msg += " +%d Gems!" % res.gems
 			if res.has("exp") and res.exp > 0:
 				msg += " +%d EXP!" % res.exp
+			if res.has("chest") and not str(res.chest).is_empty():
+				msg += "\n+🎁 Chest sent to Reward Slot!"
 			GameEvents.show_floating_text.emit("Codex Reward!\n" + msg, panel.global_position + Vector2(250, 20), Color(0.4, 1.0, 0.4))
 			_update_header()
 			_load_chain(item.chain_id)
