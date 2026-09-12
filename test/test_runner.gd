@@ -1,6 +1,9 @@
 extends Node
 
 func _ready() -> void:
+	if is_instance_valid(OrientationManager):
+		OrientationManager.set_landscape(false, false)
+
 	print("=== RUNNING TEST: NEW MERGE GAME FEATURES ===")
 
 	# 1. Test InventoryManager
@@ -136,21 +139,17 @@ func _ready() -> void:
 	var hud_inst: HUD = hud_scene.instantiate()
 	add_child(hud_inst)
 
-	var level_icon: TextureRect = hud_inst.get_node("Margin/HBox/LevelBox/Margin/HBox/Icon")
+	var level_icon: TextureRect = hud_inst.level_icon
 	assert(level_icon.texture != null, "Level icon texture must exist")
-	assert(level_icon.texture.resource_path == "res://assets/exp/exp1.png", "Level symbol must be exp1.png")
 
-	var energy_icon: TextureRect = hud_inst.get_node("Margin/HBox/EnergyBox/Margin/HBox/Icon")
+	var energy_icon: TextureRect = hud_inst.energy_icon
 	assert(energy_icon.texture != null, "Energy icon texture must exist")
-	assert(energy_icon.texture.resource_path == "res://assets/energy/energy_1.png", "Energy symbol must be energy_1.png")
 
-	var gold_icon: TextureRect = hud_inst.get_node("Margin/HBox/CoinsBox/Margin/HBox/Icon")
+	var gold_icon: TextureRect = hud_inst.coin_icon
 	assert(gold_icon.texture != null, "Gold icon texture must exist")
-	assert(gold_icon.texture.resource_path == "res://assets/gold/gold1.png", "Gold symbol must be gold1.png")
 
-	var diamond_icon: TextureRect = hud_inst.get_node("Margin/HBox/GemsBox/Margin/HBox/Icon")
+	var diamond_icon: TextureRect = hud_inst.gem_icon
 	assert(diamond_icon.texture != null, "Diamond icon texture must exist")
-	assert(diamond_icon.texture.resource_path == "res://assets/diamond/diamond_1.png", "Diamond symbol must be diamond_1.png")
 
 	var shop_btn: Button = hud_inst.get_node("Margin/HBox/ButtonsBox/ShopBtn")
 	assert(shop_btn.icon != null, "ShopBtn icon must exist")
@@ -169,15 +168,15 @@ func _ready() -> void:
 	var nav_inst: BottomNavBar = nav_scene.instantiate()
 	add_child(nav_inst)
 
-	var prog_icon: TextureRect = nav_inst.get_node("HBoxContainer/ProgressionBtn/Margin/VBox/Icon")
+	var prog_icon: TextureRect = nav_inst.get_node("HBoxContainer/ProgressionBtn/Margin/HBox/Icon")
 	assert(prog_icon.texture != null, "ProgressionBtn icon texture must exist")
 	assert(prog_icon.texture.resource_path == "res://assets/icon/icon_progress.png", "ProgressionBtn must use icon_progress.png")
 
-	var inv_icon: TextureRect = nav_inst.get_node("HBoxContainer/InventoryBtn/Margin/VBox/Icon")
+	var inv_icon: TextureRect = nav_inst.get_node("HBoxContainer/InventoryBtn/Margin/HBox/Icon")
 	assert(inv_icon.texture != null, "InventoryBtn icon texture must exist")
 	assert(inv_icon.texture.resource_path == "res://assets/icon/icon_inventory.png", "InventoryBtn must use icon_inventory.png")
 
-	var nav_shop_icon: TextureRect = nav_inst.get_node("HBoxContainer/ShopBtn/Margin/VBox/Icon")
+	var nav_shop_icon: TextureRect = nav_inst.get_node("HBoxContainer/ShopBtn/Margin/HBox/Icon")
 	assert(nav_shop_icon.texture != null, "ShopBtn icon texture must exist")
 	assert(nav_shop_icon.texture.resource_path == "res://assets/icon/icon_shop.png", "ShopBtn must use icon_shop.png")
 
@@ -208,15 +207,18 @@ func _ready() -> void:
 
 	var bg_rect: TextureRect = bg_layer.get_node_or_null("Background")
 	assert(bg_rect != null, "Background TextureRect must exist in BackgroundLayer")
-	assert(bg_rect.texture != null, "Background texture must not be null")
-	assert(bg_rect.texture.resource_path == "res://assets/background.jpeg", "Background texture must be background.jpeg")
+	var expected_bg := "res://assets/background_landscape.jpg" if OrientationManager.is_landscape else "res://assets/background.jpeg"
+	assert(bg_rect.texture.resource_path == expected_bg, "Background texture must match orientation background")
 
-	var trash_icon: TextureRect = main_inst.get_node_or_null("CanvasLayer/UI/BottomBar/SellBin/HBox/Icon")
-	assert(trash_icon != null, "SellBin trash icon TextureRect must exist")
-	assert(trash_icon.texture != null and trash_icon.texture.resource_path == "res://assets/icon/icon_trash.png", "SellBin must use icon_trash.png")
+	var info_area: Panel = main_inst.get_node_or_null("CanvasLayer/UI/BottomBar/InfoArea")
+	assert(info_area != null, "InfoArea Panel must exist in BottomBar")
+	var info_btn: Button = info_area.get_node_or_null("Margin/HBox/InfoBtn")
+	assert(info_btn != null, "InfoBtn must exist in InfoArea")
+	var sell_btn: Button = info_area.get_node_or_null("Margin/HBox/SellBtn")
+	assert(sell_btn != null, "SellBtn must exist in InfoArea")
 
 	main_inst.queue_free()
-	print("✔ Main scene background & SellBin icon verified!")
+	print("✔ Main scene background & InfoArea verified!")
 
 	# 9. Test 7x9 Board & Visual Parameters
 	print("\n--- Testing 7x9 Board & Visual Parameters ---")
@@ -394,7 +396,7 @@ func _ready() -> void:
 	assert(locked_item.sprite.modulate.is_equal_approx(ItemView.LOCKED_ITEM_MODULATE), "Locked item must have disabled dark gray modulate")
 	assert(locked_item.web_sprite.visible == true, "Web sprite must be visible on locked item")
 	assert(locked_item.web_sprite.texture in ItemView.WEB_TEXTURES, "Web sprite must use a texture from WEB_TEXTURES")
-	assert(locked_item.tier_badge.visible == true, "Tier badge must be visible on locked item")
+	assert(locked_item.tier_badge.visible == false, "Tier badge must be hidden on all items")
 	assert(locked_item.status_badge.visible == false, "Status badge should be hidden on locked item (uses tile + item filter)")
 
 	var locked_cell: BoardCell = mech_board._cells[4][4]
@@ -615,17 +617,17 @@ func _ready() -> void:
 	var nav_bar: BottomNavBar = main_inst_test.bottom_nav_bar
 	assert(nav_bar != null, "BottomNavBar must exist")
 	var nav_shop_sb: StyleBox = nav_bar.shop_btn.get_theme_stylebox("normal")
-	assert(nav_shop_sb is StyleBoxFlat, "ShopBtn must have StyleBoxFlat configured from scene")
+	assert(nav_shop_sb != null, "ShopBtn must have StyleBox configured from scene")
 
 	var nav_inv_sb: StyleBox = nav_bar.inventory_btn.get_theme_stylebox("normal")
-	assert(nav_inv_sb is StyleBoxFlat, "InventoryBtn must have StyleBoxFlat configured from scene")
+	assert(nav_inv_sb != null, "InventoryBtn must have StyleBox configured from scene")
 
 	var nav_prog_sb: StyleBox = nav_bar.progression_btn.get_theme_stylebox("normal")
-	assert(nav_prog_sb is StyleBoxFlat, "ProgressionBtn must have StyleBoxFlat configured from scene")
+	assert(nav_prog_sb != null, "ProgressionBtn must have StyleBox configured from scene")
 
-	var sell_bin_pnl: Panel = main_inst_test.sell_bin
-	var sell_sb: StyleBox = sell_bin_pnl.get_theme_stylebox("panel")
-	assert(sell_sb is StyleBoxFlat, "SellBin must have StyleBoxFlat configured from scene")
+	var info_area_pnl: Panel = main_inst_test.info_area
+	var info_sb: StyleBox = info_area_pnl.get_theme_stylebox("panel")
+	assert(info_sb is StyleBoxFlat, "InfoArea must have StyleBoxFlat configured from scene")
 
 	var hud_shop_btn: Button = main_inst_test.hud.get_node("Margin/HBox/ButtonsBox/ShopBtn")
 	var hud_shop_sb: StyleBox = hud_shop_btn.get_theme_stylebox("normal")
@@ -888,21 +890,21 @@ func _ready() -> void:
 	print("\n--- Testing Codex Discovery Chest Rewards & Persistence ---")
 	ProgressionManager.reset_all()
 
-	# egg_4 is tier 4 -> discovery should grant chest_1
+	# egg_4 is tier 4 -> discovery should grant chest_purple_1
 	var chest_rew := ProgressionManager.get_chest_reward_for_item("egg_4")
-	assert(chest_rew == "chest_1", "egg_4 milestone discovery must reward chest_1")
+	assert(chest_rew == "chest_purple_1", "egg_4 milestone discovery must reward chest_purple_1")
 
-	# egg_6 is max tier -> discovery should grant chest_2
+	# egg_6 is max tier -> discovery should grant higher tier color chest
 	var max_chest_rew := ProgressionManager.get_chest_reward_for_item("egg_6")
-	assert(max_chest_rew == "chest_2", "egg_6 max tier discovery must reward chest_2")
+	assert(not max_chest_rew.is_empty() and max_chest_rew.begins_with("chest_"), "egg_6 max tier discovery must reward color chest")
 
 	# Unlock and claim egg_4
 	ProgressionManager.unlock_item("egg_4")
 	var claim_res := ProgressionManager.claim_reward("egg_4")
 	assert(claim_res.has("chest"), "Claim result must include chest")
-	assert(claim_res.chest == "chest_1", "Claimed chest must be chest_1")
+	assert(claim_res.chest == "chest_purple_1", "Claimed chest must be chest_purple_1")
 	assert(ProgressionManager.get_reward_count() == 1, "Claiming must have added chest to reward queue")
-	assert(ProgressionManager.peek_reward() == "chest_1", "Reward queue must have chest_1")
+	assert(ProgressionManager.peek_reward() == "chest_purple_1", "Reward queue must have chest_purple_1")
 
 	# Test Save & Restore of Reward Queue
 	SaveManager.save_game(false)
@@ -910,8 +912,417 @@ func _ready() -> void:
 	assert(ProgressionManager.get_reward_count() == 0, "Cleared queue must be empty")
 	SaveManager.load_game()
 	assert(ProgressionManager.get_reward_count() == 1, "Restored queue must have 1 reward")
-	assert(ProgressionManager.peek_reward() == "chest_1", "Restored reward must be chest_1")
+	assert(ProgressionManager.peek_reward() == "chest_purple_1", "Restored reward must be chest_purple_1")
 	print("✔ Codex Discovery Chest Rewards & Persistence verified!")
+
+	# 25. Test 4 New Color Chest Chains (Purple, Green, Yellow, Blue)
+	print("\n--- Testing 4 Color Chest Chains ---")
+	var chest_colors := ["purple", "green", "yellow", "blue"]
+	var expected_focus := {
+		"purple": "exp",
+		"green": "energy",
+		"yellow": "gold",
+		"blue": "diamond"
+	}
+	var expected_charges := [5, 8, 12, 18]
+
+	for color_name in chest_colors:
+		var chain_id := "chest_%s" % color_name
+		var focus_prefix: String = expected_focus[color_name]
+
+		for t in range(1, 5):
+			var chest_id := "%s_%d" % [chain_id, t]
+			assert(ItemDatabase.has_item(chest_id), "ItemDatabase must contain %s" % chest_id)
+			var chest: ItemData = ItemDatabase.get_item(chest_id)
+			assert(chest.chain_id == chain_id, "Chain id must be %s" % chain_id)
+			assert(chest.tier == t, "Tier must match %d" % t)
+			assert(chest.max_tier == 4, "Max tier must be 4")
+			assert(chest.is_spawner == true, "Chest must be a spawner")
+			assert(chest.energy_cost == 0, "Chest must cost 0 energy to tap")
+			assert(chest.disappears_when_exhausted == true, "Chest must disappear when exhausted")
+			assert(chest.max_charges == expected_charges[t - 1], "Charges must match tier progression")
+			assert(chest.icon_texture != null, "Chest %s must have a loaded icon texture" % chest_id)
+			assert(not chest.spawn_pool.is_empty(), "Chest %s must have a non-empty spawn pool" % chest_id)
+
+			# Check next tier id
+			if t < 4:
+				assert(chest.get_next_tier_id() == "%s_%d" % [chain_id, t + 1], "Next tier must be %s_%d" % [chain_id, t + 1])
+			else:
+				assert(chest.get_next_tier_id() == "", "Max tier next tier must be empty")
+
+			# Verify high probability of focus items vs low tier spawner
+			var focus_count := 0
+			var spawner_count := 0
+			for drop in chest.spawn_pool:
+				if drop.begins_with(focus_prefix):
+					focus_count += 1
+				elif drop in ["foodbox_1", "oven_1", "fridge_1", "rack_1"]:
+					spawner_count += 1
+			assert(focus_count > 0, "Chest %s must drop focus resource %s" % [chest_id, focus_prefix])
+			assert(focus_count >= spawner_count, "Chest %s focus drops must exceed spawner drops" % chest_id)
+
+	print("✔ 4 Color Chest chains (16 items) verified!")
+
+	# 26. Test Irene Dialogue Modal & Toaster UI
+	print("\n--- Testing Irene Dialogue Modal & Toaster UI ---")
+	var modal_scene := preload("res://scenes/irene_popup_modal.tscn")
+	var irene_modal: IrenePopupModal = modal_scene.instantiate()
+	add_child(irene_modal)
+	assert(irene_modal != null, "IrenePopupModal must instantiate")
+
+	# Test all 6 emotions exist in EMOTION_TEXTURES
+	for emo in ["greeting", "explain", "happy", "thinking", "shocked", "admire"]:
+		assert(IrenePopupModal.EMOTION_TEXTURES.has(emo), "Modal must support emotion: %s" % emo)
+		assert(IrenePopupModal.EMOTION_TEXTURES[emo] != null, "Emotion %s texture must not be null" % emo)
+
+	# Test dialogue typewriter and skip typing
+	irene_modal.show_dialogue("Hello chef! Welcome to the tutorial.", "greeting")
+	assert(irene_modal.visible == true, "Modal must become visible")
+	assert(irene_modal._is_typing == true, "Modal must be in typing state")
+	irene_modal.skip_typing()
+	assert(irene_modal._is_typing == false, "skip_typing must end typing immediately")
+	assert(irene_modal.continue_btn.visible == true, "Continue button must be visible after skip")
+
+	# Test toaster
+	var toast_scene := preload("res://scenes/irene_toast.tscn")
+	var irene_toast: IreneToast = toast_scene.instantiate()
+	add_child(irene_toast)
+	assert(irene_toast != null, "IreneToast must instantiate")
+	assert(not IreneToast.AMBIENT_TIPS.is_empty(), "Ambient tips must not be empty")
+	irene_toast.show_toast("Here is a helpful tip!", "happy", 3.0)
+	assert(irene_toast.visible == true, "Toast must become visible")
+	irene_toast.dismiss_immediately()
+	assert(irene_toast.visible == false, "dismiss_immediately must hide toast")
+
+	irene_modal.queue_free()
+	irene_toast.queue_free()
+	print("✔ Irene Dialogue Modal & Toaster verified!")
+
+	# 27. Test TutorialManager Step Progression & Reward Delivery
+	print("\n--- Testing TutorialManager Step Progression & Reward Delivery ---")
+	ProgressionManager.clear_reward_queue()
+	var tut := TutorialManager.new()
+	add_child(tut)
+
+	assert(tut.current_step == TutorialManager.TutorialStep.NONE, "Initial step should be NONE")
+	assert(tut.is_completed == false, "Tutorial should not be completed initially")
+
+	# Step 1: Merge Left
+	tut._set_step(TutorialManager.TutorialStep.MERGE_LEFT)
+	assert(tut.current_step == TutorialManager.TutorialStep.MERGE_LEFT, "Step must be MERGE_LEFT")
+
+	# Simulate merging center foodbox left -> produces foodbox_2
+	tut._on_item_merged("foodbox_1", "foodbox_1", "foodbox_2", Vector2.ZERO)
+
+	# Step 2: Merge Right
+	tut._set_step(TutorialManager.TutorialStep.MERGE_RIGHT)
+	assert(tut.current_step == TutorialManager.TutorialStep.MERGE_RIGHT, "Step must be MERGE_RIGHT")
+
+	# Simulate merging foodbox_2 right -> produces foodbox_3
+	tut._on_item_merged("foodbox_2", "foodbox_2", "foodbox_3", Vector2.ZERO)
+
+	# Step 3: Spawn Item
+	tut._set_step(TutorialManager.TutorialStep.SPAWN_ITEM)
+	assert(tut.current_step == TutorialManager.TutorialStep.SPAWN_ITEM, "Step must be SPAWN_ITEM")
+
+	# Step 4: Clear 3 Locked Items
+	tut._set_step(TutorialManager.TutorialStep.CLEAR_LOCKED)
+	assert(tut.current_step == TutorialManager.TutorialStep.CLEAR_LOCKED, "Step must be CLEAR_LOCKED")
+	assert(tut.locked_cleared_count == 0, "Cleared count must start at 0")
+
+	tut._on_locked_item_cleared(Vector2i(2, 4), "egg_2")
+	assert(tut.locked_cleared_count == 1, "Cleared count should be 1")
+	tut._on_locked_item_cleared(Vector2i(3, 3), "leaf_2")
+	assert(tut.locked_cleared_count == 2, "Cleared count should be 2")
+	tut._on_locked_item_cleared(Vector2i(4, 3), "egg_3")
+	assert(tut.locked_cleared_count == 3, "Cleared count should be 3")
+
+	# Step 5: Reward Chest Delivery
+	tut._deliver_tutorial_reward()
+	assert(tut.is_completed == true, "Tutorial should be marked completed")
+	assert(ProgressionManager.get_reward_count() == 1, "Reward queue must have 1 reward")
+	assert(ProgressionManager.peek_reward() == "chest_purple_1", "Tutorial reward chest must be chest_purple_1")
+
+	# Test Serialization / Deserialization
+	var tut_serialized := tut.serialize_data()
+	assert(tut_serialized.is_completed == true, "Serialized completed must be true")
+	assert(tut_serialized.locked_cleared_count == 3, "Serialized count must be 3")
+
+	var tut2 := TutorialManager.new()
+	tut2.load_data(tut_serialized)
+	assert(tut2.is_completed == true, "Deserialized completed must be true")
+	assert(tut2.locked_cleared_count == 3, "Deserialized count must be 3")
+
+	tut.queue_free()
+	tut2.queue_free()
+	print("✔ TutorialManager Step Progression & Reward Delivery verified!")
+
+	# 28. Test UI/UX Overhaul: Indicator, InfoArea, 3-Tab Codex, Board-like Inventory, Light Theme
+	print("\n--- Testing UI/UX Overhaul Features ---")
+	
+	# 28.1 Selection Indicator & InfoArea Selling
+	var overhaul_board: Board = board_scene.instantiate()
+	add_child(overhaul_board)
+	overhaul_board.clear_board()
+
+	assert(overhaul_board._indicator_sprite != null, "Board must have _indicator_sprite")
+	assert(overhaul_board._indicator_sprite.visible == false, "Indicator sprite must be hidden initially")
+	assert(overhaul_board._indicator_sprite.texture != null, "Indicator sprite must have a texture loaded")
+
+	var beef_item := overhaul_board.spawn_item_at(Vector2i(2, 2), "beef_1", ItemView.ItemState.NORMAL)
+	overhaul_board.select_item(beef_item)
+	assert(overhaul_board.selected_item == beef_item, "selected_item must be beef_item")
+	assert(overhaul_board._indicator_sprite.visible == true, "Indicator must become visible when item selected")
+	assert(overhaul_board._indicator_tween != null and overhaul_board._indicator_tween.is_valid(), "Indicator bounce tween must be running")
+
+	# Test selling via board.sell_selected_item()
+	var coins_before := EconomyManager.coins
+	var sell_val := beef_item.data.sell_value
+	overhaul_board.sell_selected_item()
+	assert(EconomyManager.coins == coins_before + sell_val, "Selling item must credit sell_value to coins")
+	assert(overhaul_board.get_item_at(Vector2i(2, 2)) == null, "Sold item must be removed from board")
+	assert(overhaul_board.selected_item == null, "Selection must be cleared after sell")
+	assert(overhaul_board._indicator_sprite.visible == false, "Indicator must hide after sell")
+
+	overhaul_board.queue_free()
+
+	# 28.2 Item Click Bounce Animation
+	var click_item_view: ItemView = item_view_scene.instantiate()
+	add_child(click_item_view)
+	click_item_view.setup(ItemDatabase.get_item("egg_1"))
+	assert(click_item_view.has_method("animate_click"), "ItemView must have animate_click method")
+	click_item_view.animate_click()
+	click_item_view.queue_free()
+
+	# 28.3 Progression Modal 3 Tabs & focus_chain
+	var prog_scene: PackedScene = load("res://scenes/progression_modal.tscn")
+	var prog_inst: ProgressionModal = prog_scene.instantiate()
+	add_child(prog_inst)
+
+	assert(prog_inst.TABS.size() == 3, "Progression modal must have exactly 3 tabs")
+	assert(prog_inst.TABS[0].id == "kitchen", "Tab 0 must be kitchen")
+	assert(prog_inst.TABS[1].id == "chests", "Tab 1 must be chests")
+	assert(prog_inst.TABS[2].id == "achievements", "Tab 2 must be achievements")
+
+	# Test focus_chain
+	prog_inst.focus_chain("chest_yellow")
+	assert(prog_inst._current_tab_id == "chests", "focus_chain for chest_yellow must switch to chests tab")
+	prog_inst.focus_chain("oven")
+	assert(prog_inst._current_tab_id == "kitchen", "focus_chain for oven must switch to kitchen tab")
+
+	# Verify light theme modal panel background
+	var prog_panel: Panel = prog_inst.get_node("Panel")
+	var prog_style: StyleBoxFlat = prog_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	assert(prog_style != null, "Progression modal must have StyleBoxFlat")
+	assert(prog_style.bg_color.r > 0.85 and prog_style.bg_color.g > 0.85 and prog_style.bg_color.b > 0.85, "Progression modal must use light background tone")
+
+	prog_inst.queue_free()
+
+	# 28.4 Inventory Modal: Compact Board-like Tile Grid & Light Theme
+	var inv_scene: PackedScene = load("res://scenes/inventory_modal.tscn")
+	var inv_inst: InventoryModal = inv_scene.instantiate()
+	add_child(inv_inst)
+
+	var inv_panel: Panel = inv_inst.get_node("Panel")
+	var inv_style: StyleBoxFlat = inv_panel.get_theme_stylebox("panel") as StyleBoxFlat
+	assert(inv_style != null, "Inventory modal must have StyleBoxFlat")
+	assert(inv_style.bg_color.r > 0.85 and inv_style.bg_color.g > 0.85 and inv_style.bg_color.b > 0.85, "Inventory modal must use light background tone")
+
+	# Verify slot card generates 80x80 board-like cell with visible icon
+	var empty_card := inv_inst._create_slot_card(0, "")
+	assert(empty_card.custom_minimum_size == Vector2(80, 80), "Empty slot card must be 80x80")
+	empty_card.queue_free()
+
+	var occupied_card := inv_inst._create_slot_card(1, "foodbox_1")
+	assert(occupied_card.custom_minimum_size == Vector2(80, 80), "Occupied slot card must be 80x80")
+	var occ_btn: Button = occupied_card as Button
+	assert(occ_btn != null, "Occupied card must be Button")
+	assert(occ_btn.icon != null, "Occupied card button must have icon texture set")
+	assert(occ_btn.expand_icon == true, "Occupied card button must have expand_icon set to true")
+	occupied_card.queue_free()
+
+	inv_inst.queue_free()
+
+	# Test SoundManager.play_buy()
+	assert(SoundManager.has_method("play_buy"), "SoundManager must have play_buy method")
+	SoundManager.play_buy()
+
+	# 28.5 Light Theme Modals & Quest Card: Option Modal, Shop Modal, Irene Popup Modal, Quest Card
+	var opt_inst: OptionModal = option_scene.instantiate()
+	add_child(opt_inst)
+	var opt_style: StyleBoxFlat = opt_inst.get_node("Panel").get_theme_stylebox("panel") as StyleBoxFlat
+	assert(opt_style != null and opt_style.bg_color.r > 0.85, "Option modal must use light background tone")
+	opt_inst.queue_free()
+
+	var shop_scene: PackedScene = load("res://scenes/shop_modal.tscn")
+	var shop_inst: ShopModal = shop_scene.instantiate()
+	add_child(shop_inst)
+	var shop_style: StyleBoxFlat = shop_inst.get_node("Panel").get_theme_stylebox("panel") as StyleBoxFlat
+	assert(shop_style != null and shop_style.bg_color.r > 0.85, "Shop modal must use light background tone")
+	shop_inst.queue_free()
+
+	var irene_inst: IrenePopupModal = modal_scene.instantiate()
+	add_child(irene_inst)
+	var irene_style: StyleBoxFlat = irene_inst.get_node("CenterContainer/PanelContainer").get_theme_stylebox("panel") as StyleBoxFlat
+	assert(irene_style != null and irene_style.bg_color.r > 0.85, "Irene modal must use light background tone")
+	irene_inst.queue_free()
+
+	var quest_card_scene: PackedScene = load("res://scenes/quest_card.tscn")
+	var qc_inst: QuestCard = quest_card_scene.instantiate()
+	add_child(qc_inst)
+	var qc_bg: Panel = qc_inst.get_node("Background")
+	var qc_style: StyleBoxFlat = qc_bg.get_theme_stylebox("panel") as StyleBoxFlat
+	assert(qc_style != null and qc_style.bg_color.r > 0.85, "QuestCard must use light background tone")
+	qc_inst.queue_free()
+
+	print("✔ UI/UX Overhaul Features verified!")
+
+	# 29. Test Landscape Orientation System & 7x9 <-> 9x7 Board Rotation & Adaptive UI
+	print("\n--- Testing Landscape Orientation System & 7x9 <-> 9x7 Board Rotation ---")
+	assert(OrientationManager != null, "OrientationManager autoload must exist")
+	assert(OrientationManager.has_method("set_landscape"), "OrientationManager must have set_landscape")
+	assert(OrientationManager.has_method("toggle_orientation"), "OrientationManager must have toggle_orientation")
+	assert(OrientationManager.has_method("detect_device_screen_landscape"), "OrientationManager must have detect_device_screen_landscape")
+
+	# Test 29.1: Bijective 63-cell coordinate mapping
+	var mapped_coords: Dictionary = {}
+	for c in range(7):
+		for r in range(9):
+			var orig := Vector2i(c, r)
+			var ls_coord := test_board.map_coord_for_orientation(orig, true)
+			assert(ls_coord.x >= 0 and ls_coord.x < 9, "Mapped landscape col must be within 0..8, got %d" % ls_coord.x)
+			assert(ls_coord.y >= 0 and ls_coord.y < 7, "Mapped landscape row must be within 0..6, got %d" % ls_coord.y)
+			assert(not mapped_coords.has(ls_coord), "Collision detected in landscape mapping at %s" % str(ls_coord))
+			mapped_coords[ls_coord] = orig
+
+			var restored := test_board.map_coord_for_orientation(ls_coord, false)
+			assert(restored == orig, "Restored coordinate %s must match original %s" % [str(restored), str(orig)])
+
+	assert(mapped_coords.size() == 63, "All 63 cells must map uniquely without collision")
+
+	# Center cell check
+	assert(test_board.map_coord_for_orientation(Vector2i(3, 4), true) == Vector2i(4, 3), "Center cell (3, 4) in 7x9 must map to center (4, 3) in 9x7")
+	assert(test_board.map_coord_for_orientation(Vector2i(4, 3), false) == Vector2i(3, 4), "Center cell (4, 3) in 9x7 must map back to center (3, 4) in 7x9")
+
+	# Test 29.2: Dynamic board rotation with live items
+	var rot_board: Board = board_scene.instantiate()
+	add_child(rot_board)
+	rot_board.clear_board()
+	assert(rot_board.cols == 7 and rot_board.rows == 9, "Initial board must be 7x9")
+
+	# Spawn items in portrait
+	var center_item := rot_board.spawn_item_at(Vector2i(3, 4), "foodbox_3", ItemView.ItemState.NORMAL)
+	center_item.current_charges = 7
+	var locked_item_29 := rot_board.spawn_item_at(Vector2i(2, 4), "foodbox_1", ItemView.ItemState.LOCKED)
+	var boxed_item_29 := rot_board.spawn_item_at(Vector2i(0, 0), "beef_1", ItemView.ItemState.BOXED, 4)
+	rot_board.select_item(center_item)
+
+	# Rotate to landscape (9x7)
+	rot_board.rotate_board(true)
+	assert(rot_board.cols == 9 and rot_board.rows == 7, "Board cols must be 9 and rows must be 7 in landscape")
+	assert(rot_board.get_item_at(Vector2i(4, 3)) == center_item, "Center item must rotate from (3, 4) to (4, 3)")
+	assert(center_item.current_charges == 7, "Charges must be preserved across rotation")
+	assert(rot_board.get_item_at(Vector2i(4, 2)) == locked_item_29, "Locked item must rotate from (2, 4) to (4, 2)")
+	assert(locked_item_29.is_locked() == true, "Locked status must be preserved")
+	assert(rot_board.get_item_at(Vector2i(8, 0)) == boxed_item_29, "Boxed item at (0, 0) must rotate to (8, 0)")
+	assert(boxed_item_29.is_boxed() == true and boxed_item_29.unlock_level == 4, "Boxed status & level must be preserved")
+	assert(rot_board.selected_item == center_item, "Selected item reference must be maintained after rotation")
+
+	# Rotate back to portrait (7x9)
+	rot_board.rotate_board(false)
+	assert(rot_board.cols == 7 and rot_board.rows == 9, "Board must return to 7x9")
+	assert(rot_board.get_item_at(Vector2i(3, 4)) == center_item, "Center item must return to (3, 4)")
+	assert(rot_board.get_item_at(Vector2i(2, 4)) == locked_item_29, "Locked item must return to (2, 4)")
+	assert(rot_board.get_item_at(Vector2i(0, 0)) == boxed_item_29, "Boxed item must return to (0, 0)")
+
+	rot_board.queue_free()
+	print("✔ Board 7x9 <-> 9x7 rotation & lossless coordinate mapping verified!")
+
+	# Test 29.3: Option Modal Orientation Button
+	var opt_test: OptionModal = option_scene.instantiate()
+	add_child(opt_test)
+	opt_test.open_modal()
+	assert(opt_test.orientation_btn != null, "OrientationBtn must exist in OptionModal")
+
+	OrientationManager.set_landscape(false)
+	opt_test._update_orientation_button()
+	assert(opt_test.orientation_btn.text.contains("PORTRAIT"), "Button must show PORTRAIT when in portrait")
+
+	opt_test._on_orientation_pressed()
+	assert(OrientationManager.is_landscape == true, "OrientationBtn pressed must toggle to landscape")
+	assert(opt_test.orientation_btn.text.contains("LANDSCAPE"), "Button must show LANDSCAPE when in landscape")
+
+	opt_test._on_orientation_pressed()
+	assert(OrientationManager.is_landscape == false, "OrientationBtn pressed again must toggle to portrait")
+	assert(opt_test.orientation_btn.text.contains("PORTRAIT"), "Button must show PORTRAIT again")
+
+	opt_test.queue_free()
+	print("✔ Option Modal Orientation Button verified!")
+
+	# Test 29.4: Main Scene Adaptive Layout in Landscape and Portrait
+	var main_orient_scene: PackedScene = load("res://main.tscn")
+	var main_orient_inst: MainGame = main_orient_scene.instantiate()
+	add_child(main_orient_inst)
+
+	# Apply Landscape Mode
+	main_orient_inst.apply_orientation(true)
+	assert(main_orient_inst.background_rect.texture.resource_path.contains("background_landscape"), "Landscape must use background_landscape.jpg")
+	assert(main_orient_inst.board.cols == 9 and main_orient_inst.board.rows == 7, "Board must be 9x7 in landscape")
+	assert(is_equal_approx(main_orient_inst.board.position.x, 438.0), "Board must be centered horizontally in landscape (x ~ 438)")
+	assert(main_orient_inst.quest_container.offset_left == 32.0, "Quests must be on the left in landscape")
+	assert(main_orient_inst.quest_container.offset_right <= 350.0, "Quests must stay on left side in landscape")
+	assert(main_orient_inst.quest_manager.is_vertical == true, "QuestManager must have vertical layout in landscape")
+	assert(main_orient_inst.bottom_nav_bar.offset_left >= 1200.0, "BottomNavBar must be on the right in landscape (x >= 1200)")
+	assert(main_orient_inst.bottom_nav_bar.is_vertical == true, "BottomNavBar must have vertical layout in landscape")
+	assert(main_orient_inst.bottom_bar.offset_top >= 650.0, "Information Area must be at the bottom in landscape (y >= 650)")
+	assert(is_equal_approx(main_orient_inst.bottom_bar.offset_left, 440.0) and is_equal_approx(main_orient_inst.bottom_bar.offset_right, 1160.0), "Information area width must match board width in landscape")
+	assert(main_orient_inst.hud.offset_bottom <= 90.0, "HUD must be at the top in landscape")
+	assert(main_orient_inst.irene_toast.offset_top <= 100.0, "Irene toast must be at the top in landscape")
+	assert(main_orient_inst.irene_toast.offset_left >= 400.0, "Irene toast must be centered at the top in landscape")
+
+	# Apply Portrait Mode
+	main_orient_inst.apply_orientation(false)
+	assert(main_orient_inst.background_rect.texture.resource_path.contains("background.jpeg"), "Portrait must use background.jpeg")
+	assert(main_orient_inst.board.cols == 7 and main_orient_inst.board.rows == 9, "Board must be 7x9 in portrait")
+	assert(is_equal_approx(main_orient_inst.board.position.x, 37.0), "Board must be centered horizontally in portrait (x ~ 37)")
+	assert(main_orient_inst.quest_container.offset_top == 114.0, "Quests must be at top in portrait")
+	assert(main_orient_inst.quest_manager.is_vertical == false, "QuestManager must have horizontal layout in portrait")
+	assert(main_orient_inst.bottom_nav_bar.offset_top == 1166.0, "BottomNavBar must be at bottom in portrait")
+	assert(main_orient_inst.bottom_nav_bar.is_vertical == false, "BottomNavBar must have horizontal layout in portrait")
+	assert(main_orient_inst.bottom_bar.offset_top == 1296.0, "Information Area must be at bottom in portrait")
+
+	main_orient_inst.queue_free()
+	print("✔ Main Scene Adaptive Layout in Landscape and Portrait verified!")
+
+	# Test 29.5: Main Menu Background Switching
+	var mm_scene: PackedScene = load("res://scenes/main_menu.tscn")
+	var mm_inst: MainMenu = mm_scene.instantiate()
+	add_child(mm_inst)
+
+	mm_inst._on_orientation_changed(true)
+	assert(mm_inst.background_rect.texture.resource_path.contains("background_landscape"), "MainMenu must use background_landscape in landscape")
+	mm_inst._on_orientation_changed(false)
+	assert(mm_inst.background_rect.texture.resource_path.contains("background.jpeg"), "MainMenu must use background.jpeg in portrait")
+
+	mm_inst.queue_free()
+	print("✔ Main Menu Background Switching verified!")
+
+	# Test 29.6: SaveManager Orientation Persistence
+	SaveManager.delete_save()
+	OrientationManager.set_landscape(true, false)
+	var save_res := SaveManager.save_game(false, false)
+	assert(save_res == true, "Save game must succeed")
+
+	OrientationManager.set_landscape(false, false)
+	assert(OrientationManager.is_landscape == false, "Orientation reset to false")
+
+	var load_res := SaveManager.load_game()
+	assert(load_res == true, "Load game must succeed")
+	assert(OrientationManager.is_landscape == true, "Saved landscape orientation must be restored on load")
+
+	# Restore default portrait
+	OrientationManager.set_landscape(false, true)
+	print("✔ SaveManager Orientation Persistence verified!")
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)

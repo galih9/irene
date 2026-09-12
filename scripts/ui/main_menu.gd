@@ -8,8 +8,12 @@ extends Control
 @onready var quit_btn: Button = $UI/CenterContainer/VBox/Buttons/QuitBtn
 @onready var title_badge: Control = $UI/CenterContainer/VBox/TitleContainer
 @onready var menu_container: Control = $UI/CenterContainer
+@onready var background_rect: TextureRect = $Background
 
 @onready var option_modal: OptionModal = $Modals/OptionModal
+
+const BG_PORTRAIT = preload("res://assets/background.jpeg")
+const BG_LANDSCAPE = preload("res://assets/background_landscape.jpg")
 
 func _ready() -> void:
 	continue_btn.pressed.connect(_on_continue_pressed)
@@ -20,11 +24,19 @@ func _ready() -> void:
 	if option_modal:
 		option_modal.closed.connect(_on_options_closed)
 
+	if is_instance_valid(OrientationManager):
+		OrientationManager.orientation_changed.connect(_on_orientation_changed)
+		_on_orientation_changed(OrientationManager.is_landscape)
+
 	if OS.has_feature("web"):
 		quit_btn.visible = false
 
 	_update_save_state()
 	_animate_title()
+
+func _on_orientation_changed(is_landscape: bool) -> void:
+	if is_instance_valid(background_rect):
+		background_rect.texture = BG_LANDSCAPE if is_landscape else BG_PORTRAIT
 
 func _update_save_state() -> void:
 	var has_save := SaveManager.has_save()

@@ -13,7 +13,7 @@ mouse_filter = 2
 script = ExtResource("1_qm")
 quest_card_scene = ExtResource("2_card")
 
-[node name="CardsContainer" type="HBoxContainer" parent="."]
+[node name="CardsContainer" type="BoxContainer" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0

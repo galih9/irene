@@ -2,9 +2,10 @@ class_name QuestManager
 extends Control
 
 @export var quest_card_scene: PackedScene = preload("res://scenes/quest_card.tscn")
-@onready var cards_container: HBoxContainer = $CardsContainer
+@onready var cards_container: BoxContainer = $CardsContainer
 
 var board_ref: Board = null
+var is_vertical: bool = false
 
 var active_quests: Array[QuestData] = []
 var _cards: Array[QuestCard] = []
@@ -24,6 +25,28 @@ var _customer_colors: Array[Color] = [
 func _ready() -> void:
 	GameEvents.board_changed.connect(update_quest_status)
 	GameEvents.inventory_changed.connect(update_quest_status)
+
+func set_layout_vertical(vertical: bool) -> void:
+	is_vertical = vertical
+	if is_instance_valid(cards_container):
+		cards_container.vertical = vertical
+	if vertical:
+		custom_minimum_size = Vector2(270, 520)
+	else:
+		custom_minimum_size = Vector2(664, 172)
+	_apply_card_sizes()
+
+func _apply_card_sizes() -> void:
+	for card in _cards:
+		if is_instance_valid(card):
+			if is_vertical:
+				card.custom_minimum_size = Vector2(270, 160)
+				card.size_flags_horizontal = Control.SIZE_FILL
+				card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			else:
+				card.custom_minimum_size = Vector2(212, 172)
+				card.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+				card.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 func setup(board: Board, _inventory = null) -> void:
 	board_ref = board
@@ -78,6 +101,7 @@ func _rebuild_cards() -> void:
 		card.deliver_pressed.connect(_on_deliver_pressed)
 		cards_container.add_child(card)
 		_cards.append(card)
+	_apply_card_sizes()
 
 func _get_all_available_item_ids() -> Array[String]:
 	var result: Array[String] = []

@@ -141,14 +141,20 @@ var _press_time: float = 0.0
 var _hovered_merge_item: ItemView = null
 var _last_highlighted_cell: BoardCell = null
 
-# Reference to bottom navigation bar and sell bin
+# Selection indicator state
+var selected_item: ItemView = null
+var _indicator_sprite: Sprite2D = null
+var _indicator_tween: Tween = null
+var _indicator_base_scale: Vector2 = Vector2.ONE
+
+# Reference to bottom navigation bar
 var bottom_nav_bar: BottomNavBar = null
-var sell_bin: Control = null
 
 func _ready() -> void:
 	_apply_board_styling()
 	_init_grid()
 	_create_cells()
+	_setup_indicator()
 	GameEvents.player_leveled_up.connect(_on_player_leveled_up)
 	GameEvents.board_changed.connect(update_all_cells_lock_visuals)
 	GameEvents.board_changed.connect(func():
@@ -177,6 +183,8 @@ func _apply_board_styling() -> void:
 
 	if cells_container:
 		cells_container.size = Vector2(b_width, b_height)
+		cells_container.offset_right = b_width
+		cells_container.offset_bottom = b_height
 
 	var style: StyleBoxFlat = background_panel.get_theme_stylebox("panel")
 	if style:
@@ -196,6 +204,60 @@ func _apply_board_styling() -> void:
 	style.corner_radius_bottom_left = board_corner_radius
 
 	background_panel.add_theme_stylebox_override("panel", style)
+
+func _setup_indicator() -> void:
+	if _indicator_sprite:
+		return
+	_indicator_sprite = Sprite2D.new()
+	_indicator_sprite.name = "SelectionIndicator"
+	_indicator_sprite.texture = preload("res://assets/ui/indicator.png")
+	_indicator_sprite.z_index = 25 # Above normal items, below dragged item
+	var tex_sz := _indicator_sprite.texture.get_size()
+	var base_scale := (cell_size + 4.0) / tex_sz.x
+	_indicator_base_scale = Vector2(base_scale, base_scale)
+	_indicator_sprite.scale = _indicator_base_scale
+	_indicator_sprite.visible = false
+	add_child(_indicator_sprite)
+
+func _start_indicator_bounce() -> void:
+	if _indicator_tween and _indicator_tween.is_valid():
+		_indicator_tween.kill()
+	if not _indicator_sprite:
+		return
+	_indicator_sprite.scale = _indicator_base_scale * 0.94
+	_indicator_tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_indicator_tween.tween_property(_indicator_sprite, "scale", _indicator_base_scale * 1.08, 0.5)
+	_indicator_tween.tween_property(_indicator_sprite, "scale", _indicator_base_scale * 0.94, 0.5)
+
+func select_item(item: ItemView) -> void:
+	selected_item = item
+	if not _indicator_sprite:
+		_setup_indicator()
+
+	if item and is_instance_valid(item) and item.grid_coord != Vector2i(-1, -1):
+		_indicator_sprite.position = get_cell_center(item.grid_coord.x, item.grid_coord.y)
+		_indicator_sprite.visible = not _is_dragging
+		_start_indicator_bounce()
+		GameEvents.item_selected.emit(item)
+	else:
+		clear_selection()
+
+func clear_selection() -> void:
+	selected_item = null
+	if _indicator_sprite:
+		_indicator_sprite.visible = false
+	if _indicator_tween and _indicator_tween.is_valid():
+		_indicator_tween.kill()
+	GameEvents.item_selected.emit(null)
+
+func sell_selected_item() -> void:
+	if not selected_item or not is_instance_valid(selected_item):
+		return
+	if not selected_item.is_normal():
+		return
+	var it := selected_item
+	clear_selection()
+	_sell_item(it)
 
 func _style_cell(cell: BoardCell, c: int, r: int) -> void:
 	var is_alt := (c + r) % 2 == 1
@@ -241,10 +303,9 @@ func _create_cells() -> void:
 		for r in range(rows):
 			var cell: BoardCell = cell_scene.instantiate()
 			cell.grid_coord = Vector2i(c, r)
-			cell.custom_minimum_size = Vector2(cell_size, cell_size)
-			cell.size = Vector2(cell_size, cell_size)
-			cell.position = get_cell_top_left(c, r)
 			cells_container.add_child(cell)
+			cell.position = get_cell_top_left(c, r)
+			cell.set_cell_size(cell_size)
 			_style_cell(cell, c, r)
 			_cells[c][r] = cell
 
@@ -323,6 +384,7 @@ func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemS
 
 	var item: ItemView = item_view_scene.instantiate()
 	items_container.add_child(item)
+	item.scale = Vector2.ONE * (cell_size / 88.0)
 	item.setup(data, state as ItemView.ItemState, req_level, b_var, w_var)
 	set_item_at(coord, item)
 	if state == ItemView.ItemState.NORMAL:
@@ -339,6 +401,7 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 
 	var item: ItemView = item_view_scene.instantiate()
 	items_container.add_child(item)
+	item.scale = Vector2.ONE * (cell_size / 88.0)
 	item.setup(data)
 	_grid[target_coord.x][target_coord.y] = item
 	item.grid_coord = target_coord
@@ -402,11 +465,15 @@ func _handle_press(mouse_pos: Vector2) -> void:
 	var item := get_item_at(coord)
 
 	if not item:
+		clear_selection()
 		return
+
+	# Select the tapped item and show indicator
+	select_item(item)
 
 	# Boxed item interaction: prevent interaction, display required unlock level
 	if item.is_boxed():
-		item.animate_wobble()
+		item.animate_click()
 		SoundManager.play_error()
 		GameEvents.show_floating_text.emit(
 			"Unlocks at Lv. %d" % item.unlock_level,
@@ -417,7 +484,7 @@ func _handle_press(mouse_pos: Vector2) -> void:
 
 	# Locked item interaction: cannot move, says "Locked"
 	if item.is_locked():
-		item.animate_wobble()
+		item.animate_click()
 		SoundManager.play_error()
 		GameEvents.show_floating_text.emit(
 			"Locked",
@@ -440,6 +507,8 @@ func _handle_motion(mouse_pos: Vector2) -> void:
 	if not _is_dragging:
 		if mouse_pos.distance_to(_drag_start_mouse_pos) > DRAG_THRESHOLD:
 			_is_dragging = true
+			if _indicator_sprite:
+				_indicator_sprite.visible = false
 			_active_item.animate_pickup()
 			GameEvents.item_drag_started.emit(_active_item)
 			CursorManager.set_drag_cursor()
@@ -510,6 +579,7 @@ func _handle_release(mouse_pos: Vector2) -> void:
 
 	if not _is_dragging:
 		# It's a tap/click!
+		select_item(item)
 		_handle_item_tap(item)
 		_update_hover_cursor(mouse_pos)
 		return
@@ -518,12 +588,6 @@ func _handle_release(mouse_pos: Vector2) -> void:
 	item.animate_drop()
 	GameEvents.item_drag_ended.emit(item)
 	_is_dragging = false
-
-	# Check Sell Bin drop
-	if sell_bin and sell_bin.get_global_rect().has_point(mouse_pos):
-		_sell_item(item)
-		_update_hover_cursor(mouse_pos)
-		return
 
 	# Check Inventory dropzone button
 	if bottom_nav_bar and bottom_nav_bar.is_pos_inside_inventory_button(mouse_pos):
@@ -540,6 +604,7 @@ func _handle_release(mouse_pos: Vector2) -> void:
 
 	# Dropped outside: bounce back to origin
 	_return_item_to_origin(item)
+	select_item(item)
 	_update_hover_cursor(mouse_pos)
 
 func _handle_item_tap(item: ItemView) -> void:
@@ -553,11 +618,11 @@ func _handle_item_tap(item: ItemView) -> void:
 		_trigger_consumable(item)
 		return
 
-	# 3. Normal item tap: juicy wobble & info
-	item.animate_wobble()
+	# 3. Normal item tap: juicy click bounce & info
+	item.animate_click()
 	SoundManager.play_pickup()
 	GameEvents.show_floating_text.emit(
-		"%s (T%d)" % [item.data.display_name, item.data.tier],
+		item.data.display_name,
 		item.global_position + Vector2(0, -50),
 		Color(1.0, 0.9, 0.5)
 	)
@@ -658,6 +723,7 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	# Case 1: Dropped onto same cell
 	if target_item == dragged:
 		dragged.animate_snap_to(get_cell_center(target_coord.x, target_coord.y))
+		select_item(dragged)
 		return
 
 	# Case 2: Target is Boxed -> cannot merge or swap, bounce back
@@ -670,6 +736,7 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 			Color(0.85, 0.85, 0.95)
 		)
 		_return_item_to_origin(dragged)
+		select_item(dragged)
 		return
 
 	# Case 3: Target is Locked -> can only merge if same type and tier
@@ -685,6 +752,7 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 				Color(0.85, 0.85, 0.9)
 			)
 			_return_item_to_origin(dragged)
+			select_item(dragged)
 		return
 
 	# Case 4: Dropped onto merge target
@@ -697,11 +765,13 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 		_clear_source_slot(dragged)
 		set_item_at(target_coord, dragged)
 		dragged.animate_snap_to(get_cell_center(target_coord.x, target_coord.y))
+		select_item(dragged)
 		GameEvents.board_changed.emit()
 		return
 
 	# Case 6: Dropped onto another item -> SWAP
 	_execute_swap(dragged, target_item)
+	select_item(dragged)
 
 func _drop_into_inventory_button(item: ItemView) -> void:
 	if not InventoryManager.has_free_slot():
@@ -745,9 +815,10 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	target.animate_merge_pop()
 
 	var pop_pos := target.global_position + Vector2(0, -50)
-	var text_msg := "%s (T%d)!" % [new_data.display_name, new_data.tier]
+	var text_msg := "%s!" % [new_data.display_name]
 	if was_locked:
-		text_msg = "Unlocked!\n%s (T%d)" % [new_data.display_name, new_data.tier]
+		text_msg = "Unlocked!\n%s" % [new_data.display_name]
+		GameEvents.locked_item_cleared.emit(target.grid_coord, new_data.id)
 
 	GameEvents.show_floating_text.emit(
 		text_msg,
@@ -755,6 +826,7 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 		Color(1.0, 0.9, 0.3)
 	)
 	ProgressionManager.unlock_item(next_id)
+	select_item(target)
 	GameEvents.item_merged.emit(source.data.id, target.data.id, next_id, target.global_position)
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()
@@ -803,9 +875,12 @@ func _sell_item(item: ItemView) -> void:
 	GameEvents.inventory_changed.emit()
 
 func remove_item(item: ItemView) -> void:
+	if selected_item == item:
+		clear_selection()
 	_clear_source_slot(item)
 
 func clear_board() -> void:
+	clear_selection()
 	for c in range(cols):
 		for r in range(rows):
 			var it: ItemView = _grid[c][r]
@@ -914,5 +989,102 @@ func update_all_cells_lock_visuals() -> void:
 	for c in range(cols):
 		for r in range(rows):
 			update_cell_lock_visual(Vector2i(c, r))
+
+var _highlighted_tutorial_cells: Array[Vector2i] = []
+
+func highlight_tutorial_cell(coord: Vector2i, enabled: bool = true) -> void:
+	if not is_valid_coord(coord):
+		return
+	if _cells.is_empty() or coord.x >= _cells.size() or coord.y >= _cells[coord.x].size():
+		return
+	var cell: BoardCell = _cells[coord.x][coord.y]
+	if is_instance_valid(cell):
+		cell.set_highlight(3 if enabled else 0)
+		if enabled:
+			if not _highlighted_tutorial_cells.has(coord):
+				_highlighted_tutorial_cells.append(coord)
+		else:
+			_highlighted_tutorial_cells.erase(coord)
+
+func clear_tutorial_highlights() -> void:
+	for coord in _highlighted_tutorial_cells:
+		if is_valid_coord(coord) and coord.x < _cells.size() and coord.y < _cells[coord.x].size():
+			var cell: BoardCell = _cells[coord.x][coord.y]
+			if is_instance_valid(cell):
+				cell.set_highlight(0)
+	_highlighted_tutorial_cells.clear()
+
+func map_coord_for_orientation(coord: Vector2i, to_landscape: bool) -> Vector2i:
+	if to_landscape:
+		return Vector2i(8 - coord.y, coord.x)
+	else:
+		return Vector2i(coord.y, 8 - coord.x)
+
+func rotate_board(to_landscape: bool) -> void:
+	var target_cols := 9 if to_landscape else 7
+	var target_rows := 7 if to_landscape else 9
+	var target_cell_size := 76.0 if to_landscape else 88.0
+	var target_cell_spacing := 5.0
+	var target_board_margin := 10.0 if to_landscape else 12.0
+	var target_corner_radius := 10 if to_landscape else 12
+
+	if cols == target_cols and rows == target_rows and cell_size == target_cell_size and cell_spacing == target_cell_spacing:
+		return
+
+	# 1. Collect all existing items and their rotated coordinates
+	var item_entries: Array[Dictionary] = []
+	for c in range(cols):
+		for r in range(rows):
+			var it: ItemView = _grid[c][r]
+			if it != null and is_instance_valid(it):
+				var new_coord := map_coord_for_orientation(Vector2i(c, r), to_landscape)
+				item_entries.append({"item": it, "coord": new_coord})
+
+	# 2. Update grid dimensions and cell sizes
+	cols = target_cols
+	rows = target_rows
+	cell_size = target_cell_size
+	cell_spacing = target_cell_spacing
+	board_margin = target_board_margin
+	tile_corner_radius = target_corner_radius
+
+	_apply_board_styling()
+	_init_grid()
+	_create_cells()
+
+	# 3. Update indicator scale base for new cell size
+	if _indicator_sprite and _indicator_sprite.texture:
+		var tex_sz := _indicator_sprite.texture.get_size()
+		var base_scale := (cell_size * 0.95) / maxf(tex_sz.x, tex_sz.y)
+		_indicator_base_scale = Vector2(base_scale, base_scale)
+		_indicator_sprite.scale = _indicator_base_scale
+
+	# 4. Restore items into new grid positions with proportionate scale
+	var item_scale_factor := cell_size / 88.0
+	for entry in item_entries:
+		var it: ItemView = entry["item"]
+		var coord: Vector2i = entry["coord"]
+		if is_valid_coord(coord):
+			_grid[coord.x][coord.y] = it
+			it.grid_coord = coord
+			it.scale = Vector2.ONE * item_scale_factor
+			it.position = get_cell_center(coord.x, coord.y)
+			it.target_slot_pos = it.position
+
+	# 5. Update selection indicator if any item was selected
+	if selected_item and is_instance_valid(selected_item):
+		select_item(selected_item)
+
+	# 6. Re-map tutorial highlights if any
+	var old_tutorial := _highlighted_tutorial_cells.duplicate()
+	_highlighted_tutorial_cells.clear()
+	for old_coord in old_tutorial:
+		var new_coord := map_coord_for_orientation(old_coord, to_landscape)
+		highlight_tutorial_cell(new_coord, true)
+
+	# 7. Refresh cell lock visual status & notify
+	update_all_cells_lock_visuals()
+	GameEvents.board_changed.emit()
+
 
 

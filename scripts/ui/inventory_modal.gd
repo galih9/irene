@@ -44,145 +44,79 @@ func _update_slots() -> void:
 		slots_grid.add_child(slot_panel)
 
 func _create_slot_card(slot_idx: int, item_id: String) -> Control:
-	var card := PanelContainer.new()
-	card.custom_minimum_size = Vector2(130, 140)
-	card.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-	var style := StyleBoxFlat.new()
-	style.corner_radius_top_left = 12
-	style.corner_radius_top_right = 12
-	style.corner_radius_bottom_right = 12
-	style.corner_radius_bottom_left = 12
+	var slot_btn := Button.new()
+	slot_btn.custom_minimum_size = Vector2(80, 80)
+	slot_btn.focus_mode = Control.FOCUS_NONE
+	
+	var normal_style := StyleBoxFlat.new()
+	normal_style.corner_radius_top_left = 12
+	normal_style.corner_radius_top_right = 12
+	normal_style.corner_radius_bottom_right = 12
+	normal_style.corner_radius_bottom_left = 12
 
 	if item_id.is_empty():
-		style.bg_color = Color(0.14, 0.13, 0.16, 0.75)
-		style.border_color = Color(0.26, 0.24, 0.3, 0.5)
-		style.border_width_left = 2
-		style.border_width_top = 2
-		style.border_width_right = 2
-		style.border_width_bottom = 2
-		card.add_theme_stylebox_override("panel", style)
-
-		var vbox_empty := VBoxContainer.new()
-		vbox_empty.alignment = BoxContainer.ALIGNMENT_CENTER
+		normal_style.bg_color = Color(0.91, 0.89, 0.86, 0.6)
+		normal_style.border_color = Color(0.8, 0.77, 0.73, 0.6)
+		normal_style.border_width_left = 2
+		normal_style.border_width_top = 2
+		normal_style.border_width_right = 2
+		normal_style.border_width_bottom = 2
+		slot_btn.add_theme_stylebox_override("normal", normal_style)
+		slot_btn.add_theme_stylebox_override("disabled", normal_style)
+		slot_btn.disabled = true
 
 		var plus_lbl := Label.new()
 		plus_lbl.text = "+"
+		plus_lbl.anchors_preset = Control.PRESET_FULL_RECT
 		plus_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		plus_lbl.add_theme_font_size_override("font_size", 28)
-		plus_lbl.add_theme_color_override("font_color", Color(0.48, 0.45, 0.5))
-		vbox_empty.add_child(plus_lbl)
-
-		var empty_lbl := Label.new()
-		empty_lbl.text = "Empty"
-		empty_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		empty_lbl.add_theme_font_size_override("font_size", 12)
-		empty_lbl.add_theme_color_override("font_color", Color(0.68, 0.64, 0.7))
-		vbox_empty.add_child(empty_lbl)
-
-		card.add_child(vbox_empty)
-		return card
+		plus_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		plus_lbl.add_theme_font_size_override("font_size", 24)
+		plus_lbl.add_theme_color_override("font_color", Color(0.68, 0.65, 0.62))
+		plus_lbl.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_btn.add_child(plus_lbl)
+		return slot_btn
 
 	# Occupied Slot
 	var item := ItemDatabase.get_item(item_id)
-	style.bg_color = Color(0.18, 0.16, 0.2, 0.95)
-	style.border_color = Color(0.38, 0.55, 0.75, 0.8)
-	style.border_width_left = 2
-	style.border_width_top = 2
-	style.border_width_right = 2
-	style.border_width_bottom = 2
-	card.add_theme_stylebox_override("panel", style)
+	normal_style.bg_color = Color(1.0, 1.0, 1.0, 0.95)
+	normal_style.border_color = Color(0.72, 0.78, 0.86, 0.9)
+	normal_style.border_width_left = 2
+	normal_style.border_width_top = 2
+	normal_style.border_width_right = 2
+	normal_style.border_width_bottom = 2
+	normal_style.content_margin_left = 10
+	normal_style.content_margin_top = 10
+	normal_style.content_margin_right = 10
+	normal_style.content_margin_bottom = 10
 
-	var margin := MarginContainer.new()
-	margin.add_theme_constant_override("margin_left", 8)
-	margin.add_theme_constant_override("margin_top", 8)
-	margin.add_theme_constant_override("margin_right", 8)
-	margin.add_theme_constant_override("margin_bottom", 8)
-	card.add_child(margin)
+	var hover_style := normal_style.duplicate() as StyleBoxFlat
+	hover_style.bg_color = Color(0.96, 0.98, 1.0, 1.0)
+	hover_style.border_color = Color(0.35, 0.6, 0.9, 1.0)
 
-	var vbox := VBoxContainer.new()
-	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
-	vbox.add_theme_constant_override("separation", 6)
-	margin.add_child(vbox)
+	var pressed_style := normal_style.duplicate() as StyleBoxFlat
+	pressed_style.bg_color = Color(0.9, 0.94, 0.98, 1.0)
+	pressed_style.border_color = Color(0.25, 0.5, 0.85, 1.0)
 
-	# Icon container
-	var icon_box := Panel.new()
-	icon_box.custom_minimum_size = Vector2(48, 48)
-	icon_box.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-	var icon_style := StyleBoxFlat.new()
-	icon_style.corner_radius_top_left = 8
-	icon_style.corner_radius_top_right = 8
-	icon_style.corner_radius_bottom_right = 8
-	icon_style.corner_radius_bottom_left = 8
-	icon_style.bg_color = item.color * 0.35 if item else Color(0.2, 0.2, 0.2)
-	icon_style.border_color = item.color * 0.9 if item else Color.WHITE
-	icon_style.border_width_left = 2
-	icon_style.border_width_top = 2
-	icon_style.border_width_right = 2
-	icon_style.border_width_bottom = 2
-	icon_box.add_theme_stylebox_override("panel", icon_style)
+	slot_btn.add_theme_stylebox_override("normal", normal_style)
+	slot_btn.add_theme_stylebox_override("hover", hover_style)
+	slot_btn.add_theme_stylebox_override("pressed", pressed_style)
 
 	if item and item.icon_texture:
-		var tr := TextureRect.new()
-		tr.texture = item.icon_texture
-		tr.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-		tr.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-		tr.anchors_preset = Control.PRESET_FULL_RECT
-		tr.offset_left = 4
-		tr.offset_top = 4
-		tr.offset_right = -4
-		tr.offset_bottom = -4
-		icon_box.add_child(tr)
+		slot_btn.icon = item.icon_texture
+		slot_btn.expand_icon = true
+		slot_btn.icon_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		slot_btn.vertical_icon_alignment = VERTICAL_ALIGNMENT_CENTER
+	elif item:
+		slot_btn.text = item.display_name
+		slot_btn.add_theme_color_override("font_color", Color(0.2, 0.2, 0.2))
+		slot_btn.add_theme_font_size_override("font_size", 12)
+		slot_btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
-		var tier_badge := Label.new()
-		tier_badge.text = "T%d" % item.tier
-		tier_badge.add_theme_font_size_override("font_size", 10)
-		tier_badge.position = Vector2(3, 1)
-		tier_badge.add_theme_color_override("font_color", Color.WHITE)
-		icon_box.add_child(tier_badge)
-	else:
-		var tier_lbl := Label.new()
-		tier_lbl.anchors_preset = Control.PRESET_FULL_RECT
-		tier_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-		tier_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		tier_lbl.text = "T%d" % (item.tier if item else 1)
-		tier_lbl.add_theme_color_override("font_color", item.color if item else Color.WHITE)
-		tier_lbl.add_theme_font_size_override("font_size", 14)
-		icon_box.add_child(tier_lbl)
-	vbox.add_child(icon_box)
-
-	# Name label
-	var name_lbl := Label.new()
-	name_lbl.text = item.display_name if item else item_id
-	name_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	name_lbl.add_theme_font_size_override("font_size", 13)
-	name_lbl.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
-	vbox.add_child(name_lbl)
-
-	# Retrieve Button
-	var retrieve_btn := Button.new()
-	retrieve_btn.text = "Take ⬆️"
-	retrieve_btn.custom_minimum_size = Vector2(80, 28)
-	retrieve_btn.add_theme_font_size_override("font_size", 12)
-	retrieve_btn.add_theme_color_override("font_color", Color.WHITE)
-	retrieve_btn.add_theme_color_override("font_outline_color", Color(0.1, 0.18, 0.28, 0.7))
-	retrieve_btn.add_theme_constant_override("outline_size", 1)
-
-	var btn_style := StyleBoxFlat.new()
-	btn_style.bg_color = Color(0.28, 0.6, 0.9, 1.0)
-	btn_style.corner_radius_top_left = 6
-	btn_style.corner_radius_top_right = 6
-	btn_style.corner_radius_bottom_right = 6
-	btn_style.corner_radius_bottom_left = 6
-	retrieve_btn.add_theme_stylebox_override("normal", btn_style)
-	retrieve_btn.add_theme_stylebox_override("hover", btn_style)
-
-	retrieve_btn.pressed.connect(func():
-		_retrieve_item_to_board(slot_idx, item_id, card.global_position + card.size * 0.5)
+	slot_btn.pressed.connect(func():
+		_retrieve_item_to_board(slot_idx, item_id, slot_btn.global_position + slot_btn.size * 0.5)
 	)
-	vbox.add_child(retrieve_btn)
 
-	return card
+	return slot_btn
 
 func _retrieve_item_to_board(slot_idx: int, item_id: String, from_pos: Vector2) -> void:
 	if not board_ref:

@@ -65,52 +65,50 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 	box.custom_minimum_size = Vector2(46, 46)
 
 	var box_style := StyleBoxFlat.new()
-	box_style.bg_color = item_data.color * (1.0 if has_it else 0.4)
-	box_style.border_width_left = 2
-	box_style.border_width_top = 2
-	box_style.border_width_right = 2
-	box_style.border_width_bottom = 2
-	box_style.border_color = Color(0.4, 0.9, 0.4, 1.0) if has_it else Color(0.3, 0.35, 0.4, 0.8)
 	box_style.corner_radius_top_left = 8
 	box_style.corner_radius_top_right = 8
 	box_style.corner_radius_bottom_right = 8
 	box_style.corner_radius_bottom_left = 8
+
+	if has_it:
+		box_style.bg_color = Color(1.0, 1.0, 1.0, 0.95)
+		box_style.border_color = Color(0.35, 0.78, 0.42, 1.0)
+		box_style.border_width_left = 2
+		box_style.border_width_top = 2
+		box_style.border_width_right = 2
+		box_style.border_width_bottom = 2
+	else:
+		box_style.bg_color = Color(0.92, 0.90, 0.88, 0.85)
+		box_style.border_color = Color(0.80, 0.76, 0.72, 0.8)
+		box_style.border_width_left = 1
+		box_style.border_width_top = 1
+		box_style.border_width_right = 1
+		box_style.border_width_bottom = 1
+
 	box.add_theme_stylebox_override("panel", box_style)
 
 	# Icon
 	var icon := TextureRect.new()
 	if item_data.icon_texture:
 		icon.texture = item_data.icon_texture
-		icon.modulate = Color(1, 1, 1, 1.0 if has_it else 0.4)
-		box_style.bg_color = Color(0.18, 0.22, 0.3, 0.95) if has_it else Color(0.12, 0.14, 0.18, 0.8)
+		icon.modulate = Color(1, 1, 1, 1.0 if has_it else 0.45)
 	else:
 		icon.texture = preload("res://icon.svg")
-		icon.modulate = Color(1, 1, 1, 0.9 if has_it else 0.4)
-		box_style.bg_color = item_data.color * (1.0 if has_it else 0.4)
+		icon.modulate = Color(1, 1, 1, 0.9 if has_it else 0.45)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	icon.custom_minimum_size = Vector2(30, 30)
-	icon.position = Vector2(8, 8)
+	icon.custom_minimum_size = Vector2(32, 32)
+	icon.position = Vector2(7, 7)
 	box.add_child(icon)
 
-	# Tier badge
-	var tier_lbl := Label.new()
-	tier_lbl.text = "T%d" % item_data.tier
-	tier_lbl.add_theme_font_size_override("font_size", 10)
-	tier_lbl.position = Vector2(2, 2)
-	tier_lbl.add_theme_color_override("font_color", Color.WHITE)
-	tier_lbl.add_theme_color_override("font_outline_color", Color(0.18, 0.12, 0.08, 0.8))
-	tier_lbl.add_theme_constant_override("outline_size", 2)
-	box.add_child(tier_lbl)
-
-	# Status checkmark / X
+	# Status checkmark / dots
 	var check_lbl := Label.new()
 	check_lbl.text = "✓" if has_it else "..."
 	check_lbl.add_theme_font_size_override("font_size", 14)
 	check_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
-	check_lbl.position = Vector2(16, 26)
+	check_lbl.position = Vector2(16, 25)
 	check_lbl.size = Vector2(26, 18)
-	check_lbl.add_theme_color_override("font_color", Color(0.42, 0.95, 0.55) if has_it else Color(0.68, 0.64, 0.62, 0.7))
+	check_lbl.add_theme_color_override("font_color", Color(0.2, 0.65, 0.3) if has_it else Color(0.58, 0.54, 0.52))
 	box.add_child(check_lbl)
 
 	return box

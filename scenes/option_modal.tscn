@@ -7,19 +7,23 @@
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="5_yellow_btn"]
 [ext_resource type="Texture2D" uid="uid://c5umqvh7eqs2b" path="res://assets/ui/red.png" id="6_red_btn"]
 [ext_resource type="Texture2D" uid="uid://cc8mgo27jew2r" path="res://assets/ui/gray.png" id="7_gray_btn"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_quest.png" id="8_quest_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_kitchen.png" id="9_kitchen_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_event.png" id="10_event_icon"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_gear.png" id="11_gear_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.14, 0.13, 0.15, 0.98)
+bg_color = Color(0.97, 0.96, 0.94, 0.98)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.45, 0.42, 0.48, 0.9)
+border_color = Color(0.82, 0.78, 0.72, 0.95)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0.06, 0.04, 0.03, 0.6)
+shadow_color = Color(0.08, 0.06, 0.04, 0.2)
 shadow_size = 20
 shadow_offset = Vector2(0, 8)
 
@@ -176,7 +180,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.65)
 
 [node name="Panel" type="Panel" parent="."]
-custom_minimum_size = Vector2(580, 680)
+custom_minimum_size = Vector2(580, 740)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -184,9 +188,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -290.0
-offset_top = -340.0
+offset_top = -370.0
 offset_right = 290.0
-offset_bottom = 340.0
+offset_bottom = 370.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
@@ -213,11 +217,7 @@ layout_mode = 2
 [node name="Title" type="Label" parent="Panel/Margin/VBox/Header"]
 layout_mode = 2
 size_flags_horizontal = 3
-theme_override_colors/font_color = Color(1, 0.98, 0.94, 1)
-theme_override_colors/font_shadow_color = Color(0.15, 0.1, 0.05, 0.5)
-theme_override_colors/font_outline_color = Color(0.18, 0.12, 0.08, 0.8)
-theme_override_constants/shadow_offset_y = 2
-theme_override_constants/outline_size = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.14, 1)
 theme_override_font_sizes/font_size = 22
 text = "OPTIONS & SETTINGS"
 
@@ -247,19 +247,22 @@ alignment = 1
 custom_minimum_size = Vector2(0, 58)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.9)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "SAVE GAME NOW"
+icon = ExtResource("8_quest_icon")
+icon_alignment = 0
+expand_icon = true
+text = "  SAVE GAME NOW"
 
 [node name="StatusLabel" type="Label" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 24)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.45, 0.95, 0.65, 1)
+theme_override_colors/font_color = Color(0.18, 0.65, 0.32, 1)
 theme_override_font_sizes/font_size = 13
 horizontal_alignment = 1
 vertical_alignment = 1
@@ -268,35 +271,57 @@ vertical_alignment = 1
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.16, 0.32, 0.9)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_outline_color = Color(0.08, 0.16, 0.32, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "MUSIC: ON"
+icon = ExtResource("10_event_icon")
+icon_alignment = 0
+expand_icon = true
+text = "  MUSIC: ON"
 
 [node name="SfxBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.28, 0.18, 0.05, 0.9)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_outline_color = Color(0.28, 0.18, 0.05, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_yellow_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "SOUND EFFECTS: ON"
+icon = ExtResource("11_gear_icon")
+icon_alignment = 0
+expand_icon = true
+text = "  SOUND EFFECTS: ON"
+
+[node name="OrientationBtn" type="Button" parent="Panel/Margin/VBox/Content"]
+custom_minimum_size = Vector2(0, 54)
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.08, 0.16, 0.32, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
+theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+icon = ExtResource("10_event_icon")
+icon_alignment = 0
+expand_icon = true
+text = "  ORIENTATION: PORTRAIT"
 
 [node name="MenuBtn" type="Button" parent="Panel/Margin/VBox/Content"]
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.15, 0.15, 0.18, 0.9)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_outline_color = Color(0.15, 0.15, 0.18, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 16
 theme_override_styles/normal = SubResource("StyleBoxTexture_gray_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_gray_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_gray_hover")
@@ -323,11 +348,14 @@ text = "DEBUG TOOLS"
 custom_minimum_size = Vector2(0, 54)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.9)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 15
+theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "RESUME GAME"
+icon = ExtResource("9_kitchen_icon")
+icon_alignment = 0
+expand_icon = true
+text = "  RESUME GAME"

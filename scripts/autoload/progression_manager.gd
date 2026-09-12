@@ -51,20 +51,21 @@ func get_chest_reward_for_item(item_id: String) -> String:
 	var item := ItemDatabase.get_item(item_id)
 	if not item:
 		return ""
-	if item.chain_id == "chest":
+	if item.chain_id.begins_with("chest"):
 		return ""
 
-	# Discovering max tier items (tier >= 4) rewards Grand Producer Chest
+	# Discovering max tier items (tier >= 4) rewards a higher tier chest
 	if item.tier >= item.max_tier and item.max_tier >= 4:
-		return "chest_2"
+		var high_chests := ["chest_purple_2", "chest_yellow_2", "chest_blue_1", "chest_green_2"]
+		return high_chests[abs(item_id.hash()) % high_chests.size()]
 
-	# Discovering tier 3+ spawners rewards Producer Supply Chest
+	# Discovering tier 3+ spawners rewards an Energy or Gold Chest
 	if item.is_spawner and item.tier >= 3:
-		return "chest_1"
+		return "chest_green_1" if (item.tier % 2 == 1) else "chest_yellow_1"
 
-	# Discovering tier 4+ food/materials rewards Producer Supply Chest
+	# Discovering tier 4+ food/materials rewards a Purple EXP Chest
 	if item.tier >= 4:
-		return "chest_1"
+		return "chest_purple_1"
 
 	return ""
 

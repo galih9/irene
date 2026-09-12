@@ -1,14 +1,16 @@
 [gd_scene format=3 uid="uid://c5m8p1w4n7y2r"]
 
-[ext_resource type="Script" path="res://scripts/ui/main_menu.gd" id="1_menu"]
+[ext_resource type="Script" uid="uid://d0n7ocgjg36j6" path="res://scripts/ui/main_menu.gd" id="1_menu"]
 [ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background.jpeg" id="2_bg"]
-[ext_resource type="PackedScene" uid="uid://c7m9n2b4k5x1y" path="res://scenes/option_modal.tscn" id="3_opt"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_gear.png" id="4_gear"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_kitchen.png" id="5_kitchen"]
+[ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="3_opt"]
+[ext_resource type="Texture2D" uid="uid://di7oct0i1cts5" path="res://assets/icon/icon_gear.png" id="4_gear"]
+[ext_resource type="Texture2D" uid="uid://courjb207v2ui" path="res://assets/icon/icon_kitchen.png" id="5_kitchen"]
 [ext_resource type="Texture2D" uid="uid://dpifib2reoed2" path="res://assets/ui/green.png" id="6_green_btn"]
 [ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="7_blue_btn"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="8_yellow_btn"]
 [ext_resource type="Texture2D" uid="uid://c5umqvh7eqs2b" path="res://assets/ui/red.png" id="9_red_btn"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_event.png" id="10_event"]
+[ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="11_trash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_card"]
 bg_color = Color(0.15, 0.13, 0.12, 0.94)
@@ -25,8 +27,6 @@ shadow_color = Color(0.1, 0.06, 0.04, 0.5)
 shadow_size = 14
 shadow_offset = Vector2(0, 6)
 
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
-
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_normal"]
 texture = ExtResource("6_green_btn")
 texture_margin_left = 10.0
@@ -34,15 +34,6 @@ texture_margin_top = 30.0
 texture_margin_right = 10.0
 texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_hover"]
-texture = ExtResource("6_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_pressed"]
 texture = ExtResource("6_green_btn")
@@ -53,6 +44,15 @@ texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
 modulate_color = Color(0.85, 0.85, 0.85, 1)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_hover"]
+texture = ExtResource("6_green_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_disabled"]
 texture = ExtResource("6_green_btn")
 texture_margin_left = 10.0
@@ -62,6 +62,8 @@ texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
 modulate_color = Color(0.6, 0.6, 0.6, 0.7)
 
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_normal"]
 texture = ExtResource("7_blue_btn")
 texture_margin_left = 10.0
@@ -69,15 +71,6 @@ texture_margin_top = 30.0
 texture_margin_right = 10.0
 texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_hover"]
-texture = ExtResource("7_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_pressed"]
 texture = ExtResource("7_blue_btn")
@@ -88,6 +81,15 @@ texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
 modulate_color = Color(0.85, 0.85, 0.85, 1)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_hover"]
+texture = ExtResource("7_blue_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_normal"]
 texture = ExtResource("8_yellow_btn")
 texture_margin_left = 10.0
@@ -95,15 +97,6 @@ texture_margin_top = 30.0
 texture_margin_right = 10.0
 texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_hover"]
-texture = ExtResource("8_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_pressed"]
 texture = ExtResource("8_yellow_btn")
@@ -114,6 +107,15 @@ texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
 modulate_color = Color(0.85, 0.85, 0.85, 1)
 
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_hover"]
+texture = ExtResource("8_yellow_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_normal"]
 texture = ExtResource("9_red_btn")
 texture_margin_left = 10.0
@@ -121,15 +123,6 @@ texture_margin_top = 30.0
 texture_margin_right = 10.0
 texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_hover"]
-texture = ExtResource("9_red_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
 
 [sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_pressed"]
 texture = ExtResource("9_red_btn")
@@ -140,7 +133,16 @@ texture_margin_bottom = 30.0
 region_rect = Rect2(0, 0, 128, 128)
 modulate_color = Color(0.85, 0.85, 0.85, 1)
 
-[node name="MainMenu" type="Control"]
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_hover"]
+texture = ExtResource("9_red_btn")
+texture_margin_left = 10.0
+texture_margin_top = 30.0
+texture_margin_right = 10.0
+texture_margin_bottom = 30.0
+region_rect = Rect2(0, 0, 128, 128)
+modulate_color = Color(1.08, 1.08, 1.08, 1)
+
+[node name="MainMenu" type="Control" unique_id=2146858289]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -149,7 +151,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_menu")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1635709458]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -161,7 +163,7 @@ texture = ExtResource("2_bg")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="Overlay" type="ColorRect" parent="."]
+[node name="Overlay" type="ColorRect" parent="." unique_id=1031938539]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -171,40 +173,40 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.04, 0.06, 0.1, 0.5)
 
-[node name="UI" type="CanvasLayer" parent="."]
+[node name="UI" type="CanvasLayer" parent="." unique_id=214968311]
 
-[node name="CenterContainer" type="CenterContainer" parent="UI"]
+[node name="CenterContainer" type="CenterContainer" parent="UI" unique_id=672388564]
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer"]
+[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer" unique_id=2134492048]
 custom_minimum_size = Vector2(560, 0)
 layout_mode = 2
 theme_override_constants/separation = 48
 alignment = 1
 
-[node name="TitleContainer" type="PanelContainer" parent="UI/CenterContainer/VBox"]
+[node name="TitleContainer" type="PanelContainer" parent="UI/CenterContainer/VBox" unique_id=379116488]
 custom_minimum_size = Vector2(520, 190)
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_styles/panel = SubResource("StyleBoxFlat_title_card")
 
-[node name="Margin" type="MarginContainer" parent="UI/CenterContainer/VBox/TitleContainer"]
+[node name="Margin" type="MarginContainer" parent="UI/CenterContainer/VBox/TitleContainer" unique_id=160519299]
 layout_mode = 2
 theme_override_constants/margin_left = 20
 theme_override_constants/margin_top = 24
 theme_override_constants/margin_right = 20
 theme_override_constants/margin_bottom = 24
 
-[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer/VBox/TitleContainer/Margin"]
+[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer/VBox/TitleContainer/Margin" unique_id=1080431684]
 layout_mode = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox"]
+[node name="Icon" type="TextureRect" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox" unique_id=1625937544]
 custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_horizontal = 4
@@ -213,7 +215,7 @@ texture = ExtResource("5_kitchen")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox"]
+[node name="Title" type="Label" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox" unique_id=1077139180]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
 theme_override_colors/font_shadow_color = Color(0.18, 0.1, 0.05, 0.6)
@@ -221,62 +223,59 @@ theme_override_colors/font_outline_color = Color(0.15, 0.1, 0.06, 0.9)
 theme_override_constants/shadow_offset_y = 3
 theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 36
-text = "IRENE'S GARDEN"
+text = "Project Irene"
 horizontal_alignment = 1
 
-[node name="Subtitle" type="Label" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.55, 0.92, 0.7, 1)
-theme_override_colors/font_outline_color = Color(0.1, 0.16, 0.12, 0.6)
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 13
-text = "COZY MERGE & PUZZLE ADVENTURE"
-horizontal_alignment = 1
-
-[node name="Buttons" type="VBoxContainer" parent="UI/CenterContainer/VBox"]
+[node name="Buttons" type="VBoxContainer" parent="UI/CenterContainer/VBox" unique_id=218431018]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="ContinueBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons"]
+[node name="ContinueBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1021143595]
 custom_minimum_size = Vector2(0, 68)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.9)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 20
+theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 19
 theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
 theme_override_styles/disabled = SubResource("StyleBoxTexture_green_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "CONTINUE GAME"
+icon = ExtResource("5_kitchen")
+icon_alignment = 0
+expand_icon = true
+text = "  CONTINUE GAME"
 
-[node name="SaveInfoLabel" type="Label" parent="UI/CenterContainer/VBox/Buttons"]
+[node name="SaveInfoLabel" type="Label" parent="UI/CenterContainer/VBox/Buttons" unique_id=1097820598]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.84, 0.78, 0.85)
 theme_override_font_sizes/font_size = 13
 text = "Last Saved: ..."
 horizontal_alignment = 1
 
-[node name="NewGameBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons"]
-custom_minimum_size = Vector2(0, 62)
+[node name="NewGameBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1884317076]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.16, 0.32, 0.9)
-theme_override_constants/outline_size = 3
+theme_override_colors/font_outline_color = Color(0.08, 0.16, 0.32, 0.95)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "NEW GAME"
+icon = ExtResource("10_event")
+icon_alignment = 0
+expand_icon = true
+text = "  NEW GAME"
 
-[node name="OptionsBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons"]
-custom_minimum_size = Vector2(0, 62)
+[node name="OptionsBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1321035588]
+custom_minimum_size = Vector2(0, 64)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.28, 0.18, 0.05, 0.9)
-theme_override_constants/outline_size = 3
+theme_override_colors/font_outline_color = Color(0.28, 0.18, 0.05, 0.95)
+theme_override_constants/outline_size = 4
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
@@ -287,20 +286,23 @@ icon_alignment = 0
 expand_icon = true
 text = "  OPTIONS"
 
-[node name="QuitBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons"]
-custom_minimum_size = Vector2(0, 56)
+[node name="QuitBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1276760746]
+custom_minimum_size = Vector2(0, 60)
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.32, 0.06, 0.06, 0.9)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 16
+theme_override_colors/font_outline_color = Color(0.32, 0.06, 0.06, 0.95)
+theme_override_constants/outline_size = 4
+theme_override_font_sizes/font_size = 17
 theme_override_styles/normal = SubResource("StyleBoxTexture_red_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_red_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_red_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "QUIT"
+icon = ExtResource("11_trash")
+icon_alignment = 0
+expand_icon = true
+text = "  QUIT"
 
-[node name="Modals" type="CanvasLayer" parent="."]
+[node name="Modals" type="CanvasLayer" parent="." unique_id=1897779832]
 layer = 2
 
-[node name="OptionModal" parent="Modals" instance=ExtResource("3_opt")]
+[node name="OptionModal" parent="Modals" unique_id=1305207427 instance=ExtResource("3_opt")]

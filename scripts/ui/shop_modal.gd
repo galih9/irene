@@ -115,9 +115,7 @@ func _add_category_header(title: String) -> void:
 	var lbl := Label.new()
 	lbl.text = title
 	lbl.add_theme_font_size_override("font_size", 14)
-	lbl.add_theme_color_override("font_color", Color(1.0, 0.82, 0.4))
-	lbl.add_theme_color_override("font_outline_color", Color(0.2, 0.1, 0.05, 0.8))
-	lbl.add_theme_constant_override("outline_size", 2)
+	lbl.add_theme_color_override("font_color", Color(0.38, 0.28, 0.12))
 	items_container.add_child(lbl)
 
 func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount: int, on_buy: Callable, requires_board_space: bool) -> void:
@@ -125,12 +123,12 @@ func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount
 	row.custom_minimum_size = Vector2(0, 68)
 
 	var row_style := StyleBoxFlat.new()
-	row_style.bg_color = Color(0.18, 0.16, 0.22, 0.95)
+	row_style.bg_color = Color(1.0, 1.0, 1.0, 0.95)
 	row_style.border_width_left = 1
 	row_style.border_width_top = 1
 	row_style.border_width_right = 1
 	row_style.border_width_bottom = 1
-	row_style.border_color = Color(0.35, 0.3, 0.4, 0.6)
+	row_style.border_color = Color(0.85, 0.82, 0.78, 0.9)
 	row_style.corner_radius_top_left = 10
 	row_style.corner_radius_top_right = 10
 	row_style.corner_radius_bottom_right = 10
@@ -155,13 +153,13 @@ func _add_shop_entry(title: String, desc: String, cost_type: String, cost_amount
 	var t_lbl := Label.new()
 	t_lbl.text = title
 	t_lbl.add_theme_font_size_override("font_size", 14)
-	t_lbl.add_theme_color_override("font_color", Color.WHITE)
+	t_lbl.add_theme_color_override("font_color", Color(0.18, 0.15, 0.12))
 	vbox.add_child(t_lbl)
 
 	var d_lbl := Label.new()
 	d_lbl.text = desc
 	d_lbl.add_theme_font_size_override("font_size", 11)
-	d_lbl.add_theme_color_override("font_color", Color(0.78, 0.74, 0.7))
+	d_lbl.add_theme_color_override("font_color", Color(0.48, 0.45, 0.42))
 	d_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(d_lbl)
 

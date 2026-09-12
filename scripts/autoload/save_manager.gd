@@ -16,6 +16,7 @@ var should_load_on_start: bool = false
 
 var board_ref: Board = null
 var quest_manager_ref: QuestManager = null
+var tutorial_manager_ref: Node = null
 
 func _process(delta: float) -> void:
 	if is_gameplay_active and auto_save_enabled:
@@ -71,9 +72,11 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 			"items": board_ref.serialize_items() if is_instance_valid(board_ref) else []
 		},
 		"quests": quest_manager_ref.serialize_quests() if is_instance_valid(quest_manager_ref) else [],
+		"tutorial": tutorial_manager_ref.serialize_data() if is_instance_valid(tutorial_manager_ref) else {},
 		"settings": {
 			"sfx_enabled": SoundManager.sfx_enabled,
-			"bgm_enabled": SoundManager.bgm_enabled
+			"bgm_enabled": SoundManager.bgm_enabled,
+			"is_landscape": OrientationManager.is_landscape if is_instance_valid(OrientationManager) else false
 		}
 	}
 
@@ -154,6 +157,12 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 		var settings: Dictionary = data["settings"]
 		SoundManager.sfx_enabled = settings.get("sfx_enabled", true)
 		SoundManager.set_bgm_enabled(settings.get("bgm_enabled", true))
+		if settings.has("is_landscape") and is_instance_valid(OrientationManager):
+			OrientationManager.set_landscape(settings.get("is_landscape", false), false)
+
+	# 7. Restore Tutorial
+	if is_instance_valid(tutorial_manager_ref) and data.has("tutorial"):
+		tutorial_manager_ref.load_data(data["tutorial"])
 
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()

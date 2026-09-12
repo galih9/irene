@@ -13,18 +13,39 @@
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="11_opt"]
 [ext_resource type="PackedScene" uid="uid://c6u4m2j5x8qaq" path="res://scenes/save_toast.tscn" id="12_toast"]
 [ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="13_trash"]
+[ext_resource type="PackedScene" path="res://scenes/irene_popup_modal.tscn" id="14_irene_modal"]
+[ext_resource type="PackedScene" path="res://scenes/irene_toast.tscn" id="15_irene_toast"]
+[ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="16_yellow"]
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_sellbin"]
-bg_color = Color(0.16, 0.14, 0.17, 0.95)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infoarea"]
+bg_color = Color(0.97, 0.96, 0.93, 0.98)
 border_width_left = 2
 border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
-border_color = Color(0.9, 0.72, 0.28, 0.85)
-corner_radius_top_left = 12
-corner_radius_top_right = 12
-corner_radius_bottom_right = 12
-corner_radius_bottom_left = 12
+border_color = Color(0.85, 0.78, 0.68, 0.95)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.08, 0.06, 0.04, 0.18)
+shadow_size = 8
+shadow_offset = Vector2(0, 3)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_info_btn"]
+bg_color = Color(0.35, 0.58, 0.88, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_sell"]
+texture = ExtResource("16_yellow")
+texture_margin_left = 8.0
+texture_margin_top = 16.0
+texture_margin_right = 8.0
+texture_margin_bottom = 16.0
+region_rect = Rect2(0, 0, 128, 128)
 
 [node name="Main" type="Node2D" unique_id=639357179]
 script = ExtResource("1_main")
@@ -76,6 +97,15 @@ mouse_filter = 2
 
 [node name="QuestManager" parent="CanvasLayer/UI/QuestContainer" unique_id=2082244321 instance=ExtResource("3_quest")]
 layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="IreneToast" parent="CanvasLayer/UI" unique_id=987123456 instance=ExtResource("15_irene_toast")]
+offset_top = 100.0
+offset_bottom = 168.0
 
 [node name="Board" parent="CanvasLayer/UI" unique_id=370536853 instance=ExtResource("4_board")]
 position = Vector2(76, 298)
@@ -97,12 +127,12 @@ offset_bottom = 1282.0
 [node name="BottomBar" type="Control" parent="CanvasLayer/UI" unique_id=568442264]
 anchors_preset = 0
 offset_left = 28.0
-offset_top = 1302.0
+offset_top = 1296.0
 offset_right = 692.0
-offset_bottom = 1378.0
+offset_bottom = 1394.0
 mouse_filter = 2
 
-[node name="SellBin" type="Panel" parent="CanvasLayer/UI/BottomBar" unique_id=1166973194]
+[node name="InfoArea" type="Panel" parent="CanvasLayer/UI/BottomBar" unique_id=1166973194]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -110,9 +140,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 1
-theme_override_styles/panel = SubResource("StyleBoxFlat_sellbin")
+theme_override_styles/panel = SubResource("StyleBoxFlat_infoarea")
 
-[node name="HBox" type="HBoxContainer" parent="CanvasLayer/UI/BottomBar/SellBin" unique_id=1831261341]
+[node name="Margin" type="MarginContainer" parent="CanvasLayer/UI/BottomBar/InfoArea" unique_id=1831261341]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -120,24 +150,54 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 8
+
+[node name="HBox" type="HBoxContainer" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin" unique_id=413301706]
+layout_mode = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=413301706]
-custom_minimum_size = Vector2(26, 26)
+[node name="InfoBtn" type="Button" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox" unique_id=74829104]
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_vertical = 4
-mouse_filter = 2
-texture = ExtResource("13_trash")
-expand_mode = 1
-stretch_mode = 5
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_info_btn")
+text = "ℹ"
 
-[node name="Text" type="Label" parent="CanvasLayer/UI/BottomBar/SellBin/HBox" unique_id=1904344762]
+[node name="TextVBox" type="VBoxContainer" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox" unique_id=1904344762]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.88, 0.4, 1)
-theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.6)
+size_flags_horizontal = 3
+size_flags_vertical = 4
+theme_override_constants/separation = 2
+
+[node name="TitleLabel" type="Label" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox/TextVBox" unique_id=58193820]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.15, 0.14, 1)
+theme_override_font_sizes/font_size = 16
+text = "Select Item"
+
+[node name="DescLabel" type="Label" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox/TextVBox" unique_id=29481940]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.44, 0.4, 0.36, 1)
+theme_override_font_sizes/font_size = 12
+text = "Tap any item on the board to view info"
+autowrap_mode = 2
+
+[node name="SellBtn" type="Button" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox" unique_id=93817290]
+custom_minimum_size = Vector2(96, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.8)
 theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 14
-text = "DROP ANY ITEM HERE TO SELL FOR GOLD"
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_sell")
+text = "$ 1"
 
 [node name="FloatingLayer" type="Node2D" parent="CanvasLayer" unique_id=164337634]
 z_index = 150
@@ -164,6 +224,9 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="OptionModal" parent="CanvasLayer/Modals" unique_id=1948372615 instance=ExtResource("11_opt")]
+layout_mode = 1
+
+[node name="IrenePopupModal" parent="CanvasLayer/Modals" unique_id=987654321 instance=ExtResource("14_irene_modal")]
 layout_mode = 1
 
 [node name="SaveToast" parent="CanvasLayer" unique_id=1849204857 instance=ExtResource("12_toast")]

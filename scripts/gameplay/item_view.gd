@@ -289,9 +289,8 @@ func _update_visuals() -> void:
 			web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
 			web_sprite.visible = true
 
-		tier_badge.visible = (data.max_tier > 1)
-		if tier_badge.visible:
-			tier_label.text = "T%d" % data.tier
+		if tier_badge:
+			tier_badge.visible = false
 		spawner_badge.visible = false
 		if status_badge:
 			status_badge.visible = false
@@ -301,9 +300,8 @@ func _update_visuals() -> void:
 		if web_sprite:
 			web_sprite.visible = false
 
-		tier_badge.visible = (data.max_tier > 1)
-		if tier_badge.visible:
-			tier_label.text = "T%d" % data.tier
+		if tier_badge:
+			tier_badge.visible = false
 
 		if data.is_spawner:
 			if data.disappears_when_exhausted:
@@ -481,12 +479,17 @@ func animate_spawner_tap() -> void:
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(visuals, "scale", Vector2.ONE, 0.25)
 
+func animate_click() -> void:
+	if _scale_tween and _scale_tween.is_valid():
+		_scale_tween.kill()
+	visuals.rotation_degrees = 0.0
+	_scale_tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+	_scale_tween.tween_property(visuals, "scale", Vector2(0.85, 0.85), 0.08)
+	_scale_tween.tween_property(visuals, "scale", Vector2(1.15, 1.15), 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	_scale_tween.tween_property(visuals, "scale", Vector2.ONE, 0.1).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+
 func animate_wobble() -> void:
-	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	tween.tween_property(visuals, "rotation_degrees", 12.0, 0.05)
-	tween.tween_property(visuals, "rotation_degrees", -12.0, 0.05)
-	tween.tween_property(visuals, "rotation_degrees", 8.0, 0.05)
-	tween.tween_property(visuals, "rotation_degrees", 0.0, 0.05)
+	animate_click()
 
 func animate_spawn_flight(from_pos: Vector2, to_pos: Vector2, on_complete: Callable = Callable()) -> void:
 	global_position = from_pos

@@ -15,11 +15,10 @@ corner_radius_bottom_right = 12
 corner_radius_bottom_left = 12
 
 [node name="BoardCell" type="Control"]
-custom_minimum_size = Vector2(88, 88)
 layout_mode = 3
 anchors_preset = 0
-offset_right = 88.0
-offset_bottom = 88.0
+offset_right = 0.0
+offset_bottom = 0.0
 mouse_filter = 2
 script = ExtResource("1_cell")
 

@@ -3,37 +3,39 @@
 [ext_resource type="Script" uid="uid://ny5y0an8lbbk" path="res://scripts/ui/inventory_modal.gd" id="1_inv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.14, 0.13, 0.15, 0.98)
+bg_color = Color(0.97, 0.96, 0.94, 0.98)
 border_width_left = 3
 border_width_top = 3
 border_width_right = 3
 border_width_bottom = 3
-border_color = Color(0.38, 0.55, 0.72, 0.9)
+border_color = Color(0.72, 0.82, 0.92, 0.95)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0.06, 0.04, 0.03, 0.6)
+shadow_color = Color(0.08, 0.06, 0.04, 0.2)
+shadow_size = 18
+shadow_offset = Vector2(0, 6)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn"]
-bg_color = Color(0.22, 0.2, 0.24, 0.9)
+bg_color = Color(0.92, 0.88, 0.84, 0.9)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.4, 0.36, 0.44, 0.7)
+border_color = Color(0.8, 0.74, 0.68, 0.8)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn_hover"]
-bg_color = Color(0.3, 0.26, 0.32, 0.95)
+bg_color = Color(0.88, 0.35, 0.35, 0.95)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.55, 0.48, 0.6, 0.9)
+border_color = Color(0.75, 0.25, 0.25, 0.9)
 corner_radius_top_left = 10
 corner_radius_top_right = 10
 corner_radius_bottom_right = 10
@@ -57,20 +59,20 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0, 0, 0, 0.55)
 
 [node name="Panel" type="Panel" parent="." unique_id=760947982]
-custom_minimum_size = Vector2(620, 520)
+custom_minimum_size = Vector2(460, 360)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -310.0
-offset_top = -260.0
-offset_right = 310.0
-offset_bottom = 260.0
+offset_left = -230.0
+offset_top = -180.0
+offset_right = 230.0
+offset_bottom = 180.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
@@ -80,13 +82,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_left = 20.0
-offset_top = 20.0
-offset_right = -20.0
-offset_bottom = -20.0
+offset_left = 18.0
+offset_top = 18.0
+offset_right = -18.0
+offset_bottom = -18.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 16
+theme_override_constants/separation = 12
 
 [node name="Header" type="HBoxContainer" parent="Panel/VBox" unique_id=1440221603]
 layout_mode = 2
@@ -98,23 +100,20 @@ size_flags_horizontal = 3
 
 [node name="Title" type="Label" parent="Panel/VBox/Header/VBox" unique_id=801100679]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.98, 0.93, 1)
-theme_override_colors/font_shadow_color = Color(0.12, 0.08, 0.05, 0.5)
-theme_override_colors/font_outline_color = Color(0.18, 0.12, 0.08, 0.8)
-theme_override_constants/shadow_offset_y = 2
-theme_override_constants/outline_size = 2
-theme_override_font_sizes/font_size = 22
+theme_override_colors/font_color = Color(0.16, 0.2, 0.28, 1)
+theme_override_font_sizes/font_size = 20
 text = "BACKPACK INVENTORY"
 
 [node name="CapacityLabel" type="Label" parent="Panel/VBox/Header/VBox" unique_id=1822975125]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.82, 0.76, 1)
+theme_override_colors/font_color = Color(0.42, 0.48, 0.56, 1)
 theme_override_font_sizes/font_size = 13
 text = "Capacity: 0 / 8 slots used"
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox/Header" unique_id=1455195327]
-custom_minimum_size = Vector2(42, 42)
+custom_minimum_size = Vector2(38, 38)
 layout_mode = 2
+theme_override_colors/font_color = Color(0.25, 0.22, 0.2, 1)
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
@@ -122,21 +121,22 @@ text = "✕"
 
 [node name="Margin" type="MarginContainer" parent="Panel/VBox" unique_id=201093337]
 layout_mode = 2
+size_flags_horizontal = 4
 size_flags_vertical = 3
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_bottom = 4
 
 [node name="SlotsGrid" type="GridContainer" parent="Panel/VBox/Margin" unique_id=1465348983]
 layout_mode = 2
-size_flags_horizontal = 3
-size_flags_vertical = 3
-theme_override_constants/h_separation = 12
-theme_override_constants/v_separation = 12
+size_flags_horizontal = 4
+size_flags_vertical = 4
+theme_override_constants/h_separation = 10
+theme_override_constants/v_separation = 10
 columns = 4
 
 [node name="TipLabel" type="Label" parent="Panel/VBox" unique_id=449179447]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.82, 0.78, 0.72, 1)
+theme_override_colors/font_color = Color(0.48, 0.45, 0.42, 1)
 theme_override_font_sizes/font_size = 12
-text = "Drag & drop any board item onto the Backpack button to store it!"
+text = "Tap an item to move it to the board!"
 horizontal_alignment = 1

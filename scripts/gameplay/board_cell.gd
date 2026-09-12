@@ -53,6 +53,13 @@ func _ready() -> void:
 func set_locked(val: bool) -> void:
 	is_locked = val
 
+func set_cell_size(sz: float) -> void:
+	custom_minimum_size = Vector2(sz, sz)
+	size = Vector2(sz, sz)
+	offset_right = offset_left + sz
+	offset_bottom = offset_top + sz
+	reset_size()
+
 func setup_style(bg_col: Color, border_col: Color, hover_empty: Color, hover_merge: Color, rad: int, locked_bg: Color = Color(0.10, 0.11, 0.14, 0.95), locked_border: Color = Color(0.20, 0.22, 0.26, 0.6)) -> void:
 	cell_bg_color = bg_col
 	cell_border_color = border_col
@@ -100,6 +107,13 @@ func set_highlight(state: int) -> void:
 		2: # Hover merge partner
 			style.bg_color = hover_merge_color
 			style.border_color = Color(0.6, 1.0, 0.6, 1.0)
+			style.border_width_left = 3
+			style.border_width_top = 3
+			style.border_width_right = 3
+			style.border_width_bottom = 3
+		3: # Tutorial highlight
+			style.bg_color = Color(1.0, 0.82, 0.35, 0.35)
+			style.border_color = Color(1.0, 0.88, 0.3, 1.0)
 			style.border_width_left = 3
 			style.border_width_top = 3
 			style.border_width_right = 3

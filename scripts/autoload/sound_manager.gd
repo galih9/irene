@@ -26,6 +26,7 @@ const STREAM_ERROR: AudioStream = preload("res://assets/bgm/error_004.ogg")
 const STREAM_CLICK: AudioStream = preload("res://assets/bgm/click1.ogg")
 const STREAM_OPEN: AudioStream = preload("res://assets/bgm/open_001.ogg")
 const STREAM_CLOSE: AudioStream = preload("res://assets/bgm/close_001.ogg")
+const STREAM_BUY: AudioStream = preload("res://assets/bgm/confirmation_003.ogg")
 
 # Distinct merge sounds mapped by chain ID
 const CHAIN_MERGE_SOUNDS: Dictionary = {
@@ -45,6 +46,10 @@ const CHAIN_MERGE_SOUNDS: Dictionary = {
 	"energy": preload("res://assets/bgm/confirmation_004.ogg"),
 	"diamond": preload("res://assets/bgm/glass_006.ogg"),
 	"chest": preload("res://assets/bgm/maximize_006.ogg"),
+	"chest_purple": preload("res://assets/bgm/maximize_006.ogg"),
+	"chest_green": preload("res://assets/bgm/maximize_006.ogg"),
+	"chest_yellow": preload("res://assets/bgm/maximize_006.ogg"),
+	"chest_blue": preload("res://assets/bgm/maximize_006.ogg"),
 }
 
 func _ready() -> void:
@@ -169,3 +174,9 @@ func play_open() -> void:
 
 func play_close() -> void:
 	play_sfx(STREAM_CLOSE, -1.0, 0.02)
+
+func play_dialogue_blip() -> void:
+	play_sfx(STREAM_CLICK, -7.0, 0.12, 1.4)
+
+func play_buy() -> void:
+	play_sfx(STREAM_BUY, 1.0, 0.03)

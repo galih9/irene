@@ -11,7 +11,7 @@ signal reward_slot_pressed()
 		reward_slot_on_left = val
 		_update_reward_slot_order()
 
-@onready var hbox: HBoxContainer = $HBoxContainer
+@onready var hbox: BoxContainer = $HBoxContainer
 @onready var progression_btn: Button = $HBoxContainer/ProgressionBtn
 @onready var inventory_btn: Button = $HBoxContainer/InventoryBtn
 @onready var shop_btn: Button = $HBoxContainer/ShopBtn
@@ -19,13 +19,14 @@ signal reward_slot_pressed()
 
 @onready var badge_panel: PanelContainer = $HBoxContainer/ProgressionBtn/Badge
 @onready var badge_label: Label = $HBoxContainer/ProgressionBtn/Badge/BadgeLabel
-@onready var inventory_capacity_label: Label = $HBoxContainer/InventoryBtn/Margin/VBox/CapacityLabel
+@onready var inventory_capacity_label: Label = $HBoxContainer/InventoryBtn/Margin/HBox/VBox/CapacityLabel
 
-@onready var reward_icon: TextureRect = $HBoxContainer/RewardBtn/Margin/VBox/Icon
+@onready var reward_icon: TextureRect = $HBoxContainer/RewardBtn/Margin/HBox/Icon
 @onready var reward_badge: PanelContainer = $HBoxContainer/RewardBtn/Badge
 @onready var reward_badge_label: Label = $HBoxContainer/RewardBtn/Badge/BadgeLabel
 
 var _inventory_highlighted: bool = false
+var is_vertical: bool = false
 
 func _ready() -> void:
 	progression_btn.pressed.connect(_on_progression_pressed)
@@ -42,6 +43,31 @@ func _ready() -> void:
 	update_inventory_display()
 	update_progression_display()
 	update_reward_slot_display()
+
+func set_layout_vertical(vertical: bool) -> void:
+	is_vertical = vertical
+	if is_instance_valid(hbox):
+		hbox.vertical = vertical
+		if vertical:
+			hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+			hbox.add_theme_constant_override("separation", 14)
+		else:
+			hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+			hbox.add_theme_constant_override("separation", 12)
+	if vertical:
+		custom_minimum_size = Vector2(200, 300)
+		for btn in [reward_btn, progression_btn, inventory_btn, shop_btn]:
+			if is_instance_valid(btn):
+				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+				btn.custom_minimum_size = Vector2(0, 58)
+	else:
+		custom_minimum_size = Vector2(664, 116)
+		for btn in [reward_btn, progression_btn, inventory_btn, shop_btn]:
+			if is_instance_valid(btn):
+				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+				btn.custom_minimum_size = Vector2(0, 0)
 
 func update_inventory_display() -> void:
 	if is_instance_valid(inventory_capacity_label):
@@ -131,7 +157,7 @@ func update_reward_slot_display() -> void:
 		if item_data and item_data.icon_texture:
 			reward_icon.texture = item_data.icon_texture
 		else:
-			reward_icon.texture = preload("res://icon.svg")
+			reward_icon.texture = preload("res://assets/chest/yellow/4.png")
 
 	if is_instance_valid(reward_badge) and is_instance_valid(reward_badge_label):
 		if count > 1:

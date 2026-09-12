@@ -7,27 +7,40 @@ extends Control
 @onready var tabs_container: HBoxContainer = $Panel/VBox/TabsScroll/TabsContainer
 @onready var items_container: VBoxContainer = $Panel/VBox/Scroll/ItemsContainer
 
-var _chains: Array[Dictionary] = [
-	{"id": "foodbox", "name": "Foodbox"},
-	{"id": "oven", "name": "Oven"},
-	{"id": "fridge", "name": "Fridge"},
-	{"id": "rack", "name": "Rack"},
-	{"id": "egg", "name": "Eggs"},
-	{"id": "leaf", "name": "Leafs"},
-	{"id": "beef", "name": "Beef"},
-	{"id": "cake", "name": "Cake"},
-	{"id": "sandwich", "name": "Sandwich"},
-	{"id": "drink", "name": "Drink"},
-	{"id": "util", "name": "Utils"},
-	{"id": "exp", "name": "EXP"},
-	{"id": "gold", "name": "Gold"},
-	{"id": "energy", "name": "Energy"},
-	{"id": "diamond", "name": "Diamonds"},
-	{"id": "chest", "name": "Chests"}
+const TABS: Array[Dictionary] = [
+	{"id": "kitchen", "name": "🍳 Kitchen"},
+	{"id": "chests", "name": "🎁 Chests"},
+	{"id": "achievements", "name": "🏆 Achievements"}
 ]
 
-var _current_chain_id: String = "foodbox"
-var _tab_buttons: Dictionary = {} # chain_id -> Button
+const KITCHEN_CHAINS: Array[Dictionary] = [
+	{"id": "foodbox", "name": "Food Boxes"},
+	{"id": "oven", "name": "Ovens"},
+	{"id": "fridge", "name": "Fridges"},
+	{"id": "rack", "name": "Racks"},
+	{"id": "egg", "name": "Eggs"},
+	{"id": "leaf", "name": "Produce & Herbs"},
+	{"id": "beef", "name": "Meats"},
+	{"id": "cake", "name": "Baked Goods"},
+	{"id": "sandwich", "name": "Sandwiches"},
+	{"id": "drink", "name": "Beverages"},
+	{"id": "util", "name": "Kitchen Utilities"},
+	{"id": "exp", "name": "EXP Stars"},
+	{"id": "gold", "name": "Coins & Wealth"},
+	{"id": "energy", "name": "Coffee & Energy"},
+	{"id": "diamond", "name": "Diamonds"}
+]
+
+const CHEST_CHAINS: Array[Dictionary] = [
+	{"id": "chest_purple", "name": "EXP Chests"},
+	{"id": "chest_green", "name": "Energy Chests"},
+	{"id": "chest_yellow", "name": "Gold Chests"},
+	{"id": "chest_blue", "name": "Diamond Chests"},
+	{"id": "chest", "name": "Classic Chests"}
+]
+
+var _current_tab_id: String = "kitchen"
+var _tab_buttons: Dictionary = {} # tab_id -> Button
 
 func _ready() -> void:
 	visible = false
@@ -43,7 +56,7 @@ func open_modal() -> void:
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
 	_update_header()
-	_load_chain(_current_chain_id)
+	_load_tab(_current_tab_id)
 
 func close_modal() -> void:
 	SoundManager.play_drop()
@@ -51,56 +64,68 @@ func close_modal() -> void:
 	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
 	tween.finished.connect(func(): visible = false)
 
+func focus_chain(chain_id: String) -> void:
+	var target_tab := "kitchen"
+	for chain in CHEST_CHAINS:
+		if chain.id == chain_id:
+			target_tab = "chests"
+			break
+	_current_tab_id = target_tab
+	_update_tab_highlights()
+	_load_tab(_current_tab_id)
+
 func _setup_tabs() -> void:
 	for child in tabs_container.get_children():
 		child.queue_free()
 	_tab_buttons.clear()
 
-	for chain in _chains:
+	for tab in TABS:
 		var btn := Button.new()
-		btn.text = chain.name
-		btn.custom_minimum_size = Vector2(90, 38)
+		btn.text = tab.name
+		btn.custom_minimum_size = Vector2(160, 40)
 		btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-		btn.add_theme_font_size_override("font_size", 12)
-		_apply_tab_style(btn, chain.id == _current_chain_id)
+		btn.add_theme_font_size_override("font_size", 14)
+		_apply_tab_style(btn, tab.id == _current_tab_id)
 
-		var chain_id: String = chain.id
+		var tab_id: String = tab.id
 		btn.pressed.connect(func():
-			_current_chain_id = chain_id
+			_current_tab_id = tab_id
 			_update_tab_highlights()
-			_load_chain(chain_id)
+			_load_tab(tab_id)
 			SoundManager.play_pickup()
 		)
 		tabs_container.add_child(btn)
-		_tab_buttons[chain_id] = btn
+		_tab_buttons[tab_id] = btn
 
 func _apply_tab_style(btn: Button, is_active: bool) -> void:
 	var style := StyleBoxFlat.new()
-	style.corner_radius_top_left = 8
-	style.corner_radius_top_right = 8
-	style.corner_radius_bottom_right = 8
-	style.corner_radius_bottom_left = 8
+	style.corner_radius_top_left = 10
+	style.corner_radius_top_right = 10
+	style.corner_radius_bottom_right = 10
+	style.corner_radius_bottom_left = 10
 	if is_active:
-		style.bg_color = Color(0.38, 0.28, 0.52, 0.95)
-		style.border_color = Color(0.75, 0.55, 0.95, 1.0)
+		style.bg_color = Color(0.92, 0.88, 0.98, 1.0)
+		style.border_color = Color(0.62, 0.4, 0.88, 1.0)
 		style.border_width_left = 2
 		style.border_width_top = 2
 		style.border_width_right = 2
 		style.border_width_bottom = 2
+		btn.add_theme_color_override("font_color", Color(0.28, 0.16, 0.44))
 	else:
-		style.bg_color = Color(0.16, 0.14, 0.18, 0.8)
-		style.border_color = Color(0.28, 0.24, 0.32, 0.5)
+		style.bg_color = Color(0.92, 0.9, 0.88, 0.8)
+		style.border_color = Color(0.82, 0.78, 0.75, 0.8)
 		style.border_width_left = 1
 		style.border_width_top = 1
 		style.border_width_right = 1
 		style.border_width_bottom = 1
+		btn.add_theme_color_override("font_color", Color(0.48, 0.44, 0.42))
 	btn.add_theme_stylebox_override("normal", style)
 	btn.add_theme_stylebox_override("hover", style)
 	btn.add_theme_stylebox_override("pressed", style)
 
 func _update_tab_highlights() -> void:
-	for chain_id in _tab_buttons.keys():
-		_apply_tab_style(_tab_buttons[chain_id], chain_id == _current_chain_id)
+	for tab_id in _tab_buttons.keys():
+		_apply_tab_style(_tab_buttons[tab_id], tab_id == _current_tab_id)
 
 func _update_header() -> void:
 	var unlocked := ProgressionManager.get_total_unlocked_count()
@@ -113,17 +138,78 @@ func _update_header() -> void:
 func _on_progression_changed() -> void:
 	if visible:
 		_update_header()
-		_load_chain(_current_chain_id)
+		_load_tab(_current_tab_id)
 
-func _load_chain(chain_id: String) -> void:
+func _load_tab(tab_id: String) -> void:
 	for child in items_container.get_children():
 		child.queue_free()
 
-	var chain_items: Array = ItemDatabase.get_chain(chain_id)
+	if tab_id == "kitchen":
+		for chain in KITCHEN_CHAINS:
+			_render_chain_segment(chain)
+	elif tab_id == "chests":
+		for chain in CHEST_CHAINS:
+			_render_chain_segment(chain)
+	elif tab_id == "achievements":
+		_render_achievements_placeholder()
+
+func _render_chain_segment(chain: Dictionary) -> void:
+	var header_box := VBoxContainer.new()
+	header_box.add_theme_constant_override("separation", 6)
+
+	var title_lbl := Label.new()
+	title_lbl.text = chain.name
+	title_lbl.add_theme_font_size_override("font_size", 16)
+	title_lbl.add_theme_color_override("font_color", Color(0.2, 0.16, 0.25))
+	header_box.add_child(title_lbl)
+
+	var sep := HSeparator.new()
+	var sep_style := StyleBoxLine.new()
+	sep_style.color = Color(0.78, 0.74, 0.82, 0.7)
+	sep_style.thickness = 2
+	sep.add_theme_stylebox_override("separator", sep_style)
+	header_box.add_child(sep)
+
+	items_container.add_child(header_box)
+
+	var chain_items: Array = ItemDatabase.get_chain(chain.id)
 	for item in chain_items:
 		var item_data: ItemData = item
 		var row := _create_item_row(item_data)
 		items_container.add_child(row)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 16)
+	items_container.add_child(spacer)
+
+func _render_achievements_placeholder() -> void:
+	var center_box := VBoxContainer.new()
+	center_box.alignment = BoxContainer.ALIGNMENT_CENTER
+	center_box.custom_minimum_size = Vector2(0, 320)
+	center_box.add_theme_constant_override("separation", 12)
+
+	var trophy_lbl := Label.new()
+	trophy_lbl.text = "🏆"
+	trophy_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	trophy_lbl.add_theme_font_size_override("font_size", 48)
+	center_box.add_child(trophy_lbl)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "Achievements Coming Soon!"
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_color_override("font_color", Color(0.22, 0.18, 0.28))
+	center_box.add_child(title_lbl)
+
+	var desc_lbl := Label.new()
+	desc_lbl.text = "Culinary milestones, chef badges, and special rewards will be unlocked here in upcoming updates."
+	desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	desc_lbl.add_theme_font_size_override("font_size", 13)
+	desc_lbl.add_theme_color_override("font_color", Color(0.48, 0.44, 0.52))
+	center_box.add_child(desc_lbl)
+
+	items_container.add_child(center_box)
 
 func _create_item_row(item: ItemData) -> Control:
 	var is_unlocked := ProgressionManager.is_unlocked(item.id)
@@ -137,11 +223,11 @@ func _create_item_row(item: ItemData) -> Control:
 	style.corner_radius_bottom_left = 12
 
 	if is_unlocked:
-		style.bg_color = Color(0.14, 0.17, 0.24, 0.95)
-		style.border_color = Color(0.3, 0.42, 0.58, 0.8)
+		style.bg_color = Color(1.0, 1.0, 1.0, 0.95)
+		style.border_color = Color(0.82, 0.78, 0.88, 0.85)
 	else:
-		style.bg_color = Color(0.10, 0.11, 0.15, 0.9)
-		style.border_color = Color(0.18, 0.20, 0.26, 0.6)
+		style.bg_color = Color(0.93, 0.92, 0.90, 0.85)
+		style.border_color = Color(0.85, 0.83, 0.80, 0.6)
 
 	style.border_width_left = 1
 	style.border_width_top = 1
@@ -169,11 +255,11 @@ func _create_item_row(item: ItemData) -> Control:
 	icon_style.corner_radius_bottom_right = 10
 	icon_style.corner_radius_bottom_left = 10
 	if is_unlocked:
-		icon_style.bg_color = Color(0.18, 0.22, 0.28, 0.95) if item.icon_texture else item.color * 0.35
-		icon_style.border_color = item.color * 0.8
+		icon_style.bg_color = Color(0.96, 0.95, 0.98, 1.0)
+		icon_style.border_color = item.color * 0.9 if item else Color(0.8, 0.8, 0.8)
 	else:
-		icon_style.bg_color = Color(0.12, 0.13, 0.17, 1)
-		icon_style.border_color = Color(0.2, 0.22, 0.28, 1)
+		icon_style.bg_color = Color(0.88, 0.86, 0.85, 1.0)
+		icon_style.border_color = Color(0.78, 0.76, 0.75, 1.0)
 	icon_style.border_width_left = 2
 	icon_style.border_width_top = 2
 	icon_style.border_width_right = 2
@@ -193,21 +279,14 @@ func _create_item_row(item: ItemData) -> Control:
 			tr.offset_right = -6
 			tr.offset_bottom = -6
 			icon_box.add_child(tr)
-
-			var tier_badge := Label.new()
-			tier_badge.text = "T%d" % item.tier
-			tier_badge.add_theme_font_size_override("font_size", 10)
-			tier_badge.position = Vector2(4, 2)
-			tier_badge.add_theme_color_override("font_color", Color.WHITE)
-			icon_box.add_child(tier_badge)
 		else:
 			var icon_lbl := Label.new()
 			icon_lbl.anchors_preset = Control.PRESET_FULL_RECT
 			icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-			icon_lbl.text = "T%d" % item.tier
+			icon_lbl.text = item.display_name
 			icon_lbl.add_theme_color_override("font_color", item.color)
-			icon_lbl.add_theme_font_size_override("font_size", 18)
+			icon_lbl.add_theme_font_size_override("font_size", 12)
 			icon_box.add_child(icon_lbl)
 	else:
 		var icon_lbl := Label.new()
@@ -215,8 +294,8 @@ func _create_item_row(item: ItemData) -> Control:
 		icon_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		icon_lbl.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		icon_lbl.text = "Locked"
-		icon_lbl.add_theme_font_size_override("font_size", 14)
-		icon_lbl.add_theme_color_override("font_color", Color(0.65, 0.6, 0.68))
+		icon_lbl.add_theme_font_size_override("font_size", 13)
+		icon_lbl.add_theme_color_override("font_color", Color(0.6, 0.56, 0.54))
 		icon_box.add_child(icon_lbl)
 	hbox.add_child(icon_box)
 
@@ -228,20 +307,20 @@ func _create_item_row(item: ItemData) -> Control:
 	var title_lbl := Label.new()
 	if is_unlocked:
 		title_lbl.text = "%s (Tier %d)" % [item.display_name, item.tier]
-		title_lbl.add_theme_color_override("font_color", Color(1.0, 0.98, 0.94))
+		title_lbl.add_theme_color_override("font_color", Color(0.18, 0.14, 0.22))
 	else:
 		title_lbl.text = "??? (Tier %d)" % item.tier
-		title_lbl.add_theme_color_override("font_color", Color(0.65, 0.6, 0.68))
+		title_lbl.add_theme_color_override("font_color", Color(0.55, 0.52, 0.58))
 	title_lbl.add_theme_font_size_override("font_size", 15)
 	vbox.add_child(title_lbl)
 
 	var desc_lbl := Label.new()
 	if is_unlocked:
 		desc_lbl.text = item.description
-		desc_lbl.add_theme_color_override("font_color", Color(0.85, 0.82, 0.78))
+		desc_lbl.add_theme_color_override("font_color", Color(0.38, 0.35, 0.42))
 	else:
 		desc_lbl.text = "Merge Tier %d items to discover!" % maxi(item.tier - 1, 1)
-		desc_lbl.add_theme_color_override("font_color", Color(0.58, 0.54, 0.6))
+		desc_lbl.add_theme_color_override("font_color", Color(0.6, 0.58, 0.64))
 	desc_lbl.add_theme_font_size_override("font_size", 12)
 	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	vbox.add_child(desc_lbl)
@@ -254,7 +333,7 @@ func _create_item_row(item: ItemData) -> Control:
 	if not is_unlocked:
 		var locked_lbl := Label.new()
 		locked_lbl.text = "Locked"
-		locked_lbl.add_theme_color_override("font_color", Color(0.6, 0.55, 0.62))
+		locked_lbl.add_theme_color_override("font_color", Color(0.6, 0.56, 0.62))
 		locked_lbl.add_theme_font_size_override("font_size", 12)
 		action_box.add_child(locked_lbl)
 	elif not is_claimed:
@@ -303,13 +382,13 @@ func _create_item_row(item: ItemData) -> Control:
 				msg += "\n+🎁 Chest sent to Reward Slot!"
 			GameEvents.show_floating_text.emit("Codex Reward!\n" + msg, panel.global_position + Vector2(250, 20), Color(0.4, 1.0, 0.4))
 			_update_header()
-			_load_chain(item.chain_id)
+			_load_tab(_current_tab_id)
 		)
 		action_box.add_child(claim_btn)
 	else:
 		var claimed_lbl := Label.new()
 		claimed_lbl.text = "Claimed"
-		claimed_lbl.add_theme_color_override("font_color", Color(0.42, 0.88, 0.55))
+		claimed_lbl.add_theme_color_override("font_color", Color(0.25, 0.68, 0.35))
 		claimed_lbl.add_theme_font_size_override("font_size", 12)
 		action_box.add_child(claimed_lbl)
 

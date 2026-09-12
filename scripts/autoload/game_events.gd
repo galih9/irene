@@ -8,6 +8,7 @@ signal item_spawned(item_id: String, world_pos: Vector2)
 signal item_consumed(item_data: ItemData, world_pos: Vector2)
 signal board_changed()
 signal inventory_changed()
+signal item_selected(item_view: Node)
 
 # Economy & Quests
 signal currency_changed(currency_name: String, new_amount: int, delta: int)
@@ -24,3 +25,9 @@ signal progression_changed()
 signal reward_queue_changed()
 signal player_exp_changed(level: int, current_exp: int, required_exp: int)
 signal player_leveled_up(new_level: int)
+
+# Irene Character Dialogue & Tutorial
+signal locked_item_cleared(coord: Vector2i, item_id: String)
+signal irene_dialogue_requested(text: String, emotion: String, callback: Callable)
+signal irene_toast_requested(text: String, emotion: String, duration: float)
+signal tutorial_step_changed(step: int)

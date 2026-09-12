@@ -521,6 +521,191 @@ func _init_database() -> void:
 			pool.append(str(p))
 		it.spawn_pool = pool
 
+	_register_color_chests()
+
+func _register_color_chests() -> void:
+	var chest_charges := [5, 8, 12, 18]
+
+	# 4.1 Purple Chest Chain (EXP Focus)
+	var purple_textures := [
+		preload("res://assets/chest/purple/1.png"),
+		preload("res://assets/chest/purple/2.png"),
+		preload("res://assets/chest/purple/3.png"),
+		preload("res://assets/chest/purple/4.png")
+	]
+	var purple_names := [
+		"Mystic EXP Chest", "Glowing Arcane Chest", "Astral EXP Vault", "Celestial EXP Coffer"
+	]
+	var purple_descs := [
+		"A magical purple chest radiating player experience! High chance to drop EXP shards and appliance parts. Tap to open!",
+		"A glowing arcane chest packed with vibrant EXP embers and appliance parts. Tap to open!",
+		"A magnificent astral vault overflowing with high tier EXP stars and appliances. Tap to open!",
+		"A legendary celestial coffer with supreme EXP orbs and appliances. Max tier chest!"
+	]
+	for t in range(1, 5):
+		var id := "chest_purple_%d" % t
+		var it := _register_item(
+			id, "chest_purple", "Purple Chest", t, 4,
+			purple_names[t - 1], purple_descs[t - 1],
+			Color(0.78, 0.45, 1.0), purple_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.min_spawner_tier = 1
+		it.max_charges = chest_charges[t - 1]
+		it.cooldown_per_charge = 0.0
+		it.energy_cost = 0
+		it.disappears_when_exhausted = true
+		it.sell_value = int(pow(2, t) * 5)
+		it.spawn_pool = _get_purple_chest_pool(t)
+
+	# 4.2 Green Chest Chain (Energy Focus)
+	var green_textures := [
+		preload("res://assets/chest/green/1.png"),
+		preload("res://assets/chest/green/2.png"),
+		preload("res://assets/chest/green/3.png"),
+		preload("res://assets/chest/green/4.png")
+	]
+	var green_names := [
+		"Vitality Energy Chest", "Surging Energy Chest", "Overcharged Energy Vault", "Infinite Energy Coffer"
+	]
+	var green_descs := [
+		"A vibrant green chest humming with vitality! High chance to drop Energy and appliance parts. Tap to open!",
+		"A surging emerald chest packed with powerful energy batteries and appliance parts. Tap to open!",
+		"An overcharged jade vault containing massive energy cells and appliances. Tap to open!",
+		"A legendary infinite energy coffer that restores immense power. Max tier chest!"
+	]
+	for t in range(1, 5):
+		var id := "chest_green_%d" % t
+		var it := _register_item(
+			id, "chest_green", "Green Chest", t, 4,
+			green_names[t - 1], green_descs[t - 1],
+			Color(0.25, 0.92, 0.55), green_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.min_spawner_tier = 1
+		it.max_charges = chest_charges[t - 1]
+		it.cooldown_per_charge = 0.0
+		it.energy_cost = 0
+		it.disappears_when_exhausted = true
+		it.sell_value = int(pow(2, t) * 5)
+		it.spawn_pool = _get_green_chest_pool(t)
+
+	# 4.3 Yellow Chest Chain (Gold Focus)
+	var yellow_textures := [
+		preload("res://assets/chest/yellow/1.png"),
+		preload("res://assets/chest/yellow/2.png"),
+		preload("res://assets/chest/yellow/3.png"),
+		preload("res://assets/chest/yellow/4.png")
+	]
+	var yellow_names := [
+		"Gilded Gold Chest", "Treasure Gold Chest", "Royal Gold Vault", "Emperor's Gold Coffer"
+	]
+	var yellow_descs := [
+		"A shining golden chest filled with riches! High chance to drop coins and appliance parts. Tap to open!",
+		"A heavy treasure chest stacked with coin piles and appliance parts. Tap to open!",
+		"A royal treasury vault brimming with velvet pouches of gold and appliances. Tap to open!",
+		"A legendary imperial coffer overflowing with golden wealth. Max tier chest!"
+	]
+	for t in range(1, 5):
+		var id := "chest_yellow_%d" % t
+		var it := _register_item(
+			id, "chest_yellow", "Yellow Chest", t, 4,
+			yellow_names[t - 1], yellow_descs[t - 1],
+			Color(1.0, 0.82, 0.2), yellow_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.min_spawner_tier = 1
+		it.max_charges = chest_charges[t - 1]
+		it.cooldown_per_charge = 0.0
+		it.energy_cost = 0
+		it.disappears_when_exhausted = true
+		it.sell_value = int(pow(2, t) * 5)
+		it.spawn_pool = _get_yellow_chest_pool(t)
+
+	# 4.4 Blue Chest Chain (Diamond Focus)
+	var blue_textures := [
+		preload("res://assets/chest/blue/1.png"),
+		preload("res://assets/chest/blue/2.png"),
+		preload("res://assets/chest/blue/3.png"),
+		preload("res://assets/chest/blue/4.png")
+	]
+	var blue_names := [
+		"Sapphire Diamond Chest", "Crystal Diamond Chest", "Radiant Diamond Vault", "Starlight Diamond Coffer"
+	]
+	var blue_descs := [
+		"A crystalline blue chest shimmering with rare gems! High chance to drop Diamonds and appliance parts. Tap to open!",
+		"A brilliant crystal chest with cut diamonds and appliance parts. Tap to open!",
+		"A dazzling sapphire vault with radiant diamond gems and appliances. Tap to open!",
+		"A legendary starlight coffer packed with precious diamonds. Max tier chest!"
+	]
+	for t in range(1, 5):
+		var id := "chest_blue_%d" % t
+		var it := _register_item(
+			id, "chest_blue", "Blue Chest", t, 4,
+			blue_names[t - 1], blue_descs[t - 1],
+			Color(0.35, 0.75, 1.0), blue_textures[t - 1]
+		)
+		it.is_spawner = true
+		it.min_spawner_tier = 1
+		it.max_charges = chest_charges[t - 1]
+		it.cooldown_per_charge = 0.0
+		it.energy_cost = 0
+		it.disappears_when_exhausted = true
+		it.sell_value = int(pow(2, t) * 5)
+		it.spawn_pool = _get_blue_chest_pool(t)
+
+func _get_purple_chest_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		1:
+			pool = ["exp_1", "exp_1", "exp_1", "exp_2", "exp_2", "foodbox_1", "oven_1"]
+		2:
+			pool = ["exp_2", "exp_2", "exp_3", "exp_3", "foodbox_1", "oven_1", "fridge_1"]
+		3:
+			pool = ["exp_3", "exp_3", "exp_4", "exp_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+		_:
+			pool = ["exp_4", "exp_4", "exp_5", "exp_5", "exp_6", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+	return pool
+
+func _get_green_chest_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		1:
+			pool = ["energy_1", "energy_1", "energy_1", "energy_2", "energy_2", "foodbox_1", "oven_1"]
+		2:
+			pool = ["energy_2", "energy_2", "energy_3", "energy_3", "foodbox_1", "oven_1", "fridge_1"]
+		3:
+			pool = ["energy_3", "energy_3", "energy_4", "energy_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+		_:
+			pool = ["energy_4", "energy_4", "energy_5", "energy_5", "energy_6", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+	return pool
+
+func _get_yellow_chest_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		1:
+			pool = ["gold_1", "gold_1", "gold_1", "gold_2", "gold_2", "foodbox_1", "oven_1"]
+		2:
+			pool = ["gold_2", "gold_2", "gold_3", "gold_3", "foodbox_1", "oven_1", "fridge_1"]
+		3:
+			pool = ["gold_3", "gold_3", "gold_4", "gold_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+		_:
+			pool = ["gold_4", "gold_4", "gold_5", "gold_5", "gold_6", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+	return pool
+
+func _get_blue_chest_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		1:
+			pool = ["diamond_1", "diamond_1", "diamond_1", "diamond_2", "diamond_2", "foodbox_1", "oven_1"]
+		2:
+			pool = ["diamond_2", "diamond_2", "diamond_3", "diamond_3", "foodbox_1", "oven_1", "fridge_1"]
+		3:
+			pool = ["diamond_3", "diamond_3", "diamond_4", "diamond_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+		_:
+			pool = ["diamond_4", "diamond_4", "diamond_5", "diamond_5", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+	return pool
+
 func _get_foodbox_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = ["egg_1", "egg_1", "leaf_1", "leaf_1"]
 	if tier >= 2:

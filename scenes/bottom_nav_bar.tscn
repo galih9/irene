@@ -4,7 +4,7 @@
 [ext_resource type="Texture2D" uid="uid://cfgk28mw2n1n" path="res://assets/icon/icon_progress.png" id="2_prog_icon"]
 [ext_resource type="Texture2D" uid="uid://c6a3wyfdgf3w4" path="res://assets/icon/icon_inventory.png" id="3_inv_icon"]
 [ext_resource type="Texture2D" uid="uid://dx3plyblf8v4u" path="res://assets/icon/icon_shop.png" id="4_shop_icon"]
-[ext_resource type="Texture2D" uid="uid://lp1xqunym3pe" path="res://icon.svg" id="5_chest_icon"]
+[ext_resource type="Texture2D" path="res://assets/chest/yellow/4.png" id="5_chest_icon"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="6_yellow_btn"]
 [ext_resource type="Texture2D" uid="uid://dpifib2reoed2" path="res://assets/ui/green.png" id="7_green_btn"]
 [ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="8_blue_btn"]
@@ -148,7 +148,7 @@ offset_bottom = 116.0
 mouse_filter = 2
 script = ExtResource("1_nav")
 
-[node name="HBoxContainer" type="HBoxContainer" parent="." unique_id=1904366795]
+[node name="HBoxContainer" type="BoxContainer" parent="." unique_id=1904366795]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -177,19 +177,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
 
-[node name="VBox" type="VBoxContainer" parent="HBoxContainer/RewardBtn/Margin" unique_id=1248095732]
+[node name="HBox" type="HBoxContainer" parent="HBoxContainer/RewardBtn/Margin" unique_id=1248095732]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBoxContainer/RewardBtn/Margin/VBox" unique_id=1339070041]
-custom_minimum_size = Vector2(34, 34)
+[node name="Icon" type="TextureRect" parent="HBoxContainer/RewardBtn/Margin/HBox" unique_id=1339070041]
+custom_minimum_size = Vector2(46, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -197,13 +197,11 @@ texture = ExtResource("5_chest_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="HBoxContainer/RewardBtn/Margin/VBox" unique_id=1370615263]
+[node name="Title" type="Label" parent="HBoxContainer/RewardBtn/Margin/HBox" unique_id=1370615263]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.9, 0.45, 1)
-theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.6)
-theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 13
-text = "REWARD"
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+text = "Reward"
+label_settings = SubResource("LabelSettings_mv58x")
 horizontal_alignment = 1
 
 [node name="Badge" type="PanelContainer" parent="HBoxContainer/RewardBtn" unique_id=1515934976]
@@ -248,19 +246,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
 
 [node name="HBox" type="HBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin" unique_id=1285391623]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=1991458174]
-custom_minimum_size = Vector2(50, 34)
+custom_minimum_size = Vector2(46, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -270,10 +268,7 @@ stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=582060568]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.76, 1, 1)
-theme_override_colors/font_outline_color = Color(0.2, 0.1, 0.25, 0.6)
-theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 13
+theme_override_colors/font_color = Color(0.92, 1, 0.92, 1)
 text = "Progress"
 label_settings = SubResource("LabelSettings_mv58x")
 horizontal_alignment = 1
@@ -320,19 +315,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
 
-[node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin" unique_id=600821673]
+[node name="HBox" type="HBoxContainer" parent="HBoxContainer/InventoryBtn/Margin" unique_id=600821673]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/VBox" unique_id=906762838]
-custom_minimum_size = Vector2(34, 34)
+[node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/HBox" unique_id=906762838]
+custom_minimum_size = Vector2(46, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -340,18 +335,24 @@ texture = ExtResource("3_inv_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox" unique_id=794071516]
+[node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin/HBox" unique_id=89237419]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.6, 0.88, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.18, 0.25, 0.6)
-theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 13
-text = "BACKPACK"
+mouse_filter = 2
+theme_override_constants/separation = 1
+alignment = 1
+
+[node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/HBox/VBox" unique_id=794071516]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
+text = "Backpack"
+label_settings = SubResource("LabelSettings_mv58x")
 horizontal_alignment = 1
 
-[node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/VBox" unique_id=363956078]
+[node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/HBox/VBox" unique_id=363956078]
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.88, 0.92, 1)
+theme_override_colors/font_color = Color(0.9, 0.94, 1, 1)
+theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
+theme_override_constants/outline_size = 3
 theme_override_font_sizes/font_size = 12
 text = "[0 / 8]"
 horizontal_alignment = 1
@@ -374,19 +375,19 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/margin_left = 8
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 8
-theme_override_constants/margin_bottom = 8
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 4
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 4
 
-[node name="VBox" type="VBoxContainer" parent="HBoxContainer/ShopBtn/Margin" unique_id=1777440650]
+[node name="HBox" type="HBoxContainer" parent="HBoxContainer/ShopBtn/Margin" unique_id=1777440650]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 4
+theme_override_constants/separation = 6
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/VBox" unique_id=470514787]
-custom_minimum_size = Vector2(34, 34)
+[node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=470514787]
+custom_minimum_size = Vector2(46, 42)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -394,18 +395,9 @@ texture = ExtResource("4_shop_icon")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox" unique_id=2083285876]
+[node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=2083285876]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
-theme_override_colors/font_outline_color = Color(0.25, 0.15, 0.05, 0.6)
-theme_override_constants/outline_size = 1
-theme_override_font_sizes/font_size = 13
-text = "SHOP"
-horizontal_alignment = 1
-
-[node name="Subtitle" type="Label" parent="HBoxContainer/ShopBtn/Margin/VBox" unique_id=113215799]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.88, 0.82, 0.72, 1)
-theme_override_font_sizes/font_size = 10
-text = "GOLD & ENERGY"
+theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
+text = "Shop"
+label_settings = SubResource("LabelSettings_mv58x")
 horizontal_alignment = 1
