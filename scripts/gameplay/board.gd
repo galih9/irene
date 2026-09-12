@@ -230,6 +230,9 @@ func _start_indicator_bounce() -> void:
 	_indicator_tween.tween_property(_indicator_sprite, "scale", _indicator_base_scale * 0.94, 0.5)
 
 func select_item(item: ItemView) -> void:
+	if item and item.is_hidden():
+		clear_selection()
+		return
 	selected_item = item
 	if not _indicator_sprite:
 		_setup_indicator()
@@ -377,6 +380,12 @@ func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemS
 	if not data:
 		return null
 
+	# Safeguard: Do not allow consumable items in locked, boxed, or hidden state
+	if state != ItemView.ItemState.NORMAL and data.is_consumable:
+		push_warning("Attempted to spawn consumable item %s as locked/boxed/hidden. Falling back to egg_1." % item_id)
+		item_id = "egg_1"
+		data = ItemDatabase.get_item(item_id)
+
 	# Remove existing if any
 	var existing := get_item_at(coord)
 	if existing:
@@ -442,7 +451,7 @@ func _update_hover_cursor(mouse_pos: Vector2) -> void:
 		return
 
 	var item := get_item_at(coord)
-	if not item:
+	if not item or item.is_hidden():
 		CursorManager.reset_cursor()
 		return
 
@@ -464,7 +473,7 @@ func _handle_press(mouse_pos: Vector2) -> void:
 	var coord := world_to_grid(mouse_pos)
 	var item := get_item_at(coord)
 
-	if not item:
+	if not item or item.is_hidden():
 		clear_selection()
 		return
 
@@ -529,7 +538,11 @@ func _update_hover_feedback(mouse_pos: Vector2) -> void:
 	var coord := world_to_grid(mouse_pos)
 	if is_valid_coord(coord):
 		var target_cell: BoardCell = _cells[coord.x][coord.y]
+		if target_cell.is_hidden_cell:
+			return
 		var target_item := get_item_at(coord)
+		if target_item and target_item.is_hidden():
+			return
 		if target_item and target_item != _active_item:
 			if target_item.is_boxed():
 				# Boxed items cannot be merged into or swapped
@@ -633,6 +646,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 		SoundManager.play_error()
 		var cd_sec := int(ceil(spawner.current_cooldown))
 		GameEvents.show_floating_text.emit("Exhausted! (%ds)" % cd_sec, spawner.global_position + Vector2(0, -50), Color(1.0, 0.5, 0.3))
+		GameEvents.spawner_exhausted.emit(spawner.data.id if spawner.data else "")
 		return
 
 	if not EconomyManager.has_energy(spawner.data.energy_cost):
@@ -646,6 +660,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 		spawner.animate_wobble()
 		SoundManager.play_error()
 		GameEvents.show_floating_text.emit("Board is Full!", spawner.global_position + Vector2(0, -50), Color(1.0, 0.4, 0.4))
+		GameEvents.board_full_attempted.emit()
 		return
 
 	# Deduct energy, consume charge, and trigger animation
@@ -656,6 +671,9 @@ func _trigger_spawner(spawner: ItemView) -> void:
 
 	# Pick drop item
 	var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id)
+	if spawner.data.id.begins_with("foodbox"):
+		if SaveManager and SaveManager.tutorial_manager_ref and SaveManager.tutorial_manager_ref.current_step == TutorialManager.TutorialStep.SPAWN_ITEM:
+			drop_id = "egg_1"
 
 	# Find closest empty cell
 	var best_coord := empty_cells[0]
@@ -691,6 +709,7 @@ func _trigger_consumable(item: ItemView) -> void:
 	if curr == "coins":
 		EconomyManager.add_coins(amt)
 		GameEvents.show_floating_text.emit("+%d Gold!" % amt, pos + Vector2(0, -40), Color(1.0, 0.85, 0.2))
+		GameEvents.coin_consumed.emit(amt)
 	elif curr == "energy":
 		EconomyManager.add_energy(amt)
 		GameEvents.show_floating_text.emit("+%d Energy!" % amt, pos + Vector2(0, -40), Color(0.3, 1.0, 0.5))
@@ -719,6 +738,15 @@ func _can_merge(data_a: ItemData, data_b: ItemData) -> bool:
 
 func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	var target_item := get_item_at(target_coord)
+	var is_hidden_target: bool = (target_item and target_item.is_hidden())
+	if not is_hidden_target and is_valid_coord(target_coord) and _cells.size() > target_coord.x and _cells[target_coord.x].size() > target_coord.y:
+		is_hidden_target = _cells[target_coord.x][target_coord.y].is_hidden_cell
+
+	# Case 0: Dropped onto hidden tile -> bounce back
+	if is_hidden_target:
+		_return_item_to_origin(dragged)
+		select_item(dragged)
+		return
 
 	# Case 1: Dropped onto same cell
 	if target_item == dragged:
@@ -774,6 +802,14 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	select_item(dragged)
 
 func _drop_into_inventory_button(item: ItemView) -> void:
+	if bottom_nav_bar and not bottom_nav_bar.is_inventory_unlocked():
+		SoundManager.play_error()
+		var inv_btn: Control = bottom_nav_bar.get_inventory_button()
+		var text_pos: Vector2 = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
+		GameEvents.show_floating_text.emit("Unlock Backpack First! (3 Quests)", text_pos, Color(1.0, 0.4, 0.4))
+		_return_item_to_origin(item)
+		return
+
 	if not InventoryManager.has_free_slot():
 		SoundManager.play_error()
 		var text_pos: Vector2 = item.global_position
@@ -784,7 +820,8 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		_return_item_to_origin(item)
 		return
 
-	var success := InventoryManager.add_item(item.data.id)
+	var item_id := item.data.id
+	var success := InventoryManager.add_item(item_id)
 	if success:
 		SoundManager.play_pickup()
 		if bottom_nav_bar:
@@ -794,6 +831,7 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 			GameEvents.show_floating_text.emit("Stored %s!" % item.data.display_name, text_pos, Color(0.4, 0.85, 1.0))
 		remove_item(item)
 		item.queue_free()
+		GameEvents.item_stored_in_inventory.emit(item_id)
 		GameEvents.board_changed.emit()
 	else:
 		_return_item_to_origin(item)
@@ -819,6 +857,7 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	if was_locked:
 		text_msg = "Unlocked!\n%s" % [new_data.display_name]
 		GameEvents.locked_item_cleared.emit(target.grid_coord, new_data.id)
+		reveal_surrounding_items(target.grid_coord)
 
 	GameEvents.show_floating_text.emit(
 		text_msg,
@@ -866,11 +905,13 @@ func _return_item_to_origin(item: ItemView) -> void:
 
 func _sell_item(item: ItemView) -> void:
 	var value := item.data.sell_value
+	var item_id := item.data.id
 	EconomyManager.add_coins(value)
 	SoundManager.play_consume()
 	GameEvents.show_floating_text.emit("+%d Gold (Sold)" % value, item.global_position + Vector2(0, -40), Color(1.0, 0.85, 0.2))
 	remove_item(item)
 	item.queue_free()
+	GameEvents.item_sold.emit(item_id, value)
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()
 
@@ -892,8 +933,7 @@ func clear_board() -> void:
 func fill_board_random() -> void:
 	var sample_pool := [
 		"foodbox_1", "oven_1", "fridge_1", "rack_1",
-		"egg_1", "leaf_1", "beef_1", "cake_1", "sandwich_1", "drink_1", "util_1",
-		"gold_1", "energy_1", "exp_1", "diamond_1"
+		"egg_1", "leaf_1", "beef_1", "cake_1", "sandwich_1", "drink_1", "util_1"
 	]
 	for c in range(cols):
 		for r in range(rows):
@@ -908,6 +948,7 @@ func check_boxed_items_unlock(current_level: int) -> void:
 		for r in range(rows):
 			var item: ItemView = _grid[c][r]
 			if item and item.is_boxed() and item.unlock_level <= current_level:
+				var unbox_id: String = item.data.id if item.data else ""
 				item.unbox_to_locked()
 				var unbox_pos := item.global_position + Vector2(0, -45)
 				GameEvents.show_floating_text.emit(
@@ -915,6 +956,8 @@ func check_boxed_items_unlock(current_level: int) -> void:
 					unbox_pos,
 					Color(0.9, 0.75, 1.0)
 				)
+				if not unbox_id.is_empty():
+					GameEvents.item_unboxed.emit(unbox_id)
 				any_unboxed = true
 	if any_unboxed:
 		GameEvents.board_changed.emit()
@@ -982,8 +1025,29 @@ func update_cell_lock_visual(coord: Vector2i) -> void:
 	if not is_instance_valid(cell):
 		return
 	var item: ItemView = get_item_at(coord)
-	var locked_status: bool = (item != null and item.is_locked())
-	cell.set_locked(locked_status)
+	if item != null and item.is_hidden():
+		cell.set_cell_hidden(true)
+	else:
+		cell.set_cell_hidden(false)
+		var locked_status: bool = (item != null and item.is_locked())
+		cell.set_locked(locked_status)
+
+func reveal_surrounding_items(center_coord: Vector2i, ring_radius: int = 1) -> Array[ItemView]:
+	var revealed: Array[ItemView] = []
+	for dx in range(-ring_radius, ring_radius + 1):
+		for dy in range(-ring_radius, ring_radius + 1):
+			if dx == 0 and dy == 0:
+				continue
+			var neighbor_coord := center_coord + Vector2i(dx, dy)
+			if is_valid_coord(neighbor_coord):
+				var neighbor_item := get_item_at(neighbor_coord)
+				if neighbor_item and neighbor_item.is_hidden():
+					neighbor_item.reveal(true)
+					update_cell_lock_visual(neighbor_coord)
+					revealed.append(neighbor_item)
+	if not revealed.is_empty():
+		GameEvents.board_changed.emit()
+	return revealed
 
 func update_all_cells_lock_visuals() -> void:
 	for c in range(cols):

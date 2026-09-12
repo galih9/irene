@@ -22,7 +22,32 @@ var _customer_colors: Array[Color] = [
 	Color(0.4, 0.8, 0.4), Color(0.8, 0.3, 0.3), Color(0.7, 0.3, 0.8)
 ]
 
+const MILESTONE_BACKPACK: int = 5
+const MILESTONE_SHOP: int = 5
+
+var completed_quest_count: int = 0
+static var instance: QuestManager = null
+
+static func get_completed_count() -> int:
+	if instance:
+		return instance.completed_quest_count
+	return 0
+
+func is_backpack_unlocked() -> bool:
+	return completed_quest_count >= MILESTONE_BACKPACK
+
+func is_shop_unlocked() -> bool:
+	return completed_quest_count >= MILESTONE_SHOP
+
+func _enter_tree() -> void:
+	instance = self
+
+func _exit_tree() -> void:
+	if instance == self:
+		instance = null
+
 func _ready() -> void:
+	instance = self
 	GameEvents.board_changed.connect(update_quest_status)
 	GameEvents.inventory_changed.connect(update_quest_status)
 
@@ -69,26 +94,26 @@ func _init_starter_quests() -> void:
 	q1.reward_exp = 15
 	active_quests.append(q1)
 
-	# Quest 2: Sweet Lunch (Cake + Toast)
+	# Quest 2: Boiled Snack (Boiled Egg)
 	var q2 := QuestData.new()
 	q2.id = "quest_2"
 	q2.customer_name = "Grandma Rose"
 	q2.customer_color = Color(0.9, 0.55, 0.2)
-	q2.required_item_ids = ["cake_1", "sandwich_1"]
-	q2.reward_coins = 45
+	q2.required_item_ids = ["egg_2"]
+	q2.reward_coins = 40
 	q2.reward_gems = 1
 	q2.reward_exp = 20
 	active_quests.append(q2)
 
-	# Quest 3: Hearty Meal (Beef + Kitchen Spoon)
+	# Quest 3: Garden Omelet (Boiled Egg + Herb Bunch)
 	var q3 := QuestData.new()
 	q3.id = "quest_3"
 	q3.customer_name = "Mayor Bob"
 	q3.customer_color = Color(0.25, 0.6, 0.9)
-	q3.required_item_ids = ["beef_1", "util_1"]
+	q3.required_item_ids = ["egg_2", "leaf_2"]
 	q3.reward_coins = 55
-	q3.reward_gems = 2
-	q3.reward_exp = 30
+	q3.reward_gems = 1
+	q3.reward_exp = 25
 	active_quests.append(q3)
 
 func _rebuild_cards() -> void:
@@ -144,6 +169,13 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 		EconomyManager.add_energy(quest.reward_energy)
 	if quest.reward_exp > 0:
 		ProgressionManager.add_exp(quest.reward_exp)
+
+	completed_quest_count += 1
+	GameEvents.quest_count_changed.emit(completed_quest_count)
+	if completed_quest_count == MILESTONE_BACKPACK:
+		GameEvents.quest_milestone_unlocked.emit("backpack")
+	if completed_quest_count == MILESTONE_SHOP:
+		GameEvents.quest_milestone_unlocked.emit("shop")
 
 	SoundManager.play_quest()
 
@@ -201,8 +233,54 @@ func _generate_new_quest() -> QuestData:
 		["util_1", "util_2", "util_3", "util_4"]
 	]
 
+	# Filter out any pool whose chain the player hasn't unlocked yet
+	var unlocked_pools: Array[Array] = []
+	for pool in possible_pools:
+		var starter_id: String = pool[0]
+		var item_data := ItemDatabase.get_item(starter_id)
+		var chain_id := item_data.chain_id if item_data else starter_id.split("_")[0]
+		if ProgressionManager.is_unlocked(starter_id) or ProgressionManager.get_chain_unlocked_count(chain_id) > 0:
+			unlocked_pools.append(pool)
+
+	# If the filtered list is empty, fall back to egg/leaf pools only (always safe)
+	if unlocked_pools.is_empty():
+		unlocked_pools = [
+			["egg_1", "egg_2", "egg_3", "egg_4"],
+			["leaf_1", "leaf_2", "leaf_3", "leaf_4"]
+		]
+
+	if completed_quest_count < 5:
+		var low_tier_unlocked: Array[Array] = []
+		for pool in unlocked_pools:
+			var low_pool: Array = []
+			for id in pool:
+				var it := ItemDatabase.get_item(id)
+				if it and it.tier <= 2:
+					low_pool.append(id)
+			if not low_pool.is_empty():
+				low_tier_unlocked.append(low_pool)
+		if low_tier_unlocked.is_empty():
+			low_tier_unlocked = [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
+
+		var chosen_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
+		var starter_reqs: Array[String] = [chosen_pool[randi() % chosen_pool.size()]]
+		if randf() < 0.4:
+			var second_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
+			starter_reqs.append(second_pool[randi() % second_pool.size()])
+
+		q.required_item_ids = starter_reqs
+		var early_tier := 0
+		for item_id in q.required_item_ids:
+			var it := ItemDatabase.get_item(item_id)
+			if it:
+				early_tier += it.tier
+		q.reward_coins = 25 + early_tier * 15
+		q.reward_gems = 1
+		q.reward_exp = 15 + early_tier * 5
+		return q
+
 	for i in range(count):
-		var pool: Array = possible_pools[randi() % possible_pools.size()]
+		var pool: Array = unlocked_pools[randi() % unlocked_pools.size()]
 		var chosen_id: String = pool[randi() % pool.size()]
 		reqs.append(chosen_id)
 		var it := ItemDatabase.get_item(chosen_id)
@@ -224,10 +302,28 @@ func complete_active_quest_debug() -> void:
 			EconomyManager.add_gems(q.reward_gems)
 		if q.reward_exp > 0:
 			ProgressionManager.add_exp(q.reward_exp)
+		completed_quest_count += 1
+		GameEvents.quest_count_changed.emit(completed_quest_count)
+		if completed_quest_count == MILESTONE_BACKPACK:
+			GameEvents.quest_milestone_unlocked.emit("backpack")
+		if completed_quest_count == MILESTONE_SHOP:
+			GameEvents.quest_milestone_unlocked.emit("shop")
 		active_quests[0] = _generate_new_quest()
 		_rebuild_cards()
 		update_quest_status()
 		SoundManager.play_quest()
+		GameEvents.quest_completed.emit(q)
+
+func serialize_data() -> Dictionary:
+	return {
+		"quests": serialize_quests(),
+		"completed_quest_count": completed_quest_count
+	}
+
+func load_data(data: Dictionary) -> void:
+	completed_quest_count = int(data.get("completed_quest_count", 0))
+	load_quests(data.get("quests", []))
+	GameEvents.quest_count_changed.emit(completed_quest_count)
 
 func serialize_quests() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
@@ -245,12 +341,24 @@ func serialize_quests() -> Array[Dictionary]:
 			})
 	return result
 
-func load_quests(quests_data: Array) -> void:
-	if quests_data.is_empty():
+func load_quests(quests_data: Variant, completed_count: int = -1) -> void:
+	if completed_count >= 0:
+		completed_quest_count = completed_count
+		GameEvents.quest_count_changed.emit(completed_quest_count)
+	var list: Array = []
+	if quests_data is Dictionary:
+		if quests_data.has("completed_quest_count"):
+			completed_quest_count = int(quests_data.get("completed_quest_count", 0))
+			GameEvents.quest_count_changed.emit(completed_quest_count)
+		list = quests_data.get("quests", quests_data.get("active_quests", []))
+	elif quests_data is Array:
+		list = quests_data
+
+	if list.is_empty():
 		_init_starter_quests()
 	else:
 		active_quests.clear()
-		for entry in quests_data:
+		for entry in list:
 			var q := QuestData.new()
 			q.id = str(entry.get("id", "quest_%d" % randi()))
 			q.customer_name = str(entry.get("customer_name", "Customer"))

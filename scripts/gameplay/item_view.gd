@@ -4,7 +4,8 @@ extends Node2D
 enum ItemState {
 	NORMAL = 0,
 	LOCKED = 1,
-	BOXED = 2
+	BOXED = 2,
+	HIDDEN = 3
 }
 
 enum ProducerStatus {
@@ -198,6 +199,9 @@ func is_locked() -> bool:
 func is_boxed() -> bool:
 	return item_state == ItemState.BOXED
 
+func is_hidden() -> bool:
+	return item_state == ItemState.HIDDEN
+
 func set_state(new_state: ItemState, req_level: int = 1) -> void:
 	item_state = new_state
 	unlock_level = req_level
@@ -212,9 +216,68 @@ func unlock_to_normal() -> void:
 	item_state = ItemState.NORMAL
 	_update_visuals()
 
+func reveal(animate: bool = true) -> void:
+	if item_state != ItemState.HIDDEN:
+		return
+	if unlock_level > 1:
+		item_state = ItemState.BOXED
+	else:
+		item_state = ItemState.LOCKED
+	visible = true
+	if visuals:
+		visuals.visible = true
+	if shadow:
+		shadow.visible = true
+	if touch_area:
+		touch_area.visible = true
+	_update_visuals()
+	if animate:
+		animate_reveal()
+
+func animate_reveal() -> void:
+	if not visuals:
+		return
+	visuals.scale = Vector2(0.1, 0.1)
+	var orig_mod: Color = sprite.modulate if sprite else Color.WHITE
+	if sprite:
+		sprite.modulate = Color.WHITE * 2.0
+	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_property(visuals, "scale", Vector2.ONE, 0.35)
+	if sprite:
+		var flash_tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		flash_tween.tween_property(sprite, "modulate", orig_mod, 0.3)
+	SoundManager.play_spawn()
+
 func _update_visuals() -> void:
 	if not data:
 		return
+
+	if item_state == ItemState.HIDDEN:
+		visible = false
+		if visuals:
+			visuals.visible = false
+		if shadow:
+			shadow.visible = false
+		if touch_area:
+			touch_area.visible = false
+		if web_sprite:
+			web_sprite.visible = false
+		if tier_badge:
+			tier_badge.visible = false
+		if spawner_badge:
+			spawner_badge.visible = false
+		if status_badge:
+			status_badge.visible = false
+		stop_idle_animation()
+		return
+	else:
+		visible = true
+		if visuals:
+			visuals.visible = true
+		if shadow:
+			shadow.visible = true
+		if touch_area:
+			touch_area.visible = true
 
 	if not web_sprite and visuals:
 		web_sprite = visuals.get_node_or_null("WebSprite")
@@ -230,8 +293,11 @@ func _update_visuals() -> void:
 		var box_tex: Texture2D = get_box_texture()
 		sprite.texture = box_tex
 		shadow.texture = box_tex
-		glow.texture = box_tex
-		sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+		# Subtle tint toward data.color for visual chain recognition
+		if data:
+			sprite.modulate = Color.WHITE.lerp(data.color, 0.3)
+		else:
+			sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
 		var tex_size := box_tex.get_size() if box_tex else Vector2(432, 432)
 		var max_dim := maxf(tex_size.x, tex_size.y)
 		_base_scale = (74.0 / max_dim) if max_dim > 0.0 else 0.48

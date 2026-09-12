@@ -13,6 +13,16 @@ signal item_selected(item_view: Node)
 # Economy & Quests
 signal currency_changed(currency_name: String, new_amount: int, delta: int)
 signal quest_completed(quest: QuestData)
+signal quest_count_changed(count: int)
+signal quest_milestone_unlocked(milestone_name: String)
+
+# Board actions & Tutorial events
+signal item_unboxed(item_id: String)
+signal spawner_exhausted(spawner_id: String)
+signal item_sold(item_id: String, value: int)
+signal item_stored_in_inventory(item_id: String)
+signal board_full_attempted()
+signal coin_consumed(amount: int)
 
 # UI & Feedback
 signal show_floating_text(text: String, world_pos: Vector2, color: Color)

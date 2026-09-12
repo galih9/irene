@@ -47,11 +47,19 @@ var is_locked: bool = false:
 		is_locked = val
 		set_highlight(_current_highlight)
 
+var is_hidden_cell: bool = false:
+	set(val):
+		is_hidden_cell = val
+		visible = not is_hidden_cell
+
 func _ready() -> void:
 	set_highlight(0)
 
 func set_locked(val: bool) -> void:
 	is_locked = val
+
+func set_cell_hidden(val: bool) -> void:
+	is_hidden_cell = val
 
 func set_cell_size(sz: float) -> void:
 	custom_minimum_size = Vector2(sz, sz)

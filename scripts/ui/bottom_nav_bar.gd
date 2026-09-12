@@ -17,6 +17,11 @@ signal reward_slot_pressed()
 @onready var shop_btn: Button = $HBoxContainer/ShopBtn
 @onready var reward_btn: Button = $HBoxContainer/RewardBtn
 
+@onready var inventory_icon: TextureRect = $HBoxContainer/InventoryBtn/Margin/HBox/Icon
+@onready var inventory_title: Label = $HBoxContainer/InventoryBtn/Margin/HBox/VBox/Title
+@onready var shop_icon: TextureRect = $HBoxContainer/ShopBtn/Margin/HBox/Icon
+@onready var shop_title: Label = $HBoxContainer/ShopBtn/Margin/HBox/Title
+
 @onready var badge_panel: PanelContainer = $HBoxContainer/ProgressionBtn/Badge
 @onready var badge_label: Label = $HBoxContainer/ProgressionBtn/Badge/BadgeLabel
 @onready var inventory_capacity_label: Label = $HBoxContainer/InventoryBtn/Margin/HBox/VBox/CapacityLabel
@@ -25,8 +30,17 @@ signal reward_slot_pressed()
 @onready var reward_badge: PanelContainer = $HBoxContainer/RewardBtn/Badge
 @onready var reward_badge_label: Label = $HBoxContainer/RewardBtn/Badge/BadgeLabel
 
+const MILESTONE_BACKPACK: int = 5
+const MILESTONE_SHOP: int = 5
+
 var _inventory_highlighted: bool = false
 var is_vertical: bool = false
+
+func is_inventory_unlocked() -> bool:
+	return QuestManager.get_completed_count() >= MILESTONE_BACKPACK
+
+func is_shop_unlocked() -> bool:
+	return QuestManager.get_completed_count() >= MILESTONE_SHOP
 
 func _ready() -> void:
 	progression_btn.pressed.connect(_on_progression_pressed)
@@ -38,11 +52,23 @@ func _ready() -> void:
 	GameEvents.inventory_changed.connect(update_inventory_display)
 	GameEvents.progression_changed.connect(update_progression_display)
 	GameEvents.reward_queue_changed.connect(update_reward_slot_display)
+	GameEvents.quest_count_changed.connect(func(_cnt): update_milestone_locks())
+	GameEvents.quest_milestone_unlocked.connect(func(milestone):
+		update_milestone_locks()
+		if milestone == "backpack":
+			play_inventory_pulse()
+		elif milestone == "shop" and is_instance_valid(shop_btn):
+			var tween := create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+			shop_btn.pivot_offset = shop_btn.size * 0.5
+			tween.tween_property(shop_btn, "scale", Vector2(1.15, 0.85), 0.1)
+			tween.tween_property(shop_btn, "scale", Vector2.ONE, 0.2)
+	)
 
 	_update_reward_slot_order()
 	update_inventory_display()
 	update_progression_display()
 	update_reward_slot_display()
+	update_milestone_locks()
 
 func set_layout_vertical(vertical: bool) -> void:
 	is_vertical = vertical
@@ -69,7 +95,38 @@ func set_layout_vertical(vertical: bool) -> void:
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 				btn.custom_minimum_size = Vector2(0, 0)
 
+func update_milestone_locks() -> void:
+	var inv_unlocked := is_inventory_unlocked()
+	var shop_unlocked := is_shop_unlocked()
+
+	# Backpack button gating
+	if is_instance_valid(inventory_btn):
+		inventory_btn.disabled = not inv_unlocked
+	if is_instance_valid(inventory_icon):
+		inventory_icon.modulate = Color.WHITE if inv_unlocked else Color(0.45, 0.45, 0.45, 0.65)
+	if is_instance_valid(inventory_title):
+		inventory_title.text = "Backpack" if inv_unlocked else "Locked"
+	if is_instance_valid(inventory_capacity_label):
+		if inv_unlocked:
+			update_inventory_display()
+		else:
+			inventory_capacity_label.text = "[3 Quests]"
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+
+	# Shop button gating
+	if is_instance_valid(shop_btn):
+		shop_btn.disabled = not shop_unlocked
+	if is_instance_valid(shop_icon):
+		shop_icon.modulate = Color.WHITE if shop_unlocked else Color(0.45, 0.45, 0.45, 0.65)
+	if is_instance_valid(shop_title):
+		shop_title.text = "Shop" if shop_unlocked else "Locked (5)"
+
 func update_inventory_display() -> void:
+	if not is_inventory_unlocked():
+		if is_instance_valid(inventory_capacity_label):
+			inventory_capacity_label.text = "[3 Quests]"
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+		return
 	if is_instance_valid(inventory_capacity_label):
 		var used := InventoryManager.get_used_count()
 		var max_slots := InventoryManager.get_max_slots()
@@ -95,6 +152,8 @@ func get_inventory_button() -> Control:
 	return inventory_btn
 
 func is_pos_inside_inventory_button(world_pos: Vector2) -> bool:
+	if not is_inventory_unlocked():
+		return false
 	return inventory_btn.get_global_rect().has_point(world_pos)
 
 func set_inventory_hover(highlighted: bool) -> void:
@@ -121,11 +180,19 @@ func _on_progression_pressed() -> void:
 	GameEvents.request_progression_open.emit()
 
 func _on_inventory_pressed() -> void:
+	if not is_inventory_unlocked():
+		SoundManager.play_error()
+		GameEvents.show_floating_text.emit("Complete 3 Quests to Unlock Backpack!", global_position + Vector2(size.x * 0.5, -40), Color(1.0, 0.5, 0.5))
+		return
 	SoundManager.play_click()
 	inventory_pressed.emit()
 	GameEvents.request_inventory_open.emit()
 
 func _on_shop_pressed() -> void:
+	if not is_shop_unlocked():
+		SoundManager.play_error()
+		GameEvents.show_floating_text.emit("Complete 5 Quests to Unlock Shop!", global_position + Vector2(size.x * 0.5, -40), Color(1.0, 0.5, 0.5))
+		return
 	SoundManager.play_click()
 	shop_pressed.emit()
 	GameEvents.request_shop_open.emit()

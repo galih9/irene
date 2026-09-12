@@ -563,31 +563,29 @@ func _ready() -> void:
 	assert(main_board.cols == 7, "Initial board must have 7 cols")
 	assert(main_board.rows == 9, "Initial board must have 9 rows")
 
-	# Check Perimeter: Rows 0, 1, 7, 8 and Cols 0, 6 must be BOXED
+	# Check Board Zones: Small active 3x3 zone around (3, 4), and HIDDEN outward cells
 	for c in range(7):
 		for r in range(9):
 			var it := main_board.get_item_at(Vector2i(c, r))
 			assert(it != null, "Cell (%d, %d) must contain an item" % [c, r])
-			var is_perim: bool = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
-			if is_perim:
-				assert(it.is_boxed() == true, "Perimeter cell (%d, %d) must be BOXED" % [c, r])
-				assert(it.unlock_level >= 2, "Perimeter item must have unlock_level >= 2")
-			else:
-				# Inner 5x5
+			var in_3x3: bool = (abs(c - 3) <= 1 and abs(r - 4) <= 1)
+			if in_3x3:
 				if r == 4 and c == 3:
-					# Scripted center green
 					assert(it.is_normal() == true, "Cell (3, 4) must be NORMAL (Green)")
 					assert(it.data.id == "foodbox_1", "Cell (3, 4) must be foodbox_1 (t1f)")
 				elif r == 4 and c == 2:
-					# Scripted center left locked
 					assert(it.is_locked() == true, "Cell (2, 4) must be LOCKED (Orange)")
 					assert(it.data.id == "foodbox_1", "Cell (2, 4) must be foodbox_1 (t1f)")
 				elif r == 4 and c == 4:
-					# Scripted center right locked
 					assert(it.is_locked() == true, "Cell (4, 4) must be LOCKED (Orange)")
 					assert(it.data.id == "foodbox_2", "Cell (4, 4) must be foodbox_2 (t2f)")
 				else:
-					assert(it.is_locked() == true, "Inner cell (%d, %d) must be LOCKED (Orange)" % [c, r])
+					assert(it.is_locked() == true, "Active 3x3 neighbor (%d, %d) must be LOCKED" % [c, r])
+			else:
+				assert(it.is_hidden() == true, "Cell outside 3x3 (%d, %d) must start as HIDDEN" % [c, r])
+				var is_perim: bool = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
+				if is_perim:
+					assert(it.unlock_level >= 2, "Perimeter hidden item must have unlock_level >= 2")
 
 	# Test the initial merge loop:
 	# Step 1: Merge normal foodbox_1 (3, 4) with locked foodbox_1 (2, 4) -> unlocks into foodbox_2
@@ -1025,9 +1023,13 @@ func _ready() -> void:
 	tut._set_step(TutorialManager.TutorialStep.SPAWN_ITEM)
 	assert(tut.current_step == TutorialManager.TutorialStep.SPAWN_ITEM, "Step must be SPAWN_ITEM")
 
-	# Step 4: Clear 3 Locked Items
-	tut._set_step(TutorialManager.TutorialStep.CLEAR_LOCKED)
-	assert(tut.current_step == TutorialManager.TutorialStep.CLEAR_LOCKED, "Step must be CLEAR_LOCKED")
+	# Step 4: Unlock First Item
+	tut._set_step(TutorialManager.TutorialStep.UNLOCK_FIRST_ITEM)
+	assert(tut.current_step == TutorialManager.TutorialStep.UNLOCK_FIRST_ITEM, "Step must be UNLOCK_FIRST_ITEM")
+
+	# Step 5: Unlock 3 More Slots
+	tut._set_step(TutorialManager.TutorialStep.UNLOCK_THREE_SLOTS)
+	assert(tut.current_step == TutorialManager.TutorialStep.UNLOCK_THREE_SLOTS, "Step must be UNLOCK_THREE_SLOTS")
 	assert(tut.locked_cleared_count == 0, "Cleared count must start at 0")
 
 	tut._on_locked_item_cleared(Vector2i(2, 4), "egg_2")
@@ -1037,11 +1039,28 @@ func _ready() -> void:
 	tut._on_locked_item_cleared(Vector2i(4, 3), "egg_3")
 	assert(tut.locked_cleared_count == 3, "Cleared count should be 3")
 
-	# Step 5: Reward Chest Delivery
-	tut._deliver_tutorial_reward()
-	assert(tut.is_completed == true, "Tutorial should be marked completed")
+	# Step 6: Deliver Quests
+	tut._set_step(TutorialManager.TutorialStep.DELIVER_QUESTS)
+	assert(tut.current_step == TutorialManager.TutorialStep.DELIVER_QUESTS, "Step must be DELIVER_QUESTS")
+
+	# Step 7: Claim Reward
+	tut._set_step(TutorialManager.TutorialStep.CLAIM_REWARD)
+	assert(tut.current_step == TutorialManager.TutorialStep.CLAIM_REWARD, "Step must be CLAIM_REWARD")
 	assert(ProgressionManager.get_reward_count() == 1, "Reward queue must have 1 reward")
-	assert(ProgressionManager.peek_reward() == "chest_purple_1", "Tutorial reward chest must be chest_purple_1")
+	assert(ProgressionManager.peek_reward() == "chest_yellow_1", "Tutorial reward chest must be chest_yellow_1")
+
+	# Step 8: Consume Reward
+	tut._set_step(TutorialManager.TutorialStep.CONSUME_REWARD)
+	assert(tut.current_step == TutorialManager.TutorialStep.CONSUME_REWARD, "Step must be CONSUME_REWARD")
+
+	# Step 9: Store in Inventory
+	tut._set_step(TutorialManager.TutorialStep.STORE_IN_INVENTORY)
+	assert(tut.current_step == TutorialManager.TutorialStep.STORE_IN_INVENTORY, "Step must be STORE_IN_INVENTORY")
+
+	# Step 10: Complete Tutorial
+	tut._finish_tutorial()
+	assert(tut.is_completed == true, "Tutorial should be marked completed")
+	assert(tut.current_step == TutorialManager.TutorialStep.COMPLETED, "Step must be COMPLETED")
 
 	# Test Serialization / Deserialization
 	var tut_serialized := tut.serialize_data()
@@ -1323,6 +1342,319 @@ func _ready() -> void:
 	# Restore default portrait
 	OrientationManager.set_landscape(false, true)
 	print("✔ SaveManager Orientation Persistence verified!")
+
+	# 30. Test Quest Generation Chain Filtering & Starter Quests
+	print("\n--- Testing Quest Generation Chain Filtering & Starter Quests ---")
+	var quest_scene: PackedScene = load("res://scenes/quest_manager.tscn")
+	var qm: QuestManager = quest_scene.instantiate()
+	add_child(qm)
+	qm.setup(null)
+
+	# 30.1 Verify starter quests 1, 2, 3 only require egg and leaf (reachable from Foodbox)
+	assert(qm.active_quests.size() == 3, "Must have 3 starter quests")
+	for q in qm.active_quests:
+		for req_id in q.required_item_ids:
+			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "Starter quest items must only be egg or leaf, got: %s" % req_id)
+
+	# 30.2 Test quest generation when only egg/leaf are unlocked
+	ProgressionManager.reset_all()
+	ProgressionManager.unlock_item("foodbox_1", true)
+	ProgressionManager.unlock_item("egg_1", true)
+	ProgressionManager.unlock_item("leaf_1", true)
+
+	for i in range(10):
+		var generated_q: QuestData = qm._generate_new_quest()
+		for req_id in generated_q.required_item_ids:
+			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "When only egg/leaf unlocked, quests must only pick egg/leaf, got: %s" % req_id)
+
+	# 30.3 Test quest generation when beef is unlocked
+	ProgressionManager.unlock_item("beef_1", true)
+	var generated_beef_chain := false
+	for i in range(50):
+		var gen_q: QuestData = qm._generate_new_quest()
+		for req_id in gen_q.required_item_ids:
+			if req_id.begins_with("beef_"):
+				generated_beef_chain = true
+				break
+		if generated_beef_chain:
+			break
+	assert(generated_beef_chain == true, "Once beef_1 is unlocked, beef items should appear in quest pools")
+
+	qm.queue_free()
+	print("✔ Quest Generation Chain Filtering & Starter Quests verified!")
+
+	# 31. Test Quest Milestone Progression & BottomNavBar Gating
+	print("\n--- Testing Quest Milestone Progression & BottomNavBar Gating ---")
+	var qm_prog: QuestManager = quest_scene.instantiate()
+	add_child(qm_prog)
+	qm_prog.setup(null)
+	qm_prog.completed_quest_count = 0
+
+	var nav_test: BottomNavBar = nav_scene.instantiate()
+	add_child(nav_test)
+	nav_test.update_milestone_locks()
+
+	# Initially at 0 quests completed: Backpack & Shop are locked
+	assert(qm_prog.completed_quest_count == 0, "Initial completed count must be 0")
+	assert(qm_prog.is_backpack_unlocked() == false, "Backpack must be locked initially")
+	assert(qm_prog.is_shop_unlocked() == false, "Shop must be locked initially")
+	assert(nav_test.inventory_btn.disabled == true, "InventoryBtn must be disabled when locked")
+	assert(nav_test.shop_btn.disabled == true, "ShopBtn must be disabled when locked")
+	assert(nav_test.is_inventory_unlocked() == false, "BottomNavBar must report inventory locked")
+	assert(nav_test.is_shop_unlocked() == false, "BottomNavBar must report shop locked")
+	assert(nav_test.is_pos_inside_inventory_button(Vector2(100, 100)) == false, "Dropping into locked inventory button must return false")
+
+	# Complete 4 quests -> Backpack and Shop still locked
+	var milestone_tracker := {"milestones": []}
+	var milestone_sub := func(m: String): milestone_tracker["milestones"].append(m)
+	GameEvents.quest_milestone_unlocked.connect(milestone_sub)
+
+	qm_prog.complete_active_quest_debug() # 1
+	qm_prog.complete_active_quest_debug() # 2
+	qm_prog.complete_active_quest_debug() # 3
+	qm_prog.complete_active_quest_debug() # 4
+	assert(qm_prog.completed_quest_count == 4, "Completed count should be 4")
+	assert(qm_prog.is_backpack_unlocked() == false, "Backpack still locked at 4")
+	assert(qm_prog.is_shop_unlocked() == false, "Shop still locked at 4")
+	assert(nav_test.inventory_btn.disabled == true, "InventoryBtn must be disabled at 4")
+	assert(nav_test.shop_btn.disabled == true, "ShopBtn must be disabled at 4")
+
+	# Complete 5th quest -> Both Backpack and Shop unlock!
+	qm_prog.complete_active_quest_debug() # 5
+	assert(qm_prog.completed_quest_count == 5, "Completed count should be 5")
+	assert(qm_prog.is_backpack_unlocked() == true, "Backpack must be unlocked at 5")
+	assert(qm_prog.is_shop_unlocked() == true, "Shop must be unlocked at 5")
+	assert(milestone_tracker["milestones"].has("backpack"), "Milestone signal must broadcast 'backpack'")
+	assert(milestone_tracker["milestones"].has("shop"), "Milestone signal must broadcast 'shop'")
+	assert(nav_test.is_inventory_unlocked() == true, "BottomNavBar must report backpack unlocked")
+	assert(nav_test.is_shop_unlocked() == true, "BottomNavBar must report shop unlocked")
+	assert(nav_test.inventory_btn.disabled == false, "InventoryBtn must be enabled when unlocked")
+	assert(nav_test.shop_btn.disabled == false, "ShopBtn must be enabled when unlocked")
+
+	GameEvents.quest_milestone_unlocked.disconnect(milestone_sub)
+
+	# Test Save & Restore of completed_quest_count
+	SaveManager.quest_manager_ref = qm_prog
+	SaveManager.save_game(false)
+	qm_prog.completed_quest_count = 0
+	assert(qm_prog.completed_quest_count == 0, "Reset completed count to 0")
+	SaveManager.load_game(null, qm_prog)
+	assert(qm_prog.completed_quest_count == 5, "Restored completed count must be 5")
+	assert(qm_prog.is_backpack_unlocked() == true, "Restored backpack must remain unlocked")
+	assert(qm_prog.is_shop_unlocked() == true, "Restored shop must remain unlocked")
+
+	qm_prog.queue_free()
+	nav_test.queue_free()
+	SaveManager.quest_manager_ref = null
+	print("✔ Quest Milestone Progression & BottomNavBar Gating verified!")
+
+	# 32. Test Extended Event-Driven Tutorial Triggers & Flags Persistence
+	print("\n--- Testing Extended Event-Driven Tutorial Triggers & Flags Persistence ---")
+	var tut_ext := TutorialManager.new()
+	add_child(tut_ext)
+	tut_ext.setup(null, null, null, null)
+
+	assert(tut_ext._shown_flags.is_empty(), "_shown_flags must start empty")
+
+	# Test FIRST_QUEST trigger
+	var test_q := QuestData.new()
+	test_q.id = "test_q"
+	tut_ext._on_quest_completed(test_q)
+	assert(tut_ext._shown_flags.get("first_quest", false) == true, "first_quest flag must be set")
+
+	# Test FIRST_PRODUCER_UNBOX trigger
+	tut_ext._on_item_unboxed("oven_1")
+	assert(tut_ext._shown_flags.get("first_producer_unbox", false) == true, "first_producer_unbox flag must be set")
+
+	# Test FIRST_SPAWNER_EXHAUST trigger
+	tut_ext._on_spawner_exhausted("foodbox_3")
+	assert(tut_ext._shown_flags.get("first_spawner_exhaust", false) == true, "first_spawner_exhaust flag must be set")
+
+	# Test FIRST_SELL trigger
+	tut_ext._on_item_sold("egg_1", 5)
+	assert(tut_ext._shown_flags.get("first_sell", false) == true, "first_sell flag must be set")
+
+	# Test FIRST_BACKPACK_STORE trigger
+	tut_ext._on_item_stored_in_inventory("egg_1")
+	assert(tut_ext._shown_flags.get("first_backpack_store", false) == true, "first_backpack_store flag must be set")
+
+	# Test serialization of _shown_flags
+	var serialized_tut := tut_ext.serialize_data()
+	assert(serialized_tut.has("shown_flags"), "Serialized data must include shown_flags")
+	assert(serialized_tut["shown_flags"].size() == 5, "All 5 shown flags must be serialized")
+
+	var tut_ext_2 := TutorialManager.new()
+	tut_ext_2.load_data(serialized_tut)
+	assert(tut_ext_2._shown_flags.get("first_quest", false) == true, "Restored first_quest must be true")
+	assert(tut_ext_2._shown_flags.get("first_producer_unbox", false) == true, "Restored first_producer_unbox must be true")
+	assert(tut_ext_2._shown_flags.get("first_spawner_exhaust", false) == true, "Restored first_spawner_exhaust must be true")
+	assert(tut_ext_2._shown_flags.get("first_sell", false) == true, "Restored first_sell must be true")
+	assert(tut_ext_2._shown_flags.get("first_backpack_store", false) == true, "Restored first_backpack_store must be true")
+
+	tut_ext.queue_free()
+	tut_ext_2.queue_free()
+	print("✔ Extended Event-Driven Tutorial Triggers & Flags Persistence verified!")
+
+	# 33. Test Radial Tier Bias & Preview Locked Spawners
+	print("\n--- Testing Radial Tier Bias & Preview Locked Spawners ---")
+	var main_rb_scene: PackedScene = load("res://main.tscn")
+	var main_rb_inst: MainGame = main_rb_scene.instantiate()
+	add_child(main_rb_inst)
+
+	# Verify preview items in portrait (1, 2) = oven_1, (5, 2) = fridge_1, (3, 6) = rack_1 in LOCKED state
+	var oven_preview := main_rb_inst.board.get_item_at(Vector2i(1, 2))
+	var fridge_preview := main_rb_inst.board.get_item_at(Vector2i(5, 2))
+	var rack_preview := main_rb_inst.board.get_item_at(Vector2i(3, 6))
+
+	assert(oven_preview != null and oven_preview.data.id == "oven_1", "Cell (1, 2) must be oven_1 preview")
+	assert(oven_preview.is_hidden() == true, "oven_1 preview outside 3x3 must start in HIDDEN state")
+	oven_preview.reveal(false)
+	assert(oven_preview.is_locked() == true, "oven_1 preview must reveal into LOCKED state")
+
+	assert(fridge_preview != null and fridge_preview.data.id == "fridge_1", "Cell (5, 2) must be fridge_1 preview")
+	assert(fridge_preview.is_hidden() == true, "fridge_1 preview outside 3x3 must start in HIDDEN state")
+	fridge_preview.reveal(false)
+	assert(fridge_preview.is_locked() == true, "fridge_1 preview must reveal into LOCKED state")
+
+	assert(rack_preview != null and rack_preview.data.id == "rack_1", "Cell (3, 6) must be rack_1 preview")
+	assert(rack_preview.is_hidden() == true, "rack_1 preview outside 3x3 must start in HIDDEN state")
+	rack_preview.reveal(false)
+	assert(rack_preview.is_locked() == true, "rack_1 preview must reveal into LOCKED state")
+
+	# Test _get_tiered_drop helper
+	var t1_count := 0
+	var t2_count := 0
+	for i in range(100):
+		var near_item := main_rb_inst._get_tiered_drop(1.0)
+		if near_item.ends_with("_1"):
+			t1_count += 1
+		var far_item := main_rb_inst._get_tiered_drop(2.5)
+		if far_item.ends_with("_2"):
+			t2_count += 1
+	assert(t1_count > 65, "Distance <= 1.5 must be biased toward tier 1, got %d/100" % t1_count)
+	assert(t2_count > 65, "Distance > 1.5 must be biased toward tier 2, got %d/100" % t2_count)
+
+	main_rb_inst.queue_free()
+	print("✔ Radial Tier Bias & Preview Locked Spawners verified!")
+
+	# 34. Test Boxed Perimeter Item Color/Identity Cue
+	print("\n--- Testing Boxed Perimeter Item Color/Identity Cue ---")
+	var tint_board: Board = board_scene.instantiate()
+	add_child(tint_board)
+	tint_board.clear_board()
+
+	# Spawn boxed beef item (data.color is reddish-orange)
+	var boxed_beef := tint_board.spawn_item_at(Vector2i(0, 0), "beef_1", ItemView.ItemState.BOXED, 2)
+	assert(boxed_beef != null, "Boxed beef item must spawn")
+	var beef_data := ItemDatabase.get_item("beef_1")
+	var expected_modulate := Color.WHITE.lerp(beef_data.color, 0.3)
+	assert(boxed_beef.sprite.modulate.is_equal_approx(expected_modulate), "Boxed sprite must be modulated subtly toward data.color")
+	assert(boxed_beef.sprite.modulate != Color.WHITE, "Boxed sprite must not be full white")
+
+	# Spawn boxed drink item (data.color is blue)
+	var boxed_drink := tint_board.spawn_item_at(Vector2i(0, 1), "drink_1", ItemView.ItemState.BOXED, 2)
+	var drink_data := ItemDatabase.get_item("drink_1")
+	var expected_drink_modulate := Color.WHITE.lerp(drink_data.color, 0.3)
+	assert(boxed_drink.sprite.modulate.is_equal_approx(expected_drink_modulate), "Boxed drink sprite must be modulated toward drink data.color")
+	assert(boxed_drink.sprite.modulate != boxed_beef.sprite.modulate, "Different chain boxed items must have distinct tints")
+
+	tint_board.queue_free()
+	print("✔ Boxed Perimeter Item Color/Identity Cue verified!")
+
+	# 35. Test ItemState.HIDDEN, Cell Hiding, and Progressive Outward Reveal
+	print("\n--- Testing ItemState.HIDDEN & Progressive Outward Reveal ---")
+	var fog_board: Board = board_scene.instantiate()
+	add_child(fog_board)
+	fog_board.clear_board()
+
+	# Spawn a hidden item at (1, 1)
+	var hidden_item := fog_board.spawn_item_at(Vector2i(1, 1), "egg_1", ItemView.ItemState.HIDDEN, 1)
+	assert(hidden_item != null, "Hidden item must spawn")
+	assert(hidden_item.is_hidden() == true, "item.is_hidden() must be true")
+	assert(hidden_item.visible == false, "Hidden item must not be visible")
+
+	# Check corresponding cell
+	fog_board.update_cell_lock_visual(Vector2i(1, 1))
+	var cell_1_1: BoardCell = fog_board._cells[1][1]
+	assert(cell_1_1.is_hidden_cell == true, "Cell with hidden item must have is_hidden_cell true")
+	assert(cell_1_1.visible == false, "Cell with hidden item must be invisible")
+
+	# Test reveal() method on item
+	hidden_item.reveal(false)
+	assert(hidden_item.is_hidden() == false, "item.is_hidden() must be false after reveal")
+	assert(hidden_item.is_locked() == true, "Item with req_level 1 must reveal to LOCKED")
+	assert(hidden_item.visible == true, "Item must be visible after reveal")
+	fog_board.update_cell_lock_visual(Vector2i(1, 1))
+	assert(cell_1_1.visible == true, "Cell must become visible after item reveal")
+
+	# Test reveal_surrounding_items
+	var hidden_nbr1 := fog_board.spawn_item_at(Vector2i(1, 2), "leaf_1", ItemView.ItemState.HIDDEN, 1)
+	var hidden_nbr2 := fog_board.spawn_item_at(Vector2i(2, 2), "beef_1", ItemView.ItemState.HIDDEN, 2)
+	assert(hidden_nbr1.is_hidden() == true, "Neighbor 1 must be hidden")
+	assert(hidden_nbr2.is_hidden() == true, "Neighbor 2 must be hidden")
+
+	var revealed_items := fog_board.reveal_surrounding_items(Vector2i(1, 1))
+	assert(revealed_items.has(hidden_nbr1), "hidden_nbr1 must be in revealed_items")
+	assert(revealed_items.has(hidden_nbr2), "hidden_nbr2 must be in revealed_items")
+	assert(hidden_nbr1.is_hidden() == false and hidden_nbr1.is_locked() == true, "hidden_nbr1 must reveal to LOCKED")
+	assert(hidden_nbr2.is_hidden() == false and hidden_nbr2.is_boxed() == true, "hidden_nbr2 with req_level 2 must reveal to BOXED")
+
+	fog_board.queue_free()
+	print("✔ ItemState.HIDDEN & Progressive Outward Reveal verified!")
+
+	# 36. Test Non-Consumable Guarantee in Populated Board Items
+	print("\n--- Testing Non-Consumable Guarantee in Populated Board Items ---")
+	var main_pop_scene: PackedScene = load("res://scenes/main.tscn")
+	var main_pop: MainGame = main_pop_scene.instantiate()
+	add_child(main_pop)
+	main_pop._setup_initial_board()
+
+	var pop_items := main_pop.board.get_all_items_on_board(false)
+	var consumable_count := 0
+	for it in pop_items:
+		if it and it.data and it.data.is_consumable:
+			consumable_count += 1
+	assert(consumable_count == 0, "Populated board must NOT have any consumable items (gold/diamond/exp/energy), found %d" % consumable_count)
+
+	# Verify active 3x3 starting island
+	var visible_cell_count := 0
+	for c in range(main_pop.board.cols):
+		for r in range(main_pop.board.rows):
+			var cell: BoardCell = main_pop.board._cells[c][r]
+			if is_instance_valid(cell) and cell.visible:
+				visible_cell_count += 1
+	assert(visible_cell_count == 9, "Initial starting active island must have exactly 9 visible cells, got %d" % visible_cell_count)
+
+	main_pop.queue_free()
+	print("✔ Non-Consumable Guarantee & 3x3 Starting Island verified!")
+
+	# 37. Test Behavioral Guidance Watchers (Coin Spending & Board Full Selling)
+	print("\n--- Testing Behavioral Guidance Watchers ---")
+	var tut_bg := TutorialManager.new()
+	add_child(tut_bg)
+	tut_bg.setup(null, null, null, null)
+	tut_bg.is_completed = true # Simulating post-tutorial active gameplay
+
+	# Test coin consumed watcher
+	assert(tut_bg._shown_flags.get("first_coin_spent_guide", false) == false, "first_coin_spent_guide starts false")
+	GameEvents.coin_consumed.emit(25)
+	assert(tut_bg._shown_flags.get("first_coin_spent_guide", false) == true, "first_coin_spent_guide must trigger upon coin consumed")
+
+	# Test board full 3 times watcher
+	assert(tut_bg._shown_flags.get("board_full_sell_guide", false) == false, "board_full_sell_guide starts false")
+	assert(tut_bg.board_full_count == 0, "board_full_count starts 0")
+	GameEvents.board_full_attempted.emit()
+	assert(tut_bg.board_full_count == 1, "board_full_count should be 1")
+	assert(tut_bg._shown_flags.get("board_full_sell_guide", false) == false, "board_full_sell_guide should not trigger at 1")
+	GameEvents.board_full_attempted.emit()
+	assert(tut_bg.board_full_count == 2, "board_full_count should be 2")
+	assert(tut_bg._shown_flags.get("board_full_sell_guide", false) == false, "board_full_sell_guide should not trigger at 2")
+	GameEvents.board_full_attempted.emit()
+	assert(tut_bg.board_full_count == 3, "board_full_count should be 3")
+	assert(tut_bg._shown_flags.get("board_full_sell_guide", false) == true, "board_full_sell_guide must trigger at 3 board-full events")
+
+	tut_bg.queue_free()
+	print("✔ Behavioral Guidance Watchers verified!")
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)

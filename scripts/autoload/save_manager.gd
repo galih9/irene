@@ -18,6 +18,21 @@ var board_ref: Board = null
 var quest_manager_ref: QuestManager = null
 var tutorial_manager_ref: Node = null
 
+var _saved_completed_quest_count: int = 0
+
+var completed_quest_count: int:
+	get:
+		if is_instance_valid(quest_manager_ref):
+			return quest_manager_ref.completed_quest_count
+		return _saved_completed_quest_count
+	set(val):
+		_saved_completed_quest_count = val
+		if is_instance_valid(quest_manager_ref):
+			quest_manager_ref.completed_quest_count = val
+
+func get_completed_quest_count() -> int:
+	return completed_quest_count
+
 func _process(delta: float) -> void:
 	if is_gameplay_active and auto_save_enabled:
 		_auto_save_timer += delta
@@ -72,6 +87,7 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 			"items": board_ref.serialize_items() if is_instance_valid(board_ref) else []
 		},
 		"quests": quest_manager_ref.serialize_quests() if is_instance_valid(quest_manager_ref) else [],
+		"completed_quest_count": completed_quest_count,
 		"tutorial": tutorial_manager_ref.serialize_data() if is_instance_valid(tutorial_manager_ref) else {},
 		"settings": {
 			"sfx_enabled": SoundManager.sfx_enabled,
@@ -148,9 +164,15 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 
 	# 5. Restore Quests
 	var q := target_quest_mgr if is_instance_valid(target_quest_mgr) else quest_manager_ref
-	if is_instance_valid(q) and data.has("quests"):
-		var quests_list: Array = data.get("quests", [])
-		q.load_quests(quests_list)
+	var completed_cnt := int(data.get("completed_quest_count", 0))
+	_saved_completed_quest_count = completed_cnt
+	if is_instance_valid(q):
+		if data.has("quests"):
+			var quests_list: Array = data.get("quests", [])
+			q.load_quests(quests_list, completed_cnt)
+		else:
+			q.completed_quest_count = completed_cnt
+			GameEvents.quest_count_changed.emit(completed_cnt)
 
 	# 6. Restore Settings
 	if data.has("settings"):
@@ -171,3 +193,12 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 
 func trigger_auto_save() -> void:
 	save_game(true, true)
+
+func serialize_data() -> Dictionary:
+	return {
+		"completed_quest_count": completed_quest_count
+	}
+
+func load_data(data: Dictionary) -> void:
+	if data.has("completed_quest_count"):
+		self.completed_quest_count = int(data.get("completed_quest_count", 0))

@@ -168,29 +168,63 @@ func _exit_tree() -> void:
 		if SaveManager.tutorial_manager_ref == tutorial_manager:
 			SaveManager.tutorial_manager_ref = null
 
+func _get_tiered_drop(dist: float) -> String:
+	var prefix := "egg" if randf() < 0.5 else "leaf"
+	var tier := 1
+	if dist > 1.5:
+		tier = 2 if randf() < 0.85 else 1
+	else:
+		tier = 1 if randf() < 0.85 else 2
+	return "%s_%d" % [prefix, tier]
+
 func _setup_initial_board() -> void:
 	board.clear_board()
 
 	var boxed_pool := [
 		"beef_1", "beef_2", "cake_1", "cake_2",
 		"sandwich_1", "sandwich_2", "drink_1", "drink_2",
-		"util_1", "util_2", "gold_1", "energy_1", "exp_1", "diamond_1"
-	]
-
-	var food_drops := [
-		"egg_1", "egg_2", "leaf_1", "leaf_2"
+		"util_1", "util_2", "oven_1", "fridge_1", "rack_1",
+		"egg_2", "leaf_2", "egg_3", "leaf_3"
 	]
 
 	var is_ls := (board.cols == 9 and board.rows == 7)
+	var center_coord := Vector2i(4, 3) if is_ls else Vector2i(3, 4)
+
+	var portrait_previews := {
+		Vector2i(1, 2): "oven_1",
+		Vector2i(5, 2): "fridge_1",
+		Vector2i(3, 6): "rack_1"
+	}
+	var previews: Dictionary = {}
+	for p_coord in portrait_previews:
+		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
+		previews[target_coord] = portrait_previews[p_coord]
+
+	# Starter 3x3 Active Zone
+	var portrait_starter_cells := {
+		Vector2i(3, 4): {"id": "foodbox_1", "state": ItemView.ItemState.NORMAL},
+		Vector2i(2, 4): {"id": "foodbox_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 4): {"id": "foodbox_2", "state": ItemView.ItemState.LOCKED},
+		Vector2i(3, 3): {"id": "egg_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(3, 5): {"id": "leaf_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(2, 3): {"id": "leaf_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 3): {"id": "egg_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(2, 5): {"id": "egg_2", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 5): {"id": "leaf_2", "state": ItemView.ItemState.LOCKED},
+	}
+	var mapped_starter_cells: Dictionary = {}
+	for p_coord in portrait_starter_cells:
+		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
+		mapped_starter_cells[target_coord] = portrait_starter_cells[p_coord]
 
 	# Populate Board
 	for c in range(board.cols):
 		for r in range(board.rows):
+			var cur_coord := Vector2i(c, r)
 			var is_perimeter: bool = false
 			var req_level := 2
 
 			if is_ls:
-				# Landscape: cols 0..8, rows 0..6
 				is_perimeter = (r == 0 or r == 6 or c == 0 or c == 1 or c == 7 or c == 8)
 				if r == 0 or r == 6:
 					req_level = 4 if (c >= 3 and c <= 5) else 5
@@ -198,23 +232,7 @@ func _setup_initial_board() -> void:
 					req_level = 3
 				elif c == 1 or c == 7:
 					req_level = 2 if (r >= 2 and r <= 4) else 3
-
-				if is_perimeter:
-					var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
-					board.spawn_item_at(Vector2i(c, r), rand_item, ItemView.ItemState.BOXED, req_level)
-				else:
-					# Inner 5x5: cols 2..6, rows 1..5
-					if c == 4 and r == 3:
-						board.spawn_item_at(Vector2i(4, 3), "foodbox_1", ItemView.ItemState.NORMAL)
-					elif c == 4 and r == 2:
-						board.spawn_item_at(Vector2i(4, 2), "foodbox_1", ItemView.ItemState.LOCKED)
-					elif c == 4 and r == 4:
-						board.spawn_item_at(Vector2i(4, 4), "foodbox_2", ItemView.ItemState.LOCKED)
-					else:
-						var drop_item: String = food_drops[randi() % food_drops.size()]
-						board.spawn_item_at(Vector2i(c, r), drop_item, ItemView.ItemState.LOCKED)
 			else:
-				# Portrait: cols 0..6, rows 0..8
 				is_perimeter = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
 				if r == 0 or r == 8:
 					req_level = 4 if (c == 2 or c == 3 or c == 4) else 5
@@ -223,20 +241,21 @@ func _setup_initial_board() -> void:
 				elif c == 0 or c == 6:
 					req_level = 2 if (r >= 3 and r <= 5) else 3
 
-				if is_perimeter:
-					var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
-					board.spawn_item_at(Vector2i(c, r), rand_item, ItemView.ItemState.BOXED, req_level)
+			if mapped_starter_cells.has(cur_coord):
+				var cell_info: Dictionary = mapped_starter_cells[cur_coord]
+				board.spawn_item_at(cur_coord, cell_info["id"], cell_info["state"])
+			elif is_perimeter:
+				var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
+				board.spawn_item_at(cur_coord, rand_item, ItemView.ItemState.HIDDEN, req_level)
+			else:
+				if previews.has(cur_coord):
+					board.spawn_item_at(cur_coord, previews[cur_coord], ItemView.ItemState.HIDDEN, 1)
 				else:
-					# Inner 5x5: cols 1..5, rows 2..6
-					if r == 4 and c == 3:
-						board.spawn_item_at(Vector2i(3, 4), "foodbox_1", ItemView.ItemState.NORMAL)
-					elif r == 4 and c == 2:
-						board.spawn_item_at(Vector2i(2, 4), "foodbox_1", ItemView.ItemState.LOCKED)
-					elif r == 4 and c == 4:
-						board.spawn_item_at(Vector2i(4, 4), "foodbox_2", ItemView.ItemState.LOCKED)
-					else:
-						var drop_item: String = food_drops[randi() % food_drops.size()]
-						board.spawn_item_at(Vector2i(c, r), drop_item, ItemView.ItemState.LOCKED)
+					var dist: float = Vector2(c, r).distance_to(Vector2(center_coord))
+					var drop_item: String = _get_tiered_drop(dist)
+					board.spawn_item_at(cur_coord, drop_item, ItemView.ItemState.HIDDEN, 1)
+
+	board.update_all_cells_lock_visuals()
 
 	# Clean initial backpack inventory
 	InventoryManager.clear_all()
@@ -265,6 +284,7 @@ func _on_reward_slot_pressed() -> void:
 		bottom_nav_bar.animate_reward_wobble()
 		var btn_pos := bottom_nav_bar.get_reward_button_pos()
 		GameEvents.show_floating_text.emit("Board is Full!", btn_pos + Vector2(0, -35), Color(1.0, 0.45, 0.45))
+		GameEvents.board_full_attempted.emit()
 		return
 
 	var reward_id := ProgressionManager.pop_reward()
