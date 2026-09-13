@@ -5,7 +5,8 @@ var board_ref: Board = null
 
 @onready var close_btn: Button = $Panel/VBox/Header/CloseBtn
 @onready var capacity_label: Label = $Panel/VBox/Header/VBox/CapacityLabel
-@onready var slots_grid: GridContainer = $Panel/VBox/Margin/SlotsGrid
+@onready var slots_grid: GridContainer = $Panel/VBox/Scroll/Content/SlotsGrid
+@onready var expansion_container: VBoxContainer = $Panel/VBox/Scroll/Content/ExpansionContainer
 
 func _ready() -> void:
 	visible = false
@@ -33,7 +34,7 @@ func _on_inventory_changed() -> void:
 func _update_slots() -> void:
 	var used := InventoryManager.get_used_count()
 	var max_slots := InventoryManager.get_max_slots()
-	capacity_label.text = "Capacity: %d / %d slots used" % [used, max_slots]
+	capacity_label.text = "Capacity: %d / %d slots used (Row %d of %d)" % [used, max_slots, InventoryManager.unlocked_rows, InventoryManager.MAX_ROWS]
 
 	for child in slots_grid.get_children():
 		child.queue_free()
@@ -43,11 +44,99 @@ func _update_slots() -> void:
 		var slot_panel := _create_slot_card(slot_idx, item_id)
 		slots_grid.add_child(slot_panel)
 
+	# Build expansion controls
+	if is_instance_valid(expansion_container):
+		for child in expansion_container.get_children():
+			child.queue_free()
+
+		if InventoryManager.unlocked_rows < InventoryManager.MAX_ROWS:
+			var next_row := InventoryManager.unlocked_rows + 1
+			var cost := InventoryManager.get_next_row_cost()
+			var can_afford := InventoryManager.can_unlock_next_row()
+
+			var expand_panel := PanelContainer.new()
+			var p_style := StyleBoxFlat.new()
+			p_style.bg_color = Color(1.0, 1.0, 1.0, 0.95) if can_afford else Color(0.93, 0.92, 0.90, 0.85)
+			p_style.border_color = Color(0.35, 0.72, 0.45, 1.0) if can_afford else Color(0.8, 0.78, 0.75, 0.8)
+			p_style.border_width_left = 2
+			p_style.border_width_top = 2
+			p_style.border_width_right = 2
+			p_style.border_width_bottom = 2
+			p_style.corner_radius_top_left = 12
+			p_style.corner_radius_top_right = 12
+			p_style.corner_radius_bottom_right = 12
+			p_style.corner_radius_bottom_left = 12
+			expand_panel.add_theme_stylebox_override("panel", p_style)
+
+			var margin := MarginContainer.new()
+			margin.add_theme_constant_override("margin_left", 12)
+			margin.add_theme_constant_override("margin_top", 10)
+			margin.add_theme_constant_override("margin_right", 12)
+			margin.add_theme_constant_override("margin_bottom", 10)
+			expand_panel.add_child(margin)
+
+			var hbox := HBoxContainer.new()
+			hbox.add_theme_constant_override("separation", 12)
+			margin.add_child(hbox)
+
+			var vbox := VBoxContainer.new()
+			vbox.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+			var title_lbl := Label.new()
+			title_lbl.text = "Expand Storage (Row %d)" % next_row
+			title_lbl.add_theme_font_size_override("font_size", 14)
+			title_lbl.add_theme_color_override("font_color", Color(0.18, 0.16, 0.22))
+			vbox.add_child(title_lbl)
+
+			var sub_lbl := Label.new()
+			sub_lbl.text = "Unlocks 4 additional storage slots (+4)"
+			sub_lbl.add_theme_font_size_override("font_size", 11)
+			sub_lbl.add_theme_color_override("font_color", Color(0.48, 0.45, 0.52))
+			vbox.add_child(sub_lbl)
+			hbox.add_child(vbox)
+
+			var buy_btn := Button.new()
+			buy_btn.custom_minimum_size = Vector2(120, 38)
+			var currency_icon_str := "🪙 Gold" if cost.get("currency", "") == "coins" else "💎 Gems"
+			buy_btn.text = "%d %s\nUnlock" % [cost.get("amount", 0), currency_icon_str]
+			buy_btn.add_theme_font_size_override("font_size", 11)
+			buy_btn.disabled = not can_afford
+
+			var btn_style := StyleBoxFlat.new()
+			btn_style.corner_radius_top_left = 8
+			btn_style.corner_radius_top_right = 8
+			btn_style.corner_radius_bottom_right = 8
+			btn_style.corner_radius_bottom_left = 8
+			if can_afford:
+				btn_style.bg_color = Color(0.22, 0.72, 0.38, 1.0) if cost.get("currency", "") == "coins" else Color(0.2, 0.65, 0.95, 1.0)
+				buy_btn.add_theme_color_override("font_color", Color.WHITE)
+			else:
+				btn_style.bg_color = Color(0.8, 0.78, 0.76, 0.9)
+				buy_btn.add_theme_color_override("font_color", Color(0.5, 0.48, 0.46))
+			buy_btn.add_theme_stylebox_override("normal", btn_style)
+			buy_btn.add_theme_stylebox_override("hover", btn_style)
+			buy_btn.add_theme_stylebox_override("disabled", btn_style)
+
+			buy_btn.pressed.connect(func():
+				if InventoryManager.unlock_next_row():
+					SoundManager.play_quest()
+					GameEvents.show_floating_text.emit("+4 Backpack Slots! 🎉", buy_btn.global_position + Vector2(0, -30), Color(0.3, 1.0, 0.4))
+					_update_slots()
+			)
+			hbox.add_child(buy_btn)
+			expansion_container.add_child(expand_panel)
+		else:
+			var max_lbl := Label.new()
+			max_lbl.text = "✨ Maximum Storage Capacity Reached (9 / 9 Rows) ✨"
+			max_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+			max_lbl.add_theme_font_size_override("font_size", 12)
+			max_lbl.add_theme_color_override("font_color", Color(0.35, 0.65, 0.4))
+			expansion_container.add_child(max_lbl)
+
 func _create_slot_card(slot_idx: int, item_id: String) -> Control:
 	var slot_btn := Button.new()
 	slot_btn.custom_minimum_size = Vector2(80, 80)
 	slot_btn.focus_mode = Control.FOCUS_NONE
-	
+
 	var normal_style := StyleBoxFlat.new()
 	normal_style.corner_radius_top_left = 12
 	normal_style.corner_radius_top_right = 12

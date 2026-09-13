@@ -17,7 +17,8 @@ enum TutorialStep {
 	FIRST_PRODUCER_UNBOX = 12,
 	FIRST_SPAWNER_EXHAUST = 13,
 	FIRST_SELL = 14,
-	FIRST_BACKPACK_STORE = 15
+	FIRST_BACKPACK_STORE = 15,
+	CLAIM_PROGRESSION = 16
 }
 
 var current_step: TutorialStep = TutorialStep.NONE
@@ -46,6 +47,8 @@ func _ready() -> void:
 	GameEvents.item_stored_in_inventory.connect(_on_item_stored_in_inventory)
 	GameEvents.coin_consumed.connect(_on_coin_consumed)
 	GameEvents.board_full_attempted.connect(_on_board_full_attempted)
+	GameEvents.progression_changed.connect(_on_progression_changed)
+	GameEvents.board_changed.connect(_check_first_quest_highlight)
 
 func setup(board: Board, modal: IrenePopupModal, toast: IreneToast, nav_bar: BottomNavBar) -> void:
 	board_ref = board
@@ -79,6 +82,8 @@ func _set_step(step: TutorialStep) -> void:
 			_show_step_3_spawn_item()
 		TutorialStep.UNLOCK_FIRST_ITEM:
 			_show_step_4_unlock_first_item()
+		TutorialStep.CLAIM_PROGRESSION:
+			_show_step_claim_progression()
 		TutorialStep.UNLOCK_THREE_SLOTS:
 			_show_step_5_unlock_three_slots()
 		TutorialStep.DELIVER_QUESTS:
@@ -118,12 +123,15 @@ func _resume_step(step: TutorialStep) -> void:
 				toast_ref.show_toast("Tap the Pantry Box to produce fresh ingredients!", "explain", 6.0)
 		TutorialStep.UNLOCK_FIRST_ITEM:
 			_show_step_4_unlock_first_item()
+		TutorialStep.CLAIM_PROGRESSION:
+			_show_step_claim_progression()
 		TutorialStep.UNLOCK_THREE_SLOTS:
 			if toast_ref:
 				toast_ref.show_toast("Clear locked items by merging matching ingredients! (%d/3)" % locked_cleared_count, "thinking", 6.0)
 		TutorialStep.DELIVER_QUESTS:
 			if toast_ref:
 				toast_ref.show_toast("Deliver customer orders above to unlock the Backpack and Shop! (%d/5)" % QuestManager.get_completed_count(), "explain", 6.0)
+			_check_first_quest_highlight()
 		TutorialStep.CLAIM_REWARD:
 			_show_step_7_claim_reward()
 		TutorialStep.CONSUME_REWARD:
@@ -190,6 +198,41 @@ func _show_step_4_unlock_first_item() -> void:
 	elif toast_ref:
 		toast_ref.show_toast("Drag the Egg onto the matching locked Egg to unlock it!", "explain", 6.0)
 
+# --- Step: Claim Progression (Feature 1) ---
+func _show_step_claim_progression() -> void:
+	if board_ref:
+		board_ref.clear_tutorial_highlights()
+
+	if is_instance_valid(bottom_nav_bar_ref):
+		bottom_nav_bar_ref.play_progression_pulse()
+		bottom_nav_bar_ref.set_progression_highlight(true)
+
+	if ProgressionManager.get_unclaimed_count() <= 0:
+		# If user already claimed, skip smoothly to unlocking 3 slots
+		get_tree().create_timer(0.3).timeout.connect(func():
+			_set_step(TutorialStep.UNLOCK_THREE_SLOTS)
+		)
+		return
+
+	var msg := "Incredible! Look at the bottom navigation bar! 📖\nSee that red badge on the 'Progress' button? Every time you merge and discover new items, your progress is tracked in your Culinary Codex!\nTap the Progress button to claim your discovery rewards!"
+	if popup_modal_ref:
+		popup_modal_ref.show_dialogue(msg, "admire", func():
+			if toast_ref:
+				toast_ref.show_toast("Tap the Progress button below to claim your discovery rewards!", "explain", 8.0)
+		)
+	elif toast_ref:
+		toast_ref.show_toast("Tap the Progress button below to claim your discovery rewards!", "explain", 8.0)
+
+func _on_progression_changed() -> void:
+	if current_step == TutorialStep.CLAIM_PROGRESSION:
+		if is_instance_valid(bottom_nav_bar_ref):
+			bottom_nav_bar_ref.set_progression_highlight(false)
+		if toast_ref:
+			toast_ref.show_toast("Discovery rewards claimed! Check Progress whenever you discover new items!", "happy", 5.0)
+		get_tree().create_timer(0.4).timeout.connect(func():
+			_set_step(TutorialStep.UNLOCK_THREE_SLOTS)
+		)
+
 # --- Step 5: Unlock 3 More Slots ---
 func _show_step_5_unlock_three_slots() -> void:
 	if board_ref:
@@ -205,20 +248,41 @@ func _show_step_5_unlock_three_slots() -> void:
 	elif toast_ref:
 		toast_ref.show_toast("Clear locked items by merging matching ingredients! (0/3)", "thinking", 6.0)
 
-# --- Step 6: Deliver Quests ---
+# --- Step 6: Deliver Quests (with Feature 3 Delivery Highlight) ---
 func _show_step_6_deliver_quests() -> void:
 	if board_ref:
 		board_ref.clear_tutorial_highlights()
 
 	var cnt := QuestManager.get_completed_count()
-	var msg := "Customers are arriving with orders! 📝\nCheck the Order Cards above. Produce and merge the requested ingredients, then tap Deliver to earn Gold, Gems, and EXP!\nComplete 5 orders to unlock the Backpack and the Shop! (%d/5 completed)" % cnt
+	var msg := "Customers are arriving with orders! 📝\nCheck the Order Cards above. Produce and merge the requested ingredients, then tap the flashing DELIVER button to earn Gold, Gems, and EXP!\nComplete 5 orders to unlock the Backpack and the Shop! (%d/5 completed)" % cnt
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "explain", func():
+			_check_first_quest_highlight()
 			if toast_ref:
 				toast_ref.show_toast("Deliver customer orders above to unlock Backpack & Shop! (%d/5)" % cnt, "explain", 6.0)
 		)
 	elif toast_ref:
+		_check_first_quest_highlight()
 		toast_ref.show_toast("Deliver customer orders above to unlock Backpack & Shop! (%d/5)" % cnt, "explain", 6.0)
+
+func _check_first_quest_highlight() -> void:
+	if current_step != TutorialStep.DELIVER_QUESTS:
+		return
+	if QuestManager.get_completed_count() > 0:
+		return
+	if not QuestManager.instance:
+		return
+	var card := QuestManager.instance.get_first_card()
+	if not is_instance_valid(card):
+		return
+
+	if card.is_ready_to_deliver:
+		card.set_delivery_highlight(true)
+		if toast_ref and not _shown_flags.get("first_deliver_hint", false):
+			_shown_flags["first_deliver_hint"] = true
+			toast_ref.show_toast("Order ready! Tap the flashing DELIVER button on the Order Card!", "happy", 6.0)
+	else:
+		card.set_delivery_highlight(false)
 
 # --- Step 7: Claim Reward ---
 func _show_step_7_claim_reward() -> void:
@@ -231,14 +295,14 @@ func _show_step_7_claim_reward() -> void:
 	if is_instance_valid(bottom_nav_bar_ref):
 		bottom_nav_bar_ref.animate_reward_wobble()
 
-	var msg := "Congratulations! Completing 5 orders unlocked both your Backpack and the Shop! 🎉\nI've sent you a special Reward Chest! Tap the reward button in the bottom navigation bar to place it on the board!"
+	var msg := "Congratulations! Completing 5 orders unlocked both your Backpack and the Shop! 🎉\nI've sent you a special Reward Chest! Tap the shining tile in the bottom navigation bar to place it on the board!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "admire", func():
 			if toast_ref:
-				toast_ref.show_toast("Tap the bottom reward button to place your Reward Chest!", "happy", 6.0)
+				toast_ref.show_toast("Tap the shining bottom reward tile to place your Reward Chest!", "happy", 6.0)
 		)
 	elif toast_ref:
-		toast_ref.show_toast("Tap the bottom reward button to place your Reward Chest!", "happy", 6.0)
+		toast_ref.show_toast("Tap the shining bottom reward tile to place your Reward Chest!", "happy", 6.0)
 
 # --- Step 8: Consume Reward ---
 func _show_step_8_consume_reward() -> void:
@@ -331,7 +395,7 @@ func _on_locked_item_cleared(_coord: Vector2i, _item_id: String) -> void:
 
 	if current_step == TutorialStep.UNLOCK_FIRST_ITEM:
 		get_tree().create_timer(0.4).timeout.connect(func():
-			_set_step(TutorialStep.UNLOCK_THREE_SLOTS)
+			_set_step(TutorialStep.CLAIM_PROGRESSION)
 		)
 	elif current_step == TutorialStep.UNLOCK_THREE_SLOTS:
 		locked_cleared_count += 1
@@ -344,6 +408,11 @@ func _on_locked_item_cleared(_coord: Vector2i, _item_id: String) -> void:
 			)
 
 func _on_quest_completed(quest: QuestData) -> void:
+	if QuestManager.instance:
+		var card := QuestManager.instance.get_first_card()
+		if is_instance_valid(card):
+			card.set_delivery_highlight(false)
+
 	if current_step == TutorialStep.DELIVER_QUESTS:
 		var cnt := QuestManager.get_completed_count()
 		if cnt >= 5:

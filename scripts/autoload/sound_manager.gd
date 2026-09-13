@@ -154,6 +154,10 @@ func play_merge(item_data: ItemData = null) -> void:
 	var pitch: float = 1.0 + float(tier - 1) * 0.06
 	play_sfx(stream, 1.5, 0.03, pitch)
 
+func play_merge_tier(tier: int = 1) -> void:
+	var pitch: float = 1.0 + float(tier - 1) * 0.06
+	play_sfx(STREAM_MERGE, 1.5, 0.03, pitch)
+
 func play_spawn() -> void:
 	play_sfx(STREAM_SPAWN, 0.0, 0.03)
 

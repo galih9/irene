@@ -26,9 +26,10 @@ signal reward_slot_pressed()
 @onready var badge_label: Label = $HBoxContainer/ProgressionBtn/Badge/BadgeLabel
 @onready var inventory_capacity_label: Label = $HBoxContainer/InventoryBtn/Margin/HBox/VBox/CapacityLabel
 
-@onready var reward_icon: TextureRect = $HBoxContainer/RewardBtn/Margin/HBox/Icon
+@onready var reward_icon: TextureRect = $HBoxContainer/RewardBtn/Margin/Icon
 @onready var reward_badge: PanelContainer = $HBoxContainer/RewardBtn/Badge
 @onready var reward_badge_label: Label = $HBoxContainer/RewardBtn/Badge/BadgeLabel
+@onready var shine_overlay: ColorRect = $HBoxContainer/RewardBtn/ShineOverlay
 
 const MILESTONE_BACKPACK: int = 5
 const MILESTONE_SHOP: int = 5
@@ -82,18 +83,26 @@ func set_layout_vertical(vertical: bool) -> void:
 			hbox.add_theme_constant_override("separation", 12)
 	if vertical:
 		custom_minimum_size = Vector2(200, 300)
-		for btn in [reward_btn, progression_btn, inventory_btn, shop_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 				btn.custom_minimum_size = Vector2(0, 58)
+		if is_instance_valid(reward_btn):
+			reward_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			reward_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			reward_btn.custom_minimum_size = Vector2(70, 70)
 	else:
 		custom_minimum_size = Vector2(664, 116)
-		for btn in [reward_btn, progression_btn, inventory_btn, shop_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				btn.custom_minimum_size = Vector2(0, 0)
+				btn.custom_minimum_size = Vector2(0, 60)
+		if is_instance_valid(reward_btn):
+			reward_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
+			reward_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+			reward_btn.custom_minimum_size = Vector2(70, 70)
 
 func update_milestone_locks() -> void:
 	var inv_unlocked := is_inventory_unlocked()
@@ -167,6 +176,9 @@ func set_inventory_hover(highlighted: bool) -> void:
 		var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 		tween.tween_property(inventory_btn, "scale", Vector2.ONE, 0.1)
 
+var _progression_highlighted: bool = false
+var _reward_pulse_tween: Tween = null
+
 func play_inventory_pulse() -> void:
 	inventory_btn.pivot_offset = inventory_btn.size * 0.5
 	var tween := create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
@@ -174,8 +186,40 @@ func play_inventory_pulse() -> void:
 	tween.tween_property(inventory_btn, "scale", Vector2(0.9, 1.1), 0.15)
 	tween.tween_property(inventory_btn, "scale", Vector2.ONE, 0.2)
 
+func play_progression_pulse() -> void:
+	if not is_instance_valid(progression_btn):
+		return
+	progression_btn.pivot_offset = progression_btn.size * 0.5
+	var tween := create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+	tween.tween_property(progression_btn, "scale", Vector2(1.15, 0.85), 0.1)
+	tween.tween_property(progression_btn, "scale", Vector2(0.9, 1.1), 0.15)
+	tween.tween_property(progression_btn, "scale", Vector2.ONE, 0.2)
+
+func set_progression_highlight(enable: bool) -> void:
+	if not is_instance_valid(progression_btn):
+		return
+	_progression_highlighted = enable
+	progression_btn.pivot_offset = progression_btn.size * 0.5
+	if enable:
+		if progression_btn.has_meta("highlight_tween"):
+			var old_tw = progression_btn.get_meta("highlight_tween")
+			if is_instance_valid(old_tw):
+				old_tw.kill()
+		var tween := create_tween().set_loops()
+		tween.tween_property(progression_btn, "scale", Vector2(1.08, 1.08), 0.35).set_trans(Tween.TRANS_SINE)
+		tween.tween_property(progression_btn, "scale", Vector2.ONE, 0.35).set_trans(Tween.TRANS_SINE)
+		progression_btn.set_meta("highlight_tween", tween)
+	else:
+		if progression_btn.has_meta("highlight_tween"):
+			var tw = progression_btn.get_meta("highlight_tween")
+			if is_instance_valid(tw):
+				tw.kill()
+			progression_btn.remove_meta("highlight_tween")
+		progression_btn.scale = Vector2.ONE
+
 func _on_progression_pressed() -> void:
 	SoundManager.play_click()
+	set_progression_highlight(false)
 	progression_pressed.emit()
 	GameEvents.request_progression_open.emit()
 
@@ -214,8 +258,16 @@ func update_reward_slot_display() -> void:
 		return
 	var count := ProgressionManager.get_reward_count()
 	if count <= 0:
+		if _reward_pulse_tween and _reward_pulse_tween.is_valid():
+			_reward_pulse_tween.kill()
+			_reward_pulse_tween = null
 		reward_btn.visible = false
+		if is_instance_valid(shine_overlay):
+			shine_overlay.visible = false
 		return
+
+	if is_instance_valid(shine_overlay):
+		shine_overlay.visible = true
 
 	# If there are items in the reward queue, make sure slot is visible
 	var top_id := ProgressionManager.peek_reward()
@@ -236,9 +288,16 @@ func update_reward_slot_display() -> void:
 	if not reward_btn.visible:
 		reward_btn.visible = true
 		reward_btn.scale = Vector2(0.5, 0.5)
-		reward_btn.pivot_offset = reward_btn.size * 0.5
+		reward_btn.pivot_offset = Vector2(35, 35)
 		var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tween.tween_property(reward_btn, "scale", Vector2.ONE, 0.25)
+
+	# Gentle idle breathing pulse for the shining tile
+	if _reward_pulse_tween == null or not _reward_pulse_tween.is_valid():
+		reward_btn.pivot_offset = Vector2(35, 35)
+		_reward_pulse_tween = create_tween().set_loops()
+		_reward_pulse_tween.tween_property(reward_btn, "scale", Vector2(1.05, 1.05), 0.6).set_trans(Tween.TRANS_SINE)
+		_reward_pulse_tween.tween_property(reward_btn, "scale", Vector2.ONE, 0.6).set_trans(Tween.TRANS_SINE)
 
 func get_reward_button() -> Control:
 	return reward_btn
@@ -246,12 +305,12 @@ func get_reward_button() -> Control:
 func get_reward_button_pos() -> Vector2:
 	if not is_instance_valid(reward_btn):
 		return global_position
-	return reward_btn.global_position + reward_btn.size * 0.5
+	return reward_btn.global_position + Vector2(35, 35)
 
 func animate_reward_wobble() -> void:
 	if not is_instance_valid(reward_btn):
 		return
-	reward_btn.pivot_offset = reward_btn.size * 0.5
+	reward_btn.pivot_offset = Vector2(35, 35)
 	var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
 	tween.tween_property(reward_btn, "rotation_degrees", 8.0, 0.05)
 	tween.tween_property(reward_btn, "rotation_degrees", -8.0, 0.05)

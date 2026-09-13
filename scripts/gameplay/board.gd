@@ -920,7 +920,7 @@ func remove_item(item: ItemView) -> void:
 		clear_selection()
 	_clear_source_slot(item)
 
-func clear_board() -> void:
+func clear_board(emit_change: bool = true) -> void:
 	clear_selection()
 	for c in range(cols):
 		for r in range(rows):
@@ -928,7 +928,8 @@ func clear_board() -> void:
 			if it:
 				it.queue_free()
 				_grid[c][r] = null
-	GameEvents.board_changed.emit()
+	if emit_change:
+		GameEvents.board_changed.emit()
 
 func fill_board_random() -> void:
 	var sample_pool := [
@@ -972,6 +973,15 @@ func get_all_items_on_board(only_usable: bool = false) -> Array[ItemView]:
 					continue
 				items.append(it)
 	return items
+
+func has_locked_or_boxed_items() -> bool:
+	for c in range(cols):
+		for r in range(rows):
+			var it: ItemView = _grid[c][r]
+			if it != null:
+				if it.is_locked() or it.is_boxed() or it.is_hidden():
+					return true
+	return false
 
 func serialize_items() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []

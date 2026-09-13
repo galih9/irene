@@ -178,7 +178,7 @@ func _get_tiered_drop(dist: float) -> String:
 	return "%s_%d" % [prefix, tier]
 
 func _setup_initial_board() -> void:
-	board.clear_board()
+	board.clear_board(false)
 
 	var boxed_pool := [
 		"beef_1", "beef_2", "cake_1", "cake_2",

@@ -7,8 +7,14 @@ extends Control
 var board_ref: Board = null
 var is_vertical: bool = false
 
-var active_quests: Array[QuestData] = []
+var active_quests: Array[Variant] = [null, null, null]
 var _cards: Array[QuestCard] = []
+var _slot_cooldowns: Array[float] = [0.0, 0.0, 0.0]
+var _slot_total_cooldowns: Array[float] = [0.0, 0.0, 0.0]
+var _pending_starter_quests: Array[QuestData] = []
+
+var ultimate_quest_active: bool = false
+var ultimate_quest_completed: bool = false
 
 const MAX_QUESTS: int = 3
 
@@ -48,8 +54,20 @@ func _exit_tree() -> void:
 
 func _ready() -> void:
 	instance = self
-	GameEvents.board_changed.connect(update_quest_status)
+	GameEvents.board_changed.connect(_on_board_changed)
 	GameEvents.inventory_changed.connect(update_quest_status)
+
+func _process(delta: float) -> void:
+	for i in range(MAX_QUESTS):
+		if active_quests[i] == null and _slot_cooldowns[i] > 0.0:
+			_slot_cooldowns[i] -= delta
+			if _slot_cooldowns[i] <= 0.0:
+				_slot_cooldowns[i] = 0.0
+				_arrive_quest_for_slot(i)
+
+func _on_board_changed() -> void:
+	update_quest_status()
+	check_ultimate_quest_trigger()
 
 func set_layout_vertical(vertical: bool) -> void:
 	is_vertical = vertical
@@ -75,13 +93,22 @@ func _apply_card_sizes() -> void:
 
 func setup(board: Board, _inventory = null) -> void:
 	board_ref = board
-
 	_init_starter_quests()
 	_rebuild_cards()
 	update_quest_status()
 
+func get_first_card() -> QuestCard:
+	if not _cards.is_empty() and is_instance_valid(_cards[0]):
+		return _cards[0]
+	return null
+
 func _init_starter_quests() -> void:
 	active_quests.clear()
+	active_quests.resize(MAX_QUESTS)
+	active_quests.fill(null)
+	_slot_cooldowns = [0.0, 6.0, 14.0]
+	_slot_total_cooldowns = [0.0, 6.0, 14.0]
+	_pending_starter_quests.clear()
 
 	# Quest 1: Farm Breakfast (Egg + Fresh Herb)
 	var q1 := QuestData.new()
@@ -92,7 +119,7 @@ func _init_starter_quests() -> void:
 	q1.reward_coins = 35
 	q1.reward_gems = 0
 	q1.reward_exp = 15
-	active_quests.append(q1)
+	active_quests[0] = q1
 
 	# Quest 2: Boiled Snack (Boiled Egg)
 	var q2 := QuestData.new()
@@ -103,7 +130,7 @@ func _init_starter_quests() -> void:
 	q2.reward_coins = 40
 	q2.reward_gems = 1
 	q2.reward_exp = 20
-	active_quests.append(q2)
+	_pending_starter_quests.append(q2)
 
 	# Quest 3: Garden Omelet (Boiled Egg + Herb Bunch)
 	var q3 := QuestData.new()
@@ -114,14 +141,14 @@ func _init_starter_quests() -> void:
 	q3.reward_coins = 55
 	q3.reward_gems = 1
 	q3.reward_exp = 25
-	active_quests.append(q3)
+	_pending_starter_quests.append(q3)
 
 func _rebuild_cards() -> void:
 	for child in cards_container.get_children():
 		child.queue_free()
 	_cards.clear()
 
-	for q in active_quests:
+	for i in range(MAX_QUESTS):
 		var card: QuestCard = quest_card_scene.instantiate()
 		card.deliver_pressed.connect(_on_deliver_pressed)
 		cards_container.add_child(card)
@@ -137,24 +164,48 @@ func _get_all_available_item_ids() -> Array[String]:
 	result.append_array(InventoryManager.get_all_item_ids())
 	return result
 
+func _check_can_deliver(q: QuestData, available: Array[String]) -> bool:
+	if not q:
+		return false
+	var temp_avail := available.duplicate()
+	for req_id in q.required_item_ids:
+		if temp_avail.has(req_id):
+			temp_avail.erase(req_id)
+		else:
+			return false
+	return true
+
 func update_quest_status() -> void:
 	var available := _get_all_available_item_ids()
 
 	for i in range(mini(active_quests.size(), _cards.size())):
-		var q: QuestData = active_quests[i]
+		var q = active_quests[i]
 		var card: QuestCard = _cards[i]
+		if not is_instance_valid(card):
+			continue
 
-		# Check if player has all required items
-		var temp_avail := available.duplicate()
-		var can_deliver := true
-		for req_id in q.required_item_ids:
-			if temp_avail.has(req_id):
-				temp_avail.erase(req_id)
-			else:
-				can_deliver = false
-				break
+		if q == null:
+			card.setup_cooldown(_slot_cooldowns[i], _slot_total_cooldowns[i])
+		else:
+			var can_deliver := _check_can_deliver(q as QuestData, available)
+			card.setup(q as QuestData, can_deliver, available)
 
-		card.setup(q, can_deliver, available)
+func _arrive_quest_for_slot(slot_idx: int) -> void:
+	var q: QuestData = null
+	if not _pending_starter_quests.is_empty():
+		q = _pending_starter_quests.pop_front()
+	else:
+		q = _generate_new_quest()
+
+	active_quests[slot_idx] = q
+	if slot_idx < _cards.size() and is_instance_valid(_cards[slot_idx]):
+		var available := _get_all_available_item_ids()
+		var can_deliver := _check_can_deliver(q, available)
+		_cards[slot_idx].setup(q, can_deliver, available)
+		_cards[slot_idx].slide_in_from_top()
+	else:
+		_rebuild_cards()
+		update_quest_status()
 
 func _on_deliver_pressed(quest: QuestData) -> void:
 	# Consume items from board/inventory
@@ -187,18 +238,28 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 		reward_str += " +%d EXP!" % quest.reward_exp
 	GameEvents.show_floating_text.emit("Order Complete!\n" + reward_str, global_position + Vector2(332, 100), Color(0.3, 1.0, 0.4))
 
-	# Replace with new quest
+	# Handle Ultimate Quest completion
+	if quest.id == "ultimate_quest":
+		ultimate_quest_active = false
+		ultimate_quest_completed = true
+		GameEvents.show_floating_text.emit("🏆 KITCHEN MASTERED! ULTIMATE FEAST COMPLETE! 🏆", global_position + Vector2(332, 50), Color(1.0, 0.85, 0.2))
+
+	# Replace with cooldown timer before next customer arrives
 	var idx := active_quests.find(quest)
 	if idx >= 0:
-		active_quests[idx] = _generate_new_quest()
+		active_quests[idx] = null
+		# 4s during early onboarding tutorial, 14s for regular play
+		var cd: float = 4.0 if completed_quest_count < 2 else 14.0
+		_slot_cooldowns[idx] = cd
+		_slot_total_cooldowns[idx] = cd
+		if idx < _cards.size() and is_instance_valid(_cards[idx]):
+			_cards[idx].setup_cooldown(cd, cd)
 
-	_rebuild_cards()
 	update_quest_status()
 	GameEvents.quest_completed.emit(quest)
 	GameEvents.board_changed.emit()
 
 func _consume_single_item(item_id: String) -> bool:
-	# First search board for usable (normal) items
 	if board_ref:
 		for item in board_ref.get_all_items_on_board(true):
 			if item and item.data and item.data.id == item_id:
@@ -206,11 +267,52 @@ func _consume_single_item(item_id: String) -> bool:
 				item.queue_free()
 				return true
 
-	# Then search backpack inventory
 	if InventoryManager.remove_item_by_id(item_id):
 		return true
 
 	return false
+
+func check_ultimate_quest_trigger() -> void:
+	if ultimate_quest_active or ultimate_quest_completed:
+		return
+	if not is_instance_valid(board_ref):
+		return
+	# Must have active items on the board (cannot trigger on empty or uninitialized board)
+	var items: Array[ItemView] = board_ref.get_all_items_on_board(false)
+	if items.is_empty():
+		return
+	if board_ref.has_locked_or_boxed_items():
+		return
+
+	# Trigger Ultimate Quest
+	ultimate_quest_active = true
+	var uq := QuestData.new()
+	uq.id = "ultimate_quest"
+	uq.customer_name = "👑 Royal Food Critic Irene"
+	uq.customer_color = Color(1.0, 0.84, 0.0)
+	uq.required_item_ids = [
+		"egg_6",       # Foodbox max normal
+		"leaf_5",      # Foodbox max normal
+		"beef_7",      # Oven max normal
+		"cake_6",      # Oven max normal
+		"sandwich_6",  # Oven max normal
+		"drink_5",     # Fridge max normal
+		"util_12"      # Rack max normal
+	]
+	uq.reward_coins = 5000
+	uq.reward_gems = 200
+	uq.reward_energy = 100
+	uq.reward_exp = 1000
+
+	active_quests[0] = uq
+	_slot_cooldowns[0] = 0.0
+	_rebuild_cards()
+	update_quest_status()
+	if not _cards.is_empty() and is_instance_valid(_cards[0]):
+		_cards[0].slide_in_from_top()
+
+	GameEvents.show_floating_text.emit("👑 ULTIMATE FEAST QUEST ARRIVED! 👑", global_position + Vector2(330, 80), Color(1.0, 0.85, 0.2))
+	SoundManager.play_quest()
 
 func _generate_new_quest() -> QuestData:
 	var q := QuestData.new()
@@ -242,7 +344,6 @@ func _generate_new_quest() -> QuestData:
 		if ProgressionManager.is_unlocked(starter_id) or ProgressionManager.get_chain_unlocked_count(chain_id) > 0:
 			unlocked_pools.append(pool)
 
-	# If the filtered list is empty, fall back to egg/leaf pools only (always safe)
 	if unlocked_pools.is_empty():
 		unlocked_pools = [
 			["egg_1", "egg_2", "egg_3", "egg_4"],
@@ -295,50 +396,57 @@ func _generate_new_quest() -> QuestData:
 	return q
 
 func complete_active_quest_debug() -> void:
-	if not active_quests.is_empty():
-		var q := active_quests[0]
-		EconomyManager.add_coins(q.reward_coins)
-		if q.reward_gems > 0:
-			EconomyManager.add_gems(q.reward_gems)
-		if q.reward_exp > 0:
-			ProgressionManager.add_exp(q.reward_exp)
-		completed_quest_count += 1
-		GameEvents.quest_count_changed.emit(completed_quest_count)
-		if completed_quest_count == MILESTONE_BACKPACK:
-			GameEvents.quest_milestone_unlocked.emit("backpack")
-		if completed_quest_count == MILESTONE_SHOP:
-			GameEvents.quest_milestone_unlocked.emit("shop")
-		active_quests[0] = _generate_new_quest()
-		_rebuild_cards()
-		update_quest_status()
-		SoundManager.play_quest()
-		GameEvents.quest_completed.emit(q)
+	for i in range(MAX_QUESTS):
+		var q = active_quests[i]
+		if q is QuestData:
+			_on_deliver_pressed(q as QuestData)
+			return
+	# If all slots are currently waiting / on cooldown, force slot 0 to arrive immediately and deliver it
+	_slot_cooldowns[0] = 0.0
+	_arrive_quest_for_slot(0)
+	if active_quests[0] is QuestData:
+		_on_deliver_pressed(active_quests[0] as QuestData)
 
 func serialize_data() -> Dictionary:
 	return {
 		"quests": serialize_quests(),
-		"completed_quest_count": completed_quest_count
+		"completed_quest_count": completed_quest_count,
+		"slot_cooldowns": _slot_cooldowns.duplicate(),
+		"slot_total_cooldowns": _slot_total_cooldowns.duplicate(),
+		"ultimate_quest_active": ultimate_quest_active,
+		"ultimate_quest_completed": ultimate_quest_completed
 	}
 
 func load_data(data: Dictionary) -> void:
 	completed_quest_count = int(data.get("completed_quest_count", 0))
+	ultimate_quest_active = data.get("ultimate_quest_active", false)
+	ultimate_quest_completed = data.get("ultimate_quest_completed", false)
+	var sc = data.get("slot_cooldowns", [])
+	var stc = data.get("slot_total_cooldowns", [])
+	if sc is Array and sc.size() == MAX_QUESTS:
+		for i in range(MAX_QUESTS):
+			_slot_cooldowns[i] = float(sc[i])
+			_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and stc.size() == MAX_QUESTS) else float(sc[i])
 	load_quests(data.get("quests", []))
 	GameEvents.quest_count_changed.emit(completed_quest_count)
 
 func serialize_quests() -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
 	for q in active_quests:
-		if q:
+		if q is QuestData:
+			var qd: QuestData = q
 			result.append({
-				"id": q.id,
-				"customer_name": q.customer_name,
-				"customer_color": q.customer_color.to_html(true),
-				"required_item_ids": q.required_item_ids.duplicate(),
-				"reward_coins": q.reward_coins,
-				"reward_gems": q.reward_gems,
-				"reward_energy": q.reward_energy,
-				"reward_exp": q.reward_exp
+				"id": qd.id,
+				"customer_name": qd.customer_name,
+				"customer_color": qd.customer_color.to_html(true),
+				"required_item_ids": qd.required_item_ids.duplicate(),
+				"reward_coins": qd.reward_coins,
+				"reward_gems": qd.reward_gems,
+				"reward_energy": qd.reward_energy,
+				"reward_exp": qd.reward_exp
 			})
+		else:
+			result.append({})
 	return result
 
 func load_quests(quests_data: Variant, completed_count: int = -1) -> void:
@@ -358,19 +466,23 @@ func load_quests(quests_data: Variant, completed_count: int = -1) -> void:
 		_init_starter_quests()
 	else:
 		active_quests.clear()
-		for entry in list:
-			var q := QuestData.new()
-			q.id = str(entry.get("id", "quest_%d" % randi()))
-			q.customer_name = str(entry.get("customer_name", "Customer"))
-			q.customer_color = Color.from_string(str(entry.get("customer_color", "#4da6ff")), Color(0.3, 0.7, 1.0))
-			var reqs: Array[String] = []
-			for req in entry.get("required_item_ids", []):
-				reqs.append(str(req))
-			q.required_item_ids = reqs
-			q.reward_coins = int(entry.get("reward_coins", 25))
-			q.reward_gems = int(entry.get("reward_gems", 0))
-			q.reward_energy = int(entry.get("reward_energy", 0))
-			q.reward_exp = int(entry.get("reward_exp", 15))
-			active_quests.append(q)
+		active_quests.resize(MAX_QUESTS)
+		active_quests.fill(null)
+		for i in range(mini(list.size(), MAX_QUESTS)):
+			var entry = list[i]
+			if entry is Dictionary and not entry.is_empty():
+				var q := QuestData.new()
+				q.id = str(entry.get("id", "quest_%d" % randi()))
+				q.customer_name = str(entry.get("customer_name", "Customer"))
+				q.customer_color = Color.from_string(str(entry.get("customer_color", "#4da6ff")), Color(0.3, 0.7, 1.0))
+				var reqs: Array[String] = []
+				for req in entry.get("required_item_ids", []):
+					reqs.append(str(req))
+				q.required_item_ids = reqs
+				q.reward_coins = int(entry.get("reward_coins", 25))
+				q.reward_gems = int(entry.get("reward_gems", 0))
+				q.reward_energy = int(entry.get("reward_energy", 0))
+				q.reward_exp = int(entry.get("reward_exp", 15))
+				active_quests[i] = q
 	_rebuild_cards()
 	update_quest_status()

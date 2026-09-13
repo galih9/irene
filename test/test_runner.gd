@@ -1351,8 +1351,16 @@ func _ready() -> void:
 	qm.setup(null)
 
 	# 30.1 Verify starter quests 1, 2, 3 only require egg and leaf (reachable from Foodbox)
-	assert(qm.active_quests.size() == 3, "Must have 3 starter quests")
+	assert(qm.active_quests.size() == 3, "Must have 3 quest slots")
+	var all_starter_quests: Array[QuestData] = []
 	for q in qm.active_quests:
+		if q != null:
+			all_starter_quests.append(q)
+	for q in qm._pending_starter_quests:
+		if q != null:
+			all_starter_quests.append(q)
+	assert(all_starter_quests.size() == 3, "Must have 3 starter quests total")
+	for q in all_starter_quests:
 		for req_id in q.required_item_ids:
 			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "Starter quest items must only be egg or leaf, got: %s" % req_id)
 
@@ -1604,7 +1612,7 @@ func _ready() -> void:
 
 	# 36. Test Non-Consumable Guarantee in Populated Board Items
 	print("\n--- Testing Non-Consumable Guarantee in Populated Board Items ---")
-	var main_pop_scene: PackedScene = load("res://scenes/main.tscn")
+	var main_pop_scene: PackedScene = load("res://main.tscn")
 	var main_pop: MainGame = main_pop_scene.instantiate()
 	add_child(main_pop)
 	main_pop._setup_initial_board()
@@ -1634,6 +1642,8 @@ func _ready() -> void:
 	add_child(tut_bg)
 	tut_bg.setup(null, null, null, null)
 	tut_bg.is_completed = true # Simulating post-tutorial active gameplay
+	if is_instance_valid(QuestManager.instance):
+		QuestManager.instance.completed_quest_count = 5
 
 	# Test coin consumed watcher
 	assert(tut_bg._shown_flags.get("first_coin_spent_guide", false) == false, "first_coin_spent_guide starts false")
@@ -1655,6 +1665,140 @@ func _ready() -> void:
 
 	tut_bg.queue_free()
 	print("✔ Behavioral Guidance Watchers verified!")
+
+	# 38. Test Tutorial Progression Claim & First Quest Delivery Highlight
+	print("\n--- Testing Tutorial Progression Claim & Delivery Highlight ---")
+	var tut_test := TutorialManager.new()
+	add_child(tut_test)
+	tut_test.setup(null, null, null, null)
+	assert(TutorialManager.TutorialStep.CLAIM_PROGRESSION == 16, "CLAIM_PROGRESSION enum must exist")
+	tut_test._set_step(TutorialManager.TutorialStep.CLAIM_PROGRESSION)
+	assert(tut_test.current_step == TutorialManager.TutorialStep.CLAIM_PROGRESSION, "Current step must be CLAIM_PROGRESSION")
+
+	var feat38_qc_scene: PackedScene = load("res://scenes/quest_card.tscn")
+	var feat3_qc: QuestCard = feat38_qc_scene.instantiate()
+	add_child(feat3_qc)
+	var feat3_q := QuestData.new()
+	feat3_q.id = "feat3_q"
+	feat3_q.customer_name = "Chef Luigi"
+	feat3_q.required_item_ids = ["egg_1"]
+	feat3_qc.setup(feat3_q, true, ["egg_1"])
+	assert(feat3_qc.is_ready_to_deliver == true, "QuestCard should be ready to deliver")
+	feat3_qc.set_delivery_highlight(true)
+	assert(feat3_qc._highlight_tween != null and feat3_qc._highlight_tween.is_valid(), "Delivery highlight tween must be active")
+	feat3_qc.set_delivery_highlight(false)
+	assert(feat3_qc._highlight_tween == null, "Delivery highlight tween must be cleared")
+	feat3_qc.queue_free()
+	tut_test.queue_free()
+	print("✔ Tutorial Progression Claim & First Quest Delivery Highlight verified!")
+
+	# 39. Test Temporary Slot Tile Styling & Shine Shader
+	print("\n--- Testing Temporary Slot Tile Styling & Shine ---")
+	assert(FileAccess.file_exists("res://shaders/shine_gleam.gdshader"), "Shine gleam shader must exist")
+	var feat39_nav_scene: PackedScene = load("res://scenes/bottom_nav_bar.tscn")
+	var feat39_nav_bar: BottomNavBar = feat39_nav_scene.instantiate()
+	add_child(feat39_nav_bar)
+	assert(is_instance_valid(feat39_nav_bar.reward_btn), "RewardBtn must exist in BottomNavBar")
+	assert(is_instance_valid(feat39_nav_bar.shine_overlay), "ShineOverlay must exist in RewardBtn")
+	ProgressionManager.clear_reward_queue()
+	feat39_nav_bar.update_reward_slot_display()
+	assert(feat39_nav_bar.reward_btn.visible == false, "Reward slot should be hidden when queue is empty")
+	ProgressionManager.push_reward("chest_yellow_1")
+	feat39_nav_bar.update_reward_slot_display()
+	assert(feat39_nav_bar.reward_btn.visible == true, "Reward slot should be visible when item is in queue")
+	assert(feat39_nav_bar.shine_overlay.visible == true, "ShineOverlay must be active when item is in queue")
+	ProgressionManager.clear_reward_queue()
+	feat39_nav_bar.update_reward_slot_display()
+	feat39_nav_bar.queue_free()
+	print("✔ Temporary Slot Tile Styling & Shine verified!")
+
+	# 40. Test Extra Inventory Expansion System
+	print("\n--- Testing Extra Inventory Expansion System ---")
+	InventoryManager.unlocked_rows = 2
+	InventoryManager.clear_all()
+	assert(InventoryManager.get_max_slots() == 8, "Initial slots must be 8 (2 rows * 4)")
+	assert(InventoryManager.MAX_ROWS == 9, "MAX_ROWS must be 9")
+	assert(InventoryManager.unlocked_rows == 2, "Initial unlocked_rows must be 2")
+
+	# Cost for Row 3: 200 Gold
+	var feat40_cost_r3 := InventoryManager.get_next_row_cost()
+	assert(feat40_cost_r3.currency == "coins" and feat40_cost_r3.amount == 200, "Row 3 must cost 200 Gold Coins")
+	EconomyManager.coins = 100
+	assert(InventoryManager.can_unlock_next_row() == false, "Cannot unlock Row 3 with 100 coins")
+	EconomyManager.coins = 250
+	assert(InventoryManager.can_unlock_next_row() == true, "Can unlock Row 3 with 250 coins")
+	var feat40_unlocked_r3 := InventoryManager.unlock_next_row()
+	assert(feat40_unlocked_r3 == true, "Unlocking Row 3 must succeed")
+	assert(InventoryManager.unlocked_rows == 3, "unlocked_rows should now be 3")
+	assert(InventoryManager.get_max_slots() == 12, "Max slots should now be 12 (3 rows * 4)")
+	assert(EconomyManager.coins == 50, "Coins must be deducted (250 - 200 = 50)")
+
+	# Cost for Row 4: 5 Diamonds
+	var feat40_cost_r4 := InventoryManager.get_next_row_cost()
+	assert(feat40_cost_r4.currency == "gems" and feat40_cost_r4.amount == 5, "Row 4 must cost 5 Diamonds (gems)")
+	EconomyManager.gems = 2
+	assert(InventoryManager.can_unlock_next_row() == false, "Cannot unlock Row 4 with 2 gems")
+	EconomyManager.gems = 10
+	assert(InventoryManager.can_unlock_next_row() == true, "Can unlock Row 4 with 10 gems")
+	var feat40_unlocked_r4 := InventoryManager.unlock_next_row()
+	assert(feat40_unlocked_r4 == true, "Unlocking Row 4 must succeed")
+	assert(InventoryManager.unlocked_rows == 4, "unlocked_rows should now be 4")
+	assert(InventoryManager.get_max_slots() == 16, "Max slots should now be 16")
+	assert(EconomyManager.gems == 5, "Gems must be deducted (10 - 5 = 5)")
+
+	# Test serialization
+	var feat40_inv_data := InventoryManager.serialize_data()
+	assert(feat40_inv_data.get("unlocked_rows", 0) == 4, "Serialized data must preserve unlocked_rows")
+	InventoryManager.unlocked_rows = 2
+	InventoryManager.load_data(feat40_inv_data)
+	assert(InventoryManager.unlocked_rows == 4, "load_data must restore unlocked_rows to 4")
+	assert(InventoryManager.get_max_slots() == 16, "Max slots restored to 16")
+	print("✔ Extra Inventory Expansion System verified!")
+
+	# 41. Test Quest System Pacing, Cooldowns & Ultimate Quest
+	print("\n--- Testing Quest Pacing, Cooldowns & Ultimate Quest ---")
+	var feat41_qm_scene: PackedScene = load("res://scenes/quest_manager.tscn")
+	var feat41_qm: QuestManager = feat41_qm_scene.instantiate()
+	add_child(feat41_qm)
+	feat41_qm.setup(null, null)
+	assert(feat41_qm.active_quests.size() == 3, "QuestManager must track 3 quest slots")
+	assert(feat41_qm.active_quests[0] != null, "Slot 0 should have initial active quest")
+	assert(feat41_qm._slot_cooldowns[1] > 0.0, "Slot 1 should arrive with a gap / cooldown")
+	assert(feat41_qm._slot_cooldowns[2] > feat41_qm._slot_cooldowns[1], "Slot 2 cooldown should be greater than Slot 1")
+
+	# Test Cooldown after delivering quest
+	var feat41_q0: QuestData = feat41_qm.active_quests[0]
+	feat41_qm._on_deliver_pressed(feat41_q0)
+	assert(feat41_qm.active_quests[0] == null, "Delivered slot should be null during cooldown")
+	assert(feat41_qm._slot_cooldowns[0] > 0.0, "Delivered slot must have a positive cooldown timer")
+
+	# Test Board has_locked_or_boxed_items
+	var feat41_b_scene: PackedScene = load("res://scenes/board.tscn")
+	var feat41_test_b: Board = feat41_b_scene.instantiate()
+	add_child(feat41_test_b)
+	assert(feat41_test_b.has_locked_or_boxed_items() == false, "Empty board has no locked or boxed items")
+	feat41_test_b.spawn_item_at(Vector2i(1, 1), "egg_1", ItemView.ItemState.LOCKED)
+	assert(feat41_test_b.has_locked_or_boxed_items() == true, "Board with locked item must report true")
+	feat41_test_b.clear_board()
+	assert(feat41_test_b.has_locked_or_boxed_items() == false, "Cleared board must report false")
+	feat41_test_b.spawn_item_at(Vector2i(0, 0), "foodbox_1", ItemView.ItemState.NORMAL)
+
+	# Test Ultimate Quest Trigger
+	feat41_qm.board_ref = feat41_test_b
+	feat41_qm.ultimate_quest_active = false
+	feat41_qm.ultimate_quest_completed = false
+	feat41_qm.check_ultimate_quest_trigger()
+	assert(feat41_qm.ultimate_quest_active == true, "Ultimate quest must trigger when board is completely clear")
+	var feat41_uq: QuestData = feat41_qm.active_quests[0]
+	assert(feat41_uq != null and feat41_uq.id == "ultimate_quest", "Slot 0 must contain ultimate_quest")
+	var feat41_expected_reqs := ["egg_6", "leaf_5", "beef_7", "cake_6", "sandwich_6", "drink_5", "util_12"]
+	for req in feat41_expected_reqs:
+		assert(feat41_uq.required_item_ids.has(req), "Ultimate quest must require normal maxed item %s" % req)
+	assert(feat41_uq.required_item_ids.size() == 7, "Ultimate quest must require exactly 7 maxed normal items")
+
+	feat41_test_b.queue_free()
+	feat41_qm.queue_free()
+	print("✔ Quest Pacing, Cooldowns & Ultimate Quest verified!")
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)

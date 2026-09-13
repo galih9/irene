@@ -78,9 +78,7 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		"timestamp_string": Time.get_datetime_string_from_system(),
 		"currencies": EconomyManager.serialize_data(),
 		"progression": ProgressionManager.serialize_data(),
-		"inventory": {
-			"slots": InventoryManager.get_slots()
-		},
+		"inventory": InventoryManager.serialize_data(),
 		"board": {
 			"cols": board_ref.cols if is_instance_valid(board_ref) else 7,
 			"rows": board_ref.rows if is_instance_valid(board_ref) else 9,
@@ -153,7 +151,7 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 	# 3. Restore Inventory
 	if data.has("inventory"):
 		var inv: Dictionary = data["inventory"]
-		InventoryManager.load_slots(inv.get("slots", []))
+		InventoryManager.load_data(inv)
 
 	# 4. Restore Board
 	var b := target_board if is_instance_valid(target_board) else board_ref
