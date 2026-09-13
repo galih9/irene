@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c5m8p1w4n7y2r"]
 
 [ext_resource type="Script" uid="uid://d0n7ocgjg36j6" path="res://scripts/ui/main_menu.gd" id="1_menu"]
-[ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background.jpeg" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background/kitchen.jpeg" id="2_bg"]
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="3_opt"]
 [ext_resource type="Texture2D" uid="uid://di7oct0i1cts5" path="res://assets/icon/icon_gear.png" id="4_gear"]
 [ext_resource type="Texture2D" uid="uid://courjb207v2ui" path="res://assets/icon/icon_kitchen.png" id="5_kitchen"]
@@ -9,7 +9,7 @@
 [ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="7_blue_btn"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="8_yellow_btn"]
 [ext_resource type="Texture2D" uid="uid://c5umqvh7eqs2b" path="res://assets/ui/red.png" id="9_red_btn"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_event.png" id="10_event"]
+[ext_resource type="Texture2D" uid="uid://bocbakg3e80w3" path="res://assets/icon/icon_event.png" id="10_event"]
 [ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="11_trash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_card"]
@@ -242,10 +242,9 @@ theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
 theme_override_styles/disabled = SubResource("StyleBoxTexture_green_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-icon = ExtResource("5_kitchen")
-icon_alignment = 0
-expand_icon = true
 text = "  CONTINUE GAME"
+icon = ExtResource("5_kitchen")
+expand_icon = true
 
 [node name="SaveInfoLabel" type="Label" parent="UI/CenterContainer/VBox/Buttons" unique_id=1097820598]
 layout_mode = 2
@@ -265,10 +264,9 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-icon = ExtResource("10_event")
-icon_alignment = 0
-expand_icon = true
 text = "  NEW GAME"
+icon = ExtResource("10_event")
+expand_icon = true
 
 [node name="OptionsBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1321035588]
 custom_minimum_size = Vector2(0, 64)
@@ -281,10 +279,9 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_yellow_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-icon = ExtResource("4_gear")
-icon_alignment = 0
-expand_icon = true
 text = "  OPTIONS"
+icon = ExtResource("4_gear")
+expand_icon = true
 
 [node name="QuitBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1276760746]
 custom_minimum_size = Vector2(0, 60)
@@ -297,10 +294,9 @@ theme_override_styles/normal = SubResource("StyleBoxTexture_red_normal")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_red_pressed")
 theme_override_styles/hover = SubResource("StyleBoxTexture_red_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-icon = ExtResource("11_trash")
-icon_alignment = 0
-expand_icon = true
 text = "  QUIT"
+icon = ExtResource("11_trash")
+expand_icon = true
 
 [node name="Modals" type="CanvasLayer" parent="." unique_id=1897779832]
 layer = 2

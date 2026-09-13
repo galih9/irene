@@ -1,7 +1,7 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/ui/irene_popup_modal.gd" id="1_modal"]
-[ext_resource type="Texture2D" path="res://assets/irene/greeting.png" id="2_irene"]
+[ext_resource type="Script" uid="uid://0gjmhx86d7ie" path="res://scripts/ui/irene_popup_modal.gd" id="1_modal"]
+[ext_resource type="Texture2D" uid="uid://bthexhmvrkqob" path="res://assets/characters/irene/greeting.png" id="2_irene"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="3_yellow_btn"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]

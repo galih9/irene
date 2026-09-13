@@ -4,11 +4,11 @@
 [ext_resource type="Texture2D" uid="uid://cfgk28mw2n1n" path="res://assets/icon/icon_progress.png" id="2_prog_icon"]
 [ext_resource type="Texture2D" uid="uid://c6a3wyfdgf3w4" path="res://assets/icon/icon_inventory.png" id="3_inv_icon"]
 [ext_resource type="Texture2D" uid="uid://dx3plyblf8v4u" path="res://assets/icon/icon_shop.png" id="4_shop_icon"]
-[ext_resource type="Texture2D" path="res://assets/chest/yellow/4.png" id="5_chest_icon"]
+[ext_resource type="Texture2D" uid="uid://dkn11axd0qoys" path="res://assets/items/rewards/chest/yellow/4.png" id="5_chest_icon"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="6_yellow_btn"]
 [ext_resource type="Texture2D" uid="uid://dpifib2reoed2" path="res://assets/ui/green.png" id="7_green_btn"]
 [ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="8_blue_btn"]
-[ext_resource type="Shader" path="res://shaders/shine_gleam.gdshader" id="9_shine"]
+[ext_resource type="Shader" uid="uid://4b1eck8aapka" path="res://shaders/shine_gleam.gdshader" id="9_shine"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_shine"]
 shader = ExtResource("9_shine")

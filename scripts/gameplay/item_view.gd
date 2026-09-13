@@ -15,20 +15,20 @@ enum ProducerStatus {
 }
 
 const BOX_TEXTURES: Array[Texture2D] = [
-	preload("res://assets/box/box1.png"),
-	preload("res://assets/box/box2.png"),
-	preload("res://assets/box/box3.png"),
-	preload("res://assets/box/box4.png"),
-	preload("res://assets/box/box5.png"),
+	preload("res://assets/items/extras/box/box1.png"),
+	preload("res://assets/items/extras/box/box2.png"),
+	preload("res://assets/items/extras/box/box3.png"),
+	preload("res://assets/items/extras/box/box4.png"),
+	preload("res://assets/items/extras/box/box5.png"),
 ]
 
 const WEB_TEXTURES: Array[Texture2D] = [
-	preload("res://assets/box/web1.png"),
-	preload("res://assets/box/web2.png"),
-	preload("res://assets/box/web3.png"),
-	preload("res://assets/box/web4.png"),
-	preload("res://assets/box/web5.png"),
-	preload("res://assets/box/web6.png"),
+	preload("res://assets/items/extras/box/web1.png"),
+	preload("res://assets/items/extras/box/web2.png"),
+	preload("res://assets/items/extras/box/web3.png"),
+	preload("res://assets/items/extras/box/web4.png"),
+	preload("res://assets/items/extras/box/web5.png"),
+	preload("res://assets/items/extras/box/web6.png"),
 ]
 
 const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)

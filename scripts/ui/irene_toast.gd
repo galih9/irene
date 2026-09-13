@@ -7,12 +7,12 @@ extends Control
 @onready var message_label: Label = $Panel/Margin/HBox/TextVBox/MessageLabel
 
 const EMOTIONS: Dictionary = {
-	"greeting": preload("res://assets/irene/greeting.png"),
-	"explain": preload("res://assets/irene/explain.png"),
-	"happy": preload("res://assets/irene/happy.png"),
-	"thinking": preload("res://assets/irene/thinking.png"),
-	"shocked": preload("res://assets/irene/shocked.png"),
-	"admire": preload("res://assets/irene/admire.png")
+	"greeting": preload("res://assets/characters/irene/greeting.png"),
+	"explain": preload("res://assets/characters/irene/explain.png"),
+	"happy": preload("res://assets/characters/irene/happy.png"),
+	"thinking": preload("res://assets/characters/irene/thinking.png"),
+	"shocked": preload("res://assets/characters/irene/shocked.png"),
+	"admire": preload("res://assets/characters/irene/admire.png")
 }
 
 var _anim_tween: Tween = null

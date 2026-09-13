@@ -20,12 +20,12 @@ func _init_database() -> void:
 
 	# 1.1 Foodbox Chain (produces egg, leafs)
 	var foodbox_textures := [
-		preload("res://assets/foodbox/food1.png"),
-		preload("res://assets/foodbox/food2.png"),
-		preload("res://assets/foodbox/food3.png"),
-		preload("res://assets/foodbox/food4.png"),
-		preload("res://assets/foodbox/food5.png"),
-		preload("res://assets/foodbox/food6.png")
+		preload("res://assets/items/kitchen/foodbox/food1.png"),
+		preload("res://assets/items/kitchen/foodbox/food2.png"),
+		preload("res://assets/items/kitchen/foodbox/food3.png"),
+		preload("res://assets/items/kitchen/foodbox/food4.png"),
+		preload("res://assets/items/kitchen/foodbox/food5.png"),
+		preload("res://assets/items/kitchen/foodbox/food6.png")
 	]
 	var foodbox_names := [
 		"Wooden Foodbox", "Reinforced Foodbox", "Pantry Box",
@@ -55,12 +55,12 @@ func _init_database() -> void:
 
 	# 1.2 Oven Chain (produces beef, cake, sandwich)
 	var oven_textures := [
-		preload("res://assets/oven/oven_1.png"),
-		preload("res://assets/oven/oven_2.png"),
-		preload("res://assets/oven/oven_3.png"),
-		preload("res://assets/oven/oven_4.png"),
-		preload("res://assets/oven/oven_5.png"),
-		preload("res://assets/oven/oven_6.png")
+		preload("res://assets/items/kitchen/oven/oven_1.png"),
+		preload("res://assets/items/kitchen/oven/oven_2.png"),
+		preload("res://assets/items/kitchen/oven/oven_3.png"),
+		preload("res://assets/items/kitchen/oven/oven_4.png"),
+		preload("res://assets/items/kitchen/oven/oven_5.png"),
+		preload("res://assets/items/kitchen/oven/oven_6.png")
 	]
 	var oven_names := [
 		"Clay Toaster", "Stone Stove", "Brick Baker",
@@ -90,12 +90,12 @@ func _init_database() -> void:
 
 	# 1.3 Fridge Chain (produces drink)
 	var fridge_textures := [
-		preload("res://assets/fridge/fridge1.png"),
-		preload("res://assets/fridge/fridge2.png"),
-		preload("res://assets/fridge/fridge3.png"),
-		preload("res://assets/fridge/fridge4.png"),
-		preload("res://assets/fridge/fridge5.png"),
-		preload("res://assets/fridge/fridge6.png")
+		preload("res://assets/items/kitchen/fridge/fridge1.png"),
+		preload("res://assets/items/kitchen/fridge/fridge2.png"),
+		preload("res://assets/items/kitchen/fridge/fridge3.png"),
+		preload("res://assets/items/kitchen/fridge/fridge4.png"),
+		preload("res://assets/items/kitchen/fridge/fridge5.png"),
+		preload("res://assets/items/kitchen/fridge/fridge6.png")
 	]
 	var fridge_names := [
 		"Mini Icebox", "Retro Cooler", "Kitchen Refrigerator",
@@ -125,13 +125,13 @@ func _init_database() -> void:
 
 	# 1.4 Rack Chain (produces utils)
 	var rack_textures := [
-		preload("res://assets/rack/rack1.png"),
-		preload("res://assets/rack/rack2.png"),
-		preload("res://assets/rack/rack3.png"),
-		preload("res://assets/rack/rack4.png"),
-		preload("res://assets/rack/rack5.png"),
-		preload("res://assets/rack/rack6.png"),
-		preload("res://assets/rack/rack7.png")
+		preload("res://assets/items/kitchen/rack/rack1.png"),
+		preload("res://assets/items/kitchen/rack/rack2.png"),
+		preload("res://assets/items/kitchen/rack/rack3.png"),
+		preload("res://assets/items/kitchen/rack/rack4.png"),
+		preload("res://assets/items/kitchen/rack/rack5.png"),
+		preload("res://assets/items/kitchen/rack/rack6.png"),
+		preload("res://assets/items/kitchen/rack/rack7.png")
 	]
 	var rack_names := [
 		"Small Pegboard", "Wooden Utensil Stand", "Metal Tool Rack",
@@ -166,12 +166,12 @@ func _init_database() -> void:
 
 	# 2.1 Egg Chain (produced from Foodbox)
 	var egg_textures := [
-		preload("res://assets/eggs/egg_0.png"),
-		preload("res://assets/eggs/egg_1.png"),
-		preload("res://assets/eggs/egg_2.png"),
-		preload("res://assets/eggs/egg_3.png"),
-		preload("res://assets/eggs/egg_4.png"),
-		preload("res://assets/eggs/egg_5.png")
+		preload("res://assets/items/kitchen/eggs/egg_0.png"),
+		preload("res://assets/items/kitchen/eggs/egg_1.png"),
+		preload("res://assets/items/kitchen/eggs/egg_2.png"),
+		preload("res://assets/items/kitchen/eggs/egg_3.png"),
+		preload("res://assets/items/kitchen/eggs/egg_4.png"),
+		preload("res://assets/items/kitchen/eggs/egg_5.png")
 	]
 	var egg_names := [
 		"Fresh Egg", "Double Eggs", "Egg Trio",
@@ -194,11 +194,11 @@ func _init_database() -> void:
 
 	# 2.2 Leafs / Greens Chain (produced from Foodbox)
 	var leaf_textures := [
-		preload("res://assets/leafs/leaf_0.png"),
-		preload("res://assets/leafs/leaf_1.png"),
-		preload("res://assets/leafs/leaf_2.png"),
-		preload("res://assets/leafs/leaf_3.png"),
-		preload("res://assets/leafs/leaf_4.png")
+		preload("res://assets/items/kitchen/leafs/leaf_0.png"),
+		preload("res://assets/items/kitchen/leafs/leaf_1.png"),
+		preload("res://assets/items/kitchen/leafs/leaf_2.png"),
+		preload("res://assets/items/kitchen/leafs/leaf_3.png"),
+		preload("res://assets/items/kitchen/leafs/leaf_4.png")
 	]
 	var leaf_names := [
 		"Fresh Herb", "Crisp Celery", "Spinach Bundle",
@@ -220,13 +220,13 @@ func _init_database() -> void:
 
 	# 2.3 Beef Chain (produced from Oven)
 	var beef_textures := [
-		preload("res://assets/beef/beef_1.png"),
-		preload("res://assets/beef/beef_2.png"),
-		preload("res://assets/beef/beef_3.png"),
-		preload("res://assets/beef/beef_4.png"),
-		preload("res://assets/beef/beef_5.png"),
-		preload("res://assets/beef/beef_6.png"),
-		preload("res://assets/beef/beef_7.png")
+		preload("res://assets/items/kitchen/beef/beef_1.png"),
+		preload("res://assets/items/kitchen/beef/beef_2.png"),
+		preload("res://assets/items/kitchen/beef/beef_3.png"),
+		preload("res://assets/items/kitchen/beef/beef_4.png"),
+		preload("res://assets/items/kitchen/beef/beef_5.png"),
+		preload("res://assets/items/kitchen/beef/beef_6.png"),
+		preload("res://assets/items/kitchen/beef/beef_7.png")
 	]
 	var beef_names := [
 		"Ground Beef", "Meat Patty", "Beef Sausage",
@@ -250,12 +250,12 @@ func _init_database() -> void:
 
 	# 2.4 Cake Chain (produced from Oven)
 	var cake_textures := [
-		preload("res://assets/cake/cake_1.png"),
-		preload("res://assets/cake/cake_2.png"),
-		preload("res://assets/cake/cake_3.png"),
-		preload("res://assets/cake/cake_4.png"),
-		preload("res://assets/cake/cake_5.png"),
-		preload("res://assets/cake/cake_6.png")
+		preload("res://assets/items/kitchen/cake/cake_1.png"),
+		preload("res://assets/items/kitchen/cake/cake_2.png"),
+		preload("res://assets/items/kitchen/cake/cake_3.png"),
+		preload("res://assets/items/kitchen/cake/cake_4.png"),
+		preload("res://assets/items/kitchen/cake/cake_5.png"),
+		preload("res://assets/items/kitchen/cake/cake_6.png")
 	]
 	var cake_names := [
 		"Cupcake", "Berry Tart", "Sponge Roll",
@@ -278,12 +278,12 @@ func _init_database() -> void:
 
 	# 2.5 Sandwich Chain (produced from Oven)
 	var sandwich_textures := [
-		preload("res://assets/sandwich/sandwich1.png"),
-		preload("res://assets/sandwich/sandwich2.png"),
-		preload("res://assets/sandwich/sandwich3.png"),
-		preload("res://assets/sandwich/sandwich4.png"),
-		preload("res://assets/sandwich/sandwich5.png"),
-		preload("res://assets/sandwich/sandwich6.png")
+		preload("res://assets/items/kitchen/sandwich/sandwich1.png"),
+		preload("res://assets/items/kitchen/sandwich/sandwich2.png"),
+		preload("res://assets/items/kitchen/sandwich/sandwich3.png"),
+		preload("res://assets/items/kitchen/sandwich/sandwich4.png"),
+		preload("res://assets/items/kitchen/sandwich/sandwich5.png"),
+		preload("res://assets/items/kitchen/sandwich/sandwich6.png")
 	]
 	var sandwich_names := [
 		"Toast Slice", "Buttered Bread", "Club Sandwich",
@@ -306,11 +306,11 @@ func _init_database() -> void:
 
 	# 2.6 Drink Chain (produced from Fridge)
 	var drink_textures := [
-		preload("res://assets/drink/drink_1.png"),
-		preload("res://assets/drink/drink_2.png"),
-		preload("res://assets/drink/drink_3.png"),
-		preload("res://assets/drink/drink_4.png"),
-		preload("res://assets/drink/drink_5.png")
+		preload("res://assets/items/kitchen/drink/drink_1.png"),
+		preload("res://assets/items/kitchen/drink/drink_2.png"),
+		preload("res://assets/items/kitchen/drink/drink_3.png"),
+		preload("res://assets/items/kitchen/drink/drink_4.png"),
+		preload("res://assets/items/kitchen/drink/drink_5.png")
 	]
 	var drink_names := [
 		"Water Glass", "Iced Lemonade", "Berry Smoothie",
@@ -332,18 +332,18 @@ func _init_database() -> void:
 
 	# 2.7 Utils Chain (produced from Rack)
 	var util_textures := [
-		preload("res://assets/utils/util1.png"),
-		preload("res://assets/utils/util2.png"),
-		preload("res://assets/utils/util3.png"),
-		preload("res://assets/utils/util4.png"),
-		preload("res://assets/utils/util5.png"),
-		preload("res://assets/utils/util6.png"),
-		preload("res://assets/utils/util7.png"),
-		preload("res://assets/utils/util8.png"),
-		preload("res://assets/utils/util9.png"),
-		preload("res://assets/utils/util10.png"),
-		preload("res://assets/utils/util11.png"),
-		preload("res://assets/utils/util12.png")
+		preload("res://assets/items/kitchen/utils/util1.png"),
+		preload("res://assets/items/kitchen/utils/util2.png"),
+		preload("res://assets/items/kitchen/utils/util3.png"),
+		preload("res://assets/items/kitchen/utils/util4.png"),
+		preload("res://assets/items/kitchen/utils/util5.png"),
+		preload("res://assets/items/kitchen/utils/util6.png"),
+		preload("res://assets/items/kitchen/utils/util7.png"),
+		preload("res://assets/items/kitchen/utils/util8.png"),
+		preload("res://assets/items/kitchen/utils/util9.png"),
+		preload("res://assets/items/kitchen/utils/util10.png"),
+		preload("res://assets/items/kitchen/utils/util11.png"),
+		preload("res://assets/items/kitchen/utils/util12.png")
 	]
 	var util_names := [
 		"Spoon", "Fork", "Table Knife",
@@ -378,16 +378,16 @@ func _init_database() -> void:
 
 	# 3.1 EXP Chain (10 Tiers)
 	var exp_textures := [
-		preload("res://assets/exp/exp1.png"),
-		preload("res://assets/exp/exp2.png"),
-		preload("res://assets/exp/exp3.png"),
-		preload("res://assets/exp/exp4.png"),
-		preload("res://assets/exp/exp5.png"),
-		preload("res://assets/exp/exp6.png"),
-		preload("res://assets/exp/exp7.png"),
-		preload("res://assets/exp/exp8.png"),
-		preload("res://assets/exp/exp9.png"),
-		preload("res://assets/exp/exp10.png")
+		preload("res://assets/items/rewards/exp/exp1.png"),
+		preload("res://assets/items/rewards/exp/exp2.png"),
+		preload("res://assets/items/rewards/exp/exp3.png"),
+		preload("res://assets/items/rewards/exp/exp4.png"),
+		preload("res://assets/items/rewards/exp/exp5.png"),
+		preload("res://assets/items/rewards/exp/exp6.png"),
+		preload("res://assets/items/rewards/exp/exp7.png"),
+		preload("res://assets/items/rewards/exp/exp8.png"),
+		preload("res://assets/items/rewards/exp/exp9.png"),
+		preload("res://assets/items/rewards/exp/exp10.png")
 	]
 	var exp_names := [
 		"Mini EXP Spark", "EXP Ember", "Glowing Shard",
@@ -407,14 +407,14 @@ func _init_database() -> void:
 
 	# 3.2 Gold Chain (8 Tiers)
 	var gold_textures := [
-		preload("res://assets/gold/gold1.png"),
-		preload("res://assets/gold/gold2.png"),
-		preload("res://assets/gold/gold3.png"),
-		preload("res://assets/gold/gold4.png"),
-		preload("res://assets/gold/gold5.png"),
-		preload("res://assets/gold/gold6.png"),
-		preload("res://assets/gold/gold7.png"),
-		preload("res://assets/gold/gold8.png")
+		preload("res://assets/items/rewards/gold/gold1.png"),
+		preload("res://assets/items/rewards/gold/gold2.png"),
+		preload("res://assets/items/rewards/gold/gold3.png"),
+		preload("res://assets/items/rewards/gold/gold4.png"),
+		preload("res://assets/items/rewards/gold/gold5.png"),
+		preload("res://assets/items/rewards/gold/gold6.png"),
+		preload("res://assets/items/rewards/gold/gold7.png"),
+		preload("res://assets/items/rewards/gold/gold8.png")
 	]
 	var gold_names := [
 		"Bronze Penny", "Silver Dime", "Gold Sovereign",
@@ -434,14 +434,14 @@ func _init_database() -> void:
 
 	# 3.3 Energy Chain (8 Tiers)
 	var energy_textures := [
-		preload("res://assets/energy/energy_1.png"),
-		preload("res://assets/energy/energy_2.png"),
-		preload("res://assets/energy/energy_3.png"),
-		preload("res://assets/energy/energy_4.png"),
-		preload("res://assets/energy/energy_5.png"),
-		preload("res://assets/energy/energy_6.png"),
-		preload("res://assets/energy/energy_7.png"),
-		preload("res://assets/energy/energy_8.png")
+		preload("res://assets/items/rewards/energy/energy_1.png"),
+		preload("res://assets/items/rewards/energy/energy_2.png"),
+		preload("res://assets/items/rewards/energy/energy_3.png"),
+		preload("res://assets/items/rewards/energy/energy_4.png"),
+		preload("res://assets/items/rewards/energy/energy_5.png"),
+		preload("res://assets/items/rewards/energy/energy_6.png"),
+		preload("res://assets/items/rewards/energy/energy_7.png"),
+		preload("res://assets/items/rewards/energy/energy_8.png")
 	]
 	var energy_names := [
 		"Energy Spark", "Energy Droplet", "Energy Battery",
@@ -461,13 +461,13 @@ func _init_database() -> void:
 
 	# 3.4 Diamond Chain (7 Tiers)
 	var diamond_textures := [
-		preload("res://assets/diamond/diamond_1.png"),
-		preload("res://assets/diamond/diamond_2.png"),
-		preload("res://assets/diamond/diamond_3.png"),
-		preload("res://assets/diamond/diamond_4.png"),
-		preload("res://assets/diamond/diamond_5.png"),
-		preload("res://assets/diamond/diamond_6.png"),
-		preload("res://assets/diamond/diamond_7.png")
+		preload("res://assets/items/rewards/diamond/diamond_1.png"),
+		preload("res://assets/items/rewards/diamond/diamond_2.png"),
+		preload("res://assets/items/rewards/diamond/diamond_3.png"),
+		preload("res://assets/items/rewards/diamond/diamond_4.png"),
+		preload("res://assets/items/rewards/diamond/diamond_5.png"),
+		preload("res://assets/items/rewards/diamond/diamond_6.png"),
+		preload("res://assets/items/rewards/diamond/diamond_7.png")
 	]
 	var diamond_names := [
 		"Raw Diamond Shard", "Flawed Diamond", "Cut Diamond",
@@ -528,10 +528,10 @@ func _register_color_chests() -> void:
 
 	# 4.1 Purple Chest Chain (EXP Focus)
 	var purple_textures := [
-		preload("res://assets/chest/purple/1.png"),
-		preload("res://assets/chest/purple/2.png"),
-		preload("res://assets/chest/purple/3.png"),
-		preload("res://assets/chest/purple/4.png")
+		preload("res://assets/items/rewards/chest/purple/1.png"),
+		preload("res://assets/items/rewards/chest/purple/2.png"),
+		preload("res://assets/items/rewards/chest/purple/3.png"),
+		preload("res://assets/items/rewards/chest/purple/4.png")
 	]
 	var purple_names := [
 		"Mystic EXP Chest", "Glowing Arcane Chest", "Astral EXP Vault", "Celestial EXP Coffer"
@@ -560,10 +560,10 @@ func _register_color_chests() -> void:
 
 	# 4.2 Green Chest Chain (Energy Focus)
 	var green_textures := [
-		preload("res://assets/chest/green/1.png"),
-		preload("res://assets/chest/green/2.png"),
-		preload("res://assets/chest/green/3.png"),
-		preload("res://assets/chest/green/4.png")
+		preload("res://assets/items/rewards/chest/green/1.png"),
+		preload("res://assets/items/rewards/chest/green/2.png"),
+		preload("res://assets/items/rewards/chest/green/3.png"),
+		preload("res://assets/items/rewards/chest/green/4.png")
 	]
 	var green_names := [
 		"Vitality Energy Chest", "Surging Energy Chest", "Overcharged Energy Vault", "Infinite Energy Coffer"
@@ -592,10 +592,10 @@ func _register_color_chests() -> void:
 
 	# 4.3 Yellow Chest Chain (Gold Focus)
 	var yellow_textures := [
-		preload("res://assets/chest/yellow/1.png"),
-		preload("res://assets/chest/yellow/2.png"),
-		preload("res://assets/chest/yellow/3.png"),
-		preload("res://assets/chest/yellow/4.png")
+		preload("res://assets/items/rewards/chest/yellow/1.png"),
+		preload("res://assets/items/rewards/chest/yellow/2.png"),
+		preload("res://assets/items/rewards/chest/yellow/3.png"),
+		preload("res://assets/items/rewards/chest/yellow/4.png")
 	]
 	var yellow_names := [
 		"Gilded Gold Chest", "Treasure Gold Chest", "Royal Gold Vault", "Emperor's Gold Coffer"
@@ -624,10 +624,10 @@ func _register_color_chests() -> void:
 
 	# 4.4 Blue Chest Chain (Diamond Focus)
 	var blue_textures := [
-		preload("res://assets/chest/blue/1.png"),
-		preload("res://assets/chest/blue/2.png"),
-		preload("res://assets/chest/blue/3.png"),
-		preload("res://assets/chest/blue/4.png")
+		preload("res://assets/items/rewards/chest/blue/1.png"),
+		preload("res://assets/items/rewards/chest/blue/2.png"),
+		preload("res://assets/items/rewards/chest/blue/3.png"),
+		preload("res://assets/items/rewards/chest/blue/4.png")
 	]
 	var blue_names := [
 		"Sapphire Diamond Chest", "Crystal Diamond Chest", "Radiant Diamond Vault", "Starlight Diamond Coffer"

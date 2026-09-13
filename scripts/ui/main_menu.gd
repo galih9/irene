@@ -12,8 +12,8 @@ extends Control
 
 @onready var option_modal: OptionModal = $Modals/OptionModal
 
-const BG_PORTRAIT = preload("res://assets/background.jpeg")
-const BG_LANDSCAPE = preload("res://assets/background_landscape.jpg")
+const BG_PORTRAIT = preload("res://assets/background/kitchen.jpeg")
+const BG_LANDSCAPE = preload("res://assets/background/kitchen_landscape.jpg")
 
 func _ready() -> void:
 	continue_btn.pressed.connect(_on_continue_pressed)

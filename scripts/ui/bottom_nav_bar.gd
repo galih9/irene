@@ -276,7 +276,7 @@ func update_reward_slot_display() -> void:
 		if item_data and item_data.icon_texture:
 			reward_icon.texture = item_data.icon_texture
 		else:
-			reward_icon.texture = preload("res://assets/chest/yellow/4.png")
+			reward_icon.texture = preload("res://assets/items/rewards/chest/yellow/4.png")
 
 	if is_instance_valid(reward_badge) and is_instance_valid(reward_badge_label):
 		if count > 1:

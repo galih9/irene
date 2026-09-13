@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://b1n4r7x8m5v2w" path="res://scenes/debug_menu.tscn" id="7_dbg"]
 [ext_resource type="PackedScene" uid="uid://c8m4x1xan7y20" path="res://scenes/progression_modal.tscn" id="8_prog"]
 [ext_resource type="PackedScene" uid="uid://cb5y3r8k1m7nx" path="res://scenes/inventory_modal.tscn" id="9_inv"]
-[ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background.jpeg" id="10_bg"]
+[ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background/kitchen.jpeg" id="10_bg"]
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="11_opt"]
 [ext_resource type="PackedScene" uid="uid://c6u4m2j5x8qaq" path="res://scenes/save_toast.tscn" id="12_toast"]
 [ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="13_trash"]

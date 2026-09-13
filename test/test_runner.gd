@@ -207,7 +207,7 @@ func _ready() -> void:
 
 	var bg_rect: TextureRect = bg_layer.get_node_or_null("Background")
 	assert(bg_rect != null, "Background TextureRect must exist in BackgroundLayer")
-	var expected_bg := "res://assets/background_landscape.jpg" if OrientationManager.is_landscape else "res://assets/background.jpeg"
+	var expected_bg := "res://assets/background/kitchen_landscape.jpg" if OrientationManager.is_landscape else "res://assets/background/kitchen.jpeg"
 	assert(bg_rect.texture.resource_path == expected_bg, "Background texture must match orientation background")
 
 	var info_area: Panel = main_inst.get_node_or_null("CanvasLayer/UI/BottomBar/InfoArea")
@@ -1285,7 +1285,7 @@ func _ready() -> void:
 
 	# Apply Landscape Mode
 	main_orient_inst.apply_orientation(true)
-	assert(main_orient_inst.background_rect.texture.resource_path.contains("background_landscape"), "Landscape must use background_landscape.jpg")
+	assert(main_orient_inst.background_rect.texture.resource_path.contains("kitchen_landscape"), "Landscape must use kitchen_landscape.jpg")
 	assert(main_orient_inst.board.cols == 9 and main_orient_inst.board.rows == 7, "Board must be 9x7 in landscape")
 	assert(is_equal_approx(main_orient_inst.board.position.x, 438.0), "Board must be centered horizontally in landscape (x ~ 438)")
 	assert(main_orient_inst.quest_container.offset_left == 32.0, "Quests must be on the left in landscape")
@@ -1301,7 +1301,7 @@ func _ready() -> void:
 
 	# Apply Portrait Mode
 	main_orient_inst.apply_orientation(false)
-	assert(main_orient_inst.background_rect.texture.resource_path.contains("background.jpeg"), "Portrait must use background.jpeg")
+	assert(main_orient_inst.background_rect.texture.resource_path.contains("kitchen.jpeg"), "Portrait must use kitchen.jpeg")
 	assert(main_orient_inst.board.cols == 7 and main_orient_inst.board.rows == 9, "Board must be 7x9 in portrait")
 	assert(is_equal_approx(main_orient_inst.board.position.x, 37.0), "Board must be centered horizontally in portrait (x ~ 37)")
 	assert(main_orient_inst.quest_container.offset_top == 114.0, "Quests must be at top in portrait")
@@ -1319,9 +1319,9 @@ func _ready() -> void:
 	add_child(mm_inst)
 
 	mm_inst._on_orientation_changed(true)
-	assert(mm_inst.background_rect.texture.resource_path.contains("background_landscape"), "MainMenu must use background_landscape in landscape")
+	assert(mm_inst.background_rect.texture.resource_path.contains("kitchen_landscape"), "MainMenu must use kitchen_landscape in landscape")
 	mm_inst._on_orientation_changed(false)
-	assert(mm_inst.background_rect.texture.resource_path.contains("background.jpeg"), "MainMenu must use background.jpeg in portrait")
+	assert(mm_inst.background_rect.texture.resource_path.contains("kitchen.jpeg"), "MainMenu must use kitchen.jpeg in portrait")
 
 	mm_inst.queue_free()
 	print("✔ Main Menu Background Switching verified!")

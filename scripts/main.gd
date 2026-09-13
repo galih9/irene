@@ -24,8 +24,8 @@ extends Node2D
 @onready var quest_container: Control = $CanvasLayer/UI/QuestContainer
 @onready var bottom_bar: Control = $CanvasLayer/UI/BottomBar
 
-const BG_PORTRAIT = preload("res://assets/background.jpeg")
-const BG_LANDSCAPE = preload("res://assets/background_landscape.jpg")
+const BG_PORTRAIT = preload("res://assets/background/kitchen.jpeg")
+const BG_LANDSCAPE = preload("res://assets/background/kitchen_landscape.jpg")
 
 var tutorial_manager: TutorialManager = null
 

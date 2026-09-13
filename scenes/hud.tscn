@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://b8q7x3v1m2n5r"]
 
 [ext_resource type="Script" uid="uid://b6gb3u8tg46tr" path="res://scripts/ui/hud.gd" id="1_hud"]
-[ext_resource type="Texture2D" uid="uid://cx1d7vbhfxds0" path="res://assets/exp/exp1.png" id="2_exp"]
-[ext_resource type="Texture2D" uid="uid://b2exo8722n112" path="res://assets/energy/energy_1.png" id="3_energy"]
-[ext_resource type="Texture2D" uid="uid://coscbqfkmmulj" path="res://assets/gold/gold1.png" id="4_gold"]
-[ext_resource type="Texture2D" uid="uid://mfnt1kqyb6se" path="res://assets/diamond/diamond_1.png" id="5_diamond"]
+[ext_resource type="Texture2D" uid="uid://cx1d7vbhfxds0" path="res://assets/items/rewards/exp/exp1.png" id="2_exp"]
+[ext_resource type="Texture2D" uid="uid://b2exo8722n112" path="res://assets/items/rewards/energy/energy_1.png" id="3_energy"]
+[ext_resource type="Texture2D" uid="uid://coscbqfkmmulj" path="res://assets/items/rewards/gold/gold1.png" id="4_gold"]
+[ext_resource type="Texture2D" uid="uid://mfnt1kqyb6se" path="res://assets/items/rewards/diamond/diamond_1.png" id="5_diamond"]
 [ext_resource type="Texture2D" uid="uid://dx3plyblf8v4u" path="res://assets/icon/icon_shop.png" id="6_shop_icon"]
 [ext_resource type="Texture2D" uid="uid://di7oct0i1cts5" path="res://assets/icon/icon_gear.png" id="7_gear_icon"]
 
