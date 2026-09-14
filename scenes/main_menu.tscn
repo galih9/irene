@@ -5,142 +5,249 @@
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="3_opt"]
 [ext_resource type="Texture2D" uid="uid://di7oct0i1cts5" path="res://assets/icon/icon_gear.png" id="4_gear"]
 [ext_resource type="Texture2D" uid="uid://courjb207v2ui" path="res://assets/icon/icon_kitchen.png" id="5_kitchen"]
-[ext_resource type="Texture2D" uid="uid://dpifib2reoed2" path="res://assets/ui/green.png" id="6_green_btn"]
-[ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="7_blue_btn"]
-[ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="8_yellow_btn"]
-[ext_resource type="Texture2D" uid="uid://c5umqvh7eqs2b" path="res://assets/ui/red.png" id="9_red_btn"]
-[ext_resource type="Texture2D" uid="uid://bocbakg3e80w3" path="res://assets/icon/icon_event.png" id="10_event"]
-[ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="11_trash"]
+[ext_resource type="Texture2D" uid="uid://bocbakg3e80w3" path="res://assets/icon/icon_event.png" id="6_event"]
+[ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="7_trash"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_card"]
-bg_color = Color(0.15, 0.13, 0.12, 0.94)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.42, 0.82, 0.58, 0.9)
-corner_radius_top_left = 24
-corner_radius_top_right = 24
-corner_radius_bottom_right = 24
-corner_radius_bottom_left = 24
-shadow_color = Color(0.1, 0.06, 0.04, 0.5)
+bg_color = Color(0.14, 0.12, 0.13, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.82, 0.58, 0.75)
+corner_radius_top_left = 22
+corner_radius_top_right = 22
+corner_radius_bottom_right = 22
+corner_radius_bottom_left = 22
+shadow_color = Color(0.08, 0.05, 0.04, 0.4)
 shadow_size = 14
-shadow_offset = Vector2(0, 6)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_normal"]
-texture = ExtResource("6_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_pressed"]
-texture = ExtResource("6_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_hover"]
-texture = ExtResource("6_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
-
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_disabled"]
-texture = ExtResource("6_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.6, 0.6, 0.6, 0.7)
+shadow_offset = Vector2(0, 4)
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_normal"]
-texture = ExtResource("7_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_normal"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.18, 0.15, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.82, 0.55, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.2, 0.65, 0.4, 0.25)
+shadow_size = 6
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_pressed"]
-texture = ExtResource("7_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_pressed"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.08, 0.13, 0.11, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.7, 0.45, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_hover"]
-texture = ExtResource("7_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_hover"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.16, 0.24, 0.2, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.95, 0.68, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.3, 0.8, 0.5, 0.35)
+shadow_size = 8
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_normal"]
-texture = ExtResource("8_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_green_disabled"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.14, 0.13, 0.5)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.35, 0.32, 0.3)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_pressed"]
-texture = ExtResource("8_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_normal"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.12, 0.16, 0.22, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.72, 0.95, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.2, 0.55, 0.85, 0.25)
+shadow_size = 6
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_hover"]
-texture = ExtResource("8_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_pressed"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.08, 0.12, 0.17, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.28, 0.6, 0.8, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_normal"]
-texture = ExtResource("9_red_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_blue_hover"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.16, 0.22, 0.3, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.48, 0.85, 1, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.3, 0.7, 0.95, 0.35)
+shadow_size = 8
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_pressed"]
-texture = ExtResource("9_red_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_normal"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.2, 0.17, 0.12, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.76, 0.32, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.8, 0.6, 0.15, 0.25)
+shadow_size = 6
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_red_hover"]
-texture = ExtResource("9_red_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_pressed"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.14, 0.12, 0.08, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.8, 0.62, 0.24, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_yellow_hover"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.26, 0.22, 0.15, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.88, 0.45, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.9, 0.7, 0.2, 0.35)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_normal"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.2, 0.12, 0.13, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.88, 0.38, 0.4, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.7, 0.2, 0.25, 0.25)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_pressed"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.14, 0.08, 0.09, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.75, 0.3, 0.32, 0.9)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_red_hover"]
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+bg_color = Color(0.26, 0.16, 0.17, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.5, 0.52, 1)
+corner_radius_top_left = 18
+corner_radius_top_right = 18
+corner_radius_bottom_right = 18
+corner_radius_bottom_left = 18
+shadow_color = Color(0.85, 0.3, 0.35, 0.35)
+shadow_size = 8
 
 [node name="MainMenu" type="Control" unique_id=2146858289]
 layout_mode = 3
@@ -171,43 +278,60 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.04, 0.06, 0.1, 0.5)
+color = Color(0.04, 0.06, 0.1, 0.45)
 
 [node name="UI" type="CanvasLayer" parent="." unique_id=214968311]
 
-[node name="CenterContainer" type="CenterContainer" parent="UI" unique_id=672388564]
+[node name="MenuContainer" type="Control" parent="UI" unique_id=672388564]
+layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+mouse_filter = 2
 
-[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer" unique_id=2134492048]
-custom_minimum_size = Vector2(560, 0)
-layout_mode = 2
-theme_override_constants/separation = 48
-alignment = 1
+[node name="TitleArea" type="Control" parent="UI/MenuContainer" unique_id=1080431683]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.32
+anchor_right = 0.5
+anchor_bottom = 0.32
+offset_left = -240.0
+offset_top = -80.0
+offset_right = 240.0
+offset_bottom = 80.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 
-[node name="TitleContainer" type="PanelContainer" parent="UI/CenterContainer/VBox" unique_id=379116488]
-custom_minimum_size = Vector2(520, 190)
-layout_mode = 2
-size_flags_horizontal = 4
+[node name="TitleContainer" type="PanelContainer" parent="UI/MenuContainer/TitleArea" unique_id=379116488]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_title_card")
 
-[node name="Margin" type="MarginContainer" parent="UI/CenterContainer/VBox/TitleContainer" unique_id=160519299]
+[node name="Margin" type="MarginContainer" parent="UI/MenuContainer/TitleArea/TitleContainer" unique_id=160519299]
 layout_mode = 2
-theme_override_constants/margin_left = 20
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 20
-theme_override_constants/margin_bottom = 24
+mouse_filter = 2
+theme_override_constants/margin_left = 24
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 24
+theme_override_constants/margin_bottom = 18
 
-[node name="VBox" type="VBoxContainer" parent="UI/CenterContainer/VBox/TitleContainer/Margin" unique_id=1080431684]
+[node name="VBox" type="VBoxContainer" parent="UI/MenuContainer/TitleArea/TitleContainer/Margin" unique_id=1080431684]
 layout_mode = 2
+mouse_filter = 2
 theme_override_constants/separation = 8
 alignment = 1
 
-[node name="Icon" type="TextureRect" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox" unique_id=1625937544]
-custom_minimum_size = Vector2(44, 44)
+[node name="Icon" type="TextureRect" parent="UI/MenuContainer/TitleArea/TitleContainer/Margin/VBox" unique_id=1625937544]
+custom_minimum_size = Vector2(48, 48)
 layout_mode = 2
 size_flags_horizontal = 4
 mouse_filter = 2
@@ -215,7 +339,7 @@ texture = ExtResource("5_kitchen")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="Title" type="Label" parent="UI/CenterContainer/VBox/TitleContainer/Margin/VBox" unique_id=1077139180]
+[node name="Title" type="Label" parent="UI/MenuContainer/TitleArea/TitleContainer/Margin/VBox" unique_id=1077139180]
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.97, 0.9, 1)
 theme_override_colors/font_shadow_color = Color(0.18, 0.1, 0.05, 0.6)
@@ -226,76 +350,95 @@ theme_override_font_sizes/font_size = 36
 text = "Project Irene"
 horizontal_alignment = 1
 
-[node name="Buttons" type="VBoxContainer" parent="UI/CenterContainer/VBox" unique_id=218431018]
-layout_mode = 2
-theme_override_constants/separation = 16
+[node name="BottomArea" type="Control" parent="UI/MenuContainer" unique_id=2134492048]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -140.0
+offset_bottom = -40.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
 
-[node name="ContinueBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1021143595]
-custom_minimum_size = Vector2(0, 68)
-layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.25, 0.12, 0.95)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 19
-theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_green_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "  CONTINUE GAME"
-icon = ExtResource("5_kitchen")
-expand_icon = true
+[node name="VBox" type="VBoxContainer" parent="UI/MenuContainer/BottomArea" unique_id=1080431685]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/separation = 12
+alignment = 1
 
-[node name="SaveInfoLabel" type="Label" parent="UI/CenterContainer/VBox/Buttons" unique_id=1097820598]
+[node name="SaveInfoLabel" type="Label" parent="UI/MenuContainer/BottomArea/VBox" unique_id=1097820598]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.88, 0.84, 0.78, 0.85)
+theme_override_colors/font_shadow_color = Color(0, 0, 0, 0.5)
+theme_override_constants/shadow_offset_y = 1
 theme_override_font_sizes/font_size = 13
 text = "Last Saved: ..."
 horizontal_alignment = 1
 
-[node name="NewGameBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1884317076]
-custom_minimum_size = Vector2(0, 64)
+[node name="Buttons" type="HBoxContainer" parent="UI/MenuContainer/BottomArea/VBox" unique_id=218431018]
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.08, 0.16, 0.32, 0.95)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
+mouse_filter = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="ContinueBtn" type="Button" parent="UI/MenuContainer/BottomArea/VBox/Buttons" unique_id=1021143595]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+tooltip_text = "Continue Game"
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_green_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_green_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_green_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_green_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "  NEW GAME"
-icon = ExtResource("10_event")
+icon = ExtResource("5_kitchen")
+icon_alignment = 1
 expand_icon = true
 
-[node name="OptionsBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1321035588]
-custom_minimum_size = Vector2(0, 64)
+[node name="NewGameBtn" type="Button" parent="UI/MenuContainer/BottomArea/VBox/Buttons" unique_id=1884317076]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.28, 0.18, 0.05, 0.95)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 18
-theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_yellow_hover")
+tooltip_text = "New Game"
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_blue_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_blue_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_blue_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "  OPTIONS"
+icon = ExtResource("6_event")
+icon_alignment = 1
+expand_icon = true
+
+[node name="OptionsBtn" type="Button" parent="UI/MenuContainer/BottomArea/VBox/Buttons" unique_id=1321035588]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+tooltip_text = "Options"
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_yellow_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_yellow_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_yellow_hover")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 icon = ExtResource("4_gear")
+icon_alignment = 1
 expand_icon = true
 
-[node name="QuitBtn" type="Button" parent="UI/CenterContainer/VBox/Buttons" unique_id=1276760746]
-custom_minimum_size = Vector2(0, 60)
+[node name="QuitBtn" type="Button" parent="UI/MenuContainer/BottomArea/VBox/Buttons" unique_id=1276760746]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 1, 1, 1)
-theme_override_colors/font_outline_color = Color(0.32, 0.06, 0.06, 0.95)
-theme_override_constants/outline_size = 4
-theme_override_font_sizes/font_size = 17
-theme_override_styles/normal = SubResource("StyleBoxTexture_red_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_red_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_red_hover")
+tooltip_text = "Quit"
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxFlat_red_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_red_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_red_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "  QUIT"
-icon = ExtResource("11_trash")
+icon = ExtResource("7_trash")
+icon_alignment = 1
 expand_icon = true
 
 [node name="Modals" type="CanvasLayer" parent="." unique_id=1897779832]

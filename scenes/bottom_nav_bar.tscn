@@ -5,14 +5,11 @@
 [ext_resource type="Texture2D" uid="uid://c6a3wyfdgf3w4" path="res://assets/icon/icon_inventory.png" id="3_inv_icon"]
 [ext_resource type="Texture2D" uid="uid://dx3plyblf8v4u" path="res://assets/icon/icon_shop.png" id="4_shop_icon"]
 [ext_resource type="Texture2D" uid="uid://dkn11axd0qoys" path="res://assets/items/rewards/chest/yellow/4.png" id="5_chest_icon"]
-[ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="6_yellow_btn"]
-[ext_resource type="Texture2D" uid="uid://dpifib2reoed2" path="res://assets/ui/green.png" id="7_green_btn"]
-[ext_resource type="Texture2D" uid="uid://benkmtp4hgdlt" path="res://assets/ui/blue.png" id="8_blue_btn"]
-[ext_resource type="Shader" uid="uid://4b1eck8aapka" path="res://shaders/shine_gleam.gdshader" id="9_shine"]
-[ext_resource type="Texture2D" path="res://assets/icon/icon_home.png" id="10_map_icon"]
+[ext_resource type="Shader" uid="uid://4b1eck8aapka" path="res://shaders/shine_gleam.gdshader" id="6_shine"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_home.png" id="7_map_icon"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_shine"]
-shader = ExtResource("9_shine")
+shader = ExtResource("6_shine")
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_normal"]
 content_margin_left = 6.0
@@ -25,10 +22,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.82, 0.35, 0.9)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 shadow_color = Color(1, 0.78, 0.2, 0.35)
 shadow_size = 6
 
@@ -43,10 +40,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(0.9, 0.75, 0.25, 0.9)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_hover"]
 content_margin_left = 6.0
@@ -59,10 +56,10 @@ border_width_top = 2
 border_width_right = 2
 border_width_bottom = 2
 border_color = Color(1, 0.92, 0.5, 1)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 shadow_color = Color(1, 0.85, 0.3, 0.5)
 shadow_size = 8
 
@@ -77,117 +74,284 @@ border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
 border_color = Color(0.25, 0.28, 0.35, 0.5)
-corner_radius_top_left = 14
-corner_radius_top_right = 14
-corner_radius_bottom_right = 14
-corner_radius_bottom_left = 14
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn_focus"]
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_normal"]
-texture = ExtResource("6_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_normal"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.14, 0.22, 0.18, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.42, 0.85, 0.58, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.3, 0.8, 0.5, 0.25)
+shadow_size = 6
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_pressed"]
-texture = ExtResource("6_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_pressed"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.1, 0.16, 0.13, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.35, 0.72, 0.48, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_hover"]
-texture = ExtResource("6_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_hover"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.18, 0.28, 0.23, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.55, 0.95, 0.7, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.35, 0.88, 0.6, 0.4)
+shadow_size = 8
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_yellow_disabled"]
-texture = ExtResource("6_yellow_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.6, 0.6, 0.6, 0.8)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_disabled"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.15, 0.15, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.32, 0.3, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_normal"]
-texture = ExtResource("7_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_normal"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.19, 0.28, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.75, 0.96, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.3, 0.7, 0.95, 0.25)
+shadow_size = 6
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_pressed"]
-texture = ExtResource("7_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_pressed"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.09, 0.14, 0.21, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.62, 0.82, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_hover"]
-texture = ExtResource("7_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_hover"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.17, 0.25, 0.37, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.88, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.35, 0.78, 1, 0.4)
+shadow_size = 8
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_green_disabled"]
-texture = ExtResource("7_green_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.6, 0.6, 0.6, 0.8)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_disabled"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.15, 0.18, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.3, 0.35, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_normal"]
-texture = ExtResource("8_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_normal"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.22, 0.18, 0.12, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.98, 0.78, 0.32, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.95, 0.75, 0.2, 0.25)
+shadow_size = 6
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_pressed"]
-texture = ExtResource("8_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.85, 0.85, 0.85, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_pressed"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.16, 0.13, 0.08, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.82, 0.65, 0.24, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_hover"]
-texture = ExtResource("8_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(1.08, 1.08, 1.08, 1)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_hover"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.28, 0.24, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(1, 0.88, 0.45, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(1, 0.8, 0.25, 0.4)
+shadow_size = 8
 
-[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_blue_disabled"]
-texture = ExtResource("8_blue_btn")
-texture_margin_left = 10.0
-texture_margin_top = 30.0
-texture_margin_right = 10.0
-texture_margin_bottom = 30.0
-region_rect = Rect2(0, 0, 128, 128)
-modulate_color = Color(0.6, 0.6, 0.6, 0.8)
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_disabled"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.15, 0.14, 0.13, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.3, 0.28, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_normal"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.22, 0.22, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.38, 0.86, 0.8, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.3, 0.82, 0.76, 0.25)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_pressed"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.09, 0.16, 0.16, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.72, 0.66, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_hover"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.17, 0.28, 0.28, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.5, 0.98, 0.92, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.35, 0.9, 0.85, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_disabled"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.13, 0.15, 0.15, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.28, 0.32, 0.32, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_badge"]
 bg_color = Color(0.96, 0.45, 0.12, 1)
@@ -197,11 +361,6 @@ corner_radius_bottom_right = 10
 corner_radius_bottom_left = 10
 shadow_color = Color(0, 0, 0, 0.4)
 shadow_size = 3
-
-[sub_resource type="LabelSettings" id="LabelSettings_mv58x"]
-font_size = 17
-outline_size = 4
-outline_color = Color(0, 0, 0, 1)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
 bg_color = Color(0.95, 0.25, 0.25, 1)
@@ -229,7 +388,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 14
 alignment = 1
 
 [node name="RewardBtn" type="Button" parent="HBoxContainer" unique_id=754411710]
@@ -237,6 +396,7 @@ custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
+tooltip_text = "Claim Reward"
 mouse_filter = 1
 theme_override_styles/normal = SubResource("StyleBoxFlat_tile_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_tile_pressed")
@@ -253,9 +413,9 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_bottom = 6
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/RewardBtn/Margin" unique_id=1339070041]
 custom_minimum_size = Vector2(48, 48)
@@ -302,13 +462,16 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ProgressionBtn" type="Button" parent="HBoxContainer" unique_id=1872546336]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Progress"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_green_disabled")
+theme_override_styles/normal = SubResource("StyleBoxFlat_prog_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_prog_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_prog_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_prog_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/ProgressionBtn" unique_id=1581260678]
@@ -320,31 +483,29 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_bottom = 6
 
 [node name="HBox" type="HBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin" unique_id=1285391623]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=1991458174]
-custom_minimum_size = Vector2(46, 42)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("2_prog_icon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=582060568]
+visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.92, 1, 0.92, 1)
-text = "Progress"
-label_settings = SubResource("LabelSettings_mv58x")
-horizontal_alignment = 1
+text = ""
 
 [node name="Badge" type="PanelContainer" parent="HBoxContainer/ProgressionBtn" unique_id=1063669346]
 visible = false
@@ -371,13 +532,16 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="InventoryBtn" type="Button" parent="HBoxContainer" unique_id=1461955712]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Backpack"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxTexture_blue_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_blue_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_blue_hover")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_blue_disabled")
+theme_override_styles/normal = SubResource("StyleBoxFlat_inv_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_inv_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_inv_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_inv_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/InventoryBtn" unique_id=623402999]
@@ -389,55 +553,51 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_bottom = 6
 
 [node name="HBox" type="HBoxContainer" parent="HBoxContainer/InventoryBtn/Margin" unique_id=600821673]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/HBox" unique_id=906762838]
-custom_minimum_size = Vector2(46, 42)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("3_inv_icon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin/HBox" unique_id=89237419]
+visible = false
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 1
-alignment = 1
 
 [node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/HBox/VBox" unique_id=794071516]
+visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.85, 0.95, 1, 1)
-text = "Backpack"
-label_settings = SubResource("LabelSettings_mv58x")
-horizontal_alignment = 1
+text = ""
 
 [node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/HBox/VBox" unique_id=363956078]
+visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 0.94, 1, 1)
-theme_override_colors/font_outline_color = Color(0, 0, 0, 1)
-theme_override_constants/outline_size = 3
-theme_override_font_sizes/font_size = 12
-text = "[0 / 8]"
-horizontal_alignment = 1
+text = ""
 
 [node name="ShopBtn" type="Button" parent="HBoxContainer" unique_id=1174259924]
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Shop"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxTexture_yellow_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_yellow_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_yellow_hover")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_yellow_disabled")
+theme_override_styles/normal = SubResource("StyleBoxFlat_shop_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_shop_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_shop_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_shop_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/ShopBtn" unique_id=1528112408]
@@ -449,41 +609,42 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_bottom = 6
 
 [node name="HBox" type="HBoxContainer" parent="HBoxContainer/ShopBtn/Margin" unique_id=1777440650]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=470514787]
-custom_minimum_size = Vector2(46, 42)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
 mouse_filter = 2
 texture = ExtResource("4_shop_icon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=2083285876]
+visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(1, 0.95, 0.6, 1)
-text = "Shop"
-label_settings = SubResource("LabelSettings_mv58x")
-horizontal_alignment = 1
+text = ""
 
 [node name="MapBtn" type="Button" parent="HBoxContainer" unique_id=1938472911]
 visible = false
+custom_minimum_size = Vector2(70, 70)
 layout_mode = 2
-size_flags_horizontal = 3
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Map"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxTexture_green_normal")
-theme_override_styles/pressed = SubResource("StyleBoxTexture_green_pressed")
-theme_override_styles/hover = SubResource("StyleBoxTexture_green_hover")
-theme_override_styles/disabled = SubResource("StyleBoxTexture_green_disabled")
+theme_override_styles/normal = SubResource("StyleBoxFlat_map_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_map_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_map_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_map_disabled")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/MapBtn" unique_id=1482910482]
@@ -495,28 +656,27 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 theme_override_constants/margin_left = 6
-theme_override_constants/margin_top = 4
+theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
-theme_override_constants/margin_bottom = 4
+theme_override_constants/margin_bottom = 6
 
 [node name="HBox" type="HBoxContainer" parent="HBoxContainer/MapBtn/Margin" unique_id=1384910283]
 layout_mode = 2
 mouse_filter = 2
-theme_override_constants/separation = 6
 alignment = 1
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/MapBtn/Margin/HBox" unique_id=1748291039]
-custom_minimum_size = Vector2(46, 42)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
 size_flags_horizontal = 4
+size_flags_vertical = 4
 mouse_filter = 2
-texture = ExtResource("10_map_icon")
+texture = ExtResource("7_map_icon")
 expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/MapBtn/Margin/HBox" unique_id=1849201948]
+visible = false
 layout_mode = 2
-theme_override_colors/font_color = Color(0.9, 1, 0.85, 1)
-text = "Maps"
-label_settings = SubResource("LabelSettings_mv58x")
-horizontal_alignment = 1
+text = ""
+

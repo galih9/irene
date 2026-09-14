@@ -45,7 +45,7 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 	customer_name_label.text = quest.customer_name
 
 	# Special styling for Ultimate Quest
-	if quest.id == "ultimate_quest":
+	if quest.id.begins_with("ultimate_quest"):
 		var ult_style := StyleBoxFlat.new()
 		ult_style.bg_color = Color(1.0, 0.98, 0.92, 0.98)
 		ult_style.border_color = Color(1.0, 0.82, 0.2, 1.0)
@@ -179,7 +179,7 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 		icon.texture = item_data.icon_texture
 		icon.modulate = Color(1, 1, 1, 1.0 if has_it else 0.45)
 	else:
-		icon.texture = preload("res://icon.svg")
+		icon.texture = preload("res://icon.jpg")
 		icon.modulate = Color(1, 1, 1, 0.9 if has_it else 0.45)
 	icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 	icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED

@@ -71,8 +71,9 @@ func _ready() -> void:
 		add_child(player)
 		_sfx_players.append(player)
 
-	# 3. Start BGM if enabled
-	if bgm_enabled:
+	# 3. Start BGM if enabled and not booting to splash screen
+	var main_scene_path: String = ProjectSettings.get_setting("application/run/main_scene", "")
+	if bgm_enabled and not main_scene_path.ends_with("splash_screen.tscn"):
 		play_bgm()
 
 # ==============================================================================

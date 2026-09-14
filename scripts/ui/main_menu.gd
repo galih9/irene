@@ -1,13 +1,13 @@
 class_name MainMenu
 extends Control
 
-@onready var continue_btn: Button = $UI/CenterContainer/VBox/Buttons/ContinueBtn
-@onready var save_info_label: Label = $UI/CenterContainer/VBox/Buttons/SaveInfoLabel
-@onready var new_game_btn: Button = $UI/CenterContainer/VBox/Buttons/NewGameBtn
-@onready var options_btn: Button = $UI/CenterContainer/VBox/Buttons/OptionsBtn
-@onready var quit_btn: Button = $UI/CenterContainer/VBox/Buttons/QuitBtn
-@onready var title_badge: Control = $UI/CenterContainer/VBox/TitleContainer
-@onready var menu_container: Control = $UI/CenterContainer
+@onready var menu_container: Control = $UI/MenuContainer
+@onready var title_badge: Control = $UI/MenuContainer/TitleArea/TitleContainer
+@onready var continue_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/ContinueBtn
+@onready var save_info_label: Label = $UI/MenuContainer/BottomArea/VBox/SaveInfoLabel
+@onready var new_game_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/NewGameBtn
+@onready var options_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/OptionsBtn
+@onready var quit_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/QuitBtn
 @onready var background_rect: TextureRect = $Background
 
 @onready var option_modal: OptionModal = $Modals/OptionModal
@@ -21,6 +21,11 @@ func _ready() -> void:
 	options_btn.pressed.connect(_on_options_pressed)
 	quit_btn.pressed.connect(_on_quit_pressed)
 
+	_setup_button_hover(continue_btn)
+	_setup_button_hover(new_game_btn)
+	_setup_button_hover(options_btn)
+	_setup_button_hover(quit_btn)
+
 	if option_modal:
 		option_modal.closed.connect(_on_options_closed)
 
@@ -33,6 +38,20 @@ func _ready() -> void:
 
 	_update_save_state()
 	_animate_title()
+
+func _setup_button_hover(btn: Button) -> void:
+	if not is_instance_valid(btn):
+		return
+	btn.pivot_offset = Vector2(35, 35)
+	btn.mouse_entered.connect(func():
+		if not btn.disabled:
+			var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(btn, "scale", Vector2(1.08, 1.08), 0.12)
+	)
+	btn.mouse_exited.connect(func():
+		var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(btn, "scale", Vector2.ONE, 0.1)
+	)
 
 func _on_orientation_changed(is_landscape: bool) -> void:
 	if is_instance_valid(background_rect):

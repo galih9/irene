@@ -215,6 +215,15 @@ func get_board_width() -> float:
 func get_board_height() -> float:
 	return rows * cell_size + (rows - 1) * cell_spacing
 
+func get_all_items() -> Array[ItemView]:
+	var result: Array[ItemView] = []
+	for c in range(cols):
+		for r in range(rows):
+			var it: ItemView = _grid[c][r]
+			if it and is_instance_valid(it):
+				result.append(it)
+	return result
+
 func _apply_board_styling() -> void:
 	if not background_panel or not is_inside_tree():
 		return
@@ -704,6 +713,12 @@ func _handle_item_tap(item: ItemView) -> void:
 		Color(1.0, 0.9, 0.5)
 	)
 
+func _try_spawn_from_item(item: ItemView) -> bool:
+	if not item or not item.data or not item.data.is_spawner:
+		return false
+	_trigger_spawner(item)
+	return true
+
 func _trigger_spawner(spawner: ItemView) -> void:
 	if spawner.is_spawner_exhausted():
 		spawner.animate_wobble()
@@ -831,6 +846,20 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 	if not dragged.is_normal() or not target_item.is_normal():
 		return false
 
+	# 0. Tapping Milked Cow Lv.3 to Collect Milk
+	if target_item.data.id == "cow_3" and target_item.is_milked_ready and dragged == target_item:
+		target_item.is_milked_ready = false
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+		var empty_cells := get_empty_cells()
+		if not empty_cells.is_empty():
+			spawn_item_flight(target_item.global_position, empty_cells[0], "milk_1")
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.show_floating_text.emit("Milked +1 Fresh Milk! 🥛", target_item.global_position + Vector2(0, -45), Color(1.0, 1.0, 1.0))
+		GameEvents.board_changed.emit()
+		return true
+
 	# 1. Shearing Sheep with Tool Lv.4
 	if target_item.can_be_sheared(dragged):
 		_clear_source_slot(dragged)
@@ -877,11 +906,11 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		if target_item.data.id in ["tree_3", "tree_4"] and dragged.data.id == "hay_7":
 			_clear_source_slot(dragged)
 			dragged.queue_free()
+			var bonus := 2 if target_item.data.id == "tree_3" else 4
 			target_item.is_boosted = true
-			target_item.boost_charges = 10
+			target_item.boost_charges = bonus
 			target_item.animate_merge_pop()
 			SoundManager.play_consume()
-			var bonus := 2 if target_item.data.id == "tree_3" else 4
 			GameEvents.show_floating_text.emit("Tree Boosted! (+%d Fruit Drop) 🍎" % bonus, target_item.global_position + Vector2(0, -45), Color(0.4, 1.0, 0.4))
 			target_item._update_visuals()
 			select_item(target_item)
@@ -1153,7 +1182,7 @@ func _sell_item(item: ItemView) -> void:
 
 	# Special case: Wild Boar sells for Diamonds!
 	if item_id == "pig_5":
-		var diamond_value := 25
+		var diamond_value := 50
 		EconomyManager.add_gems(diamond_value)
 		SoundManager.play_consume()
 		GameEvents.show_floating_text.emit("+%d Diamonds (Boar Sold) 💎" % diamond_value, item.global_position + Vector2(0, -40), Color(0.45, 0.88, 1.0))

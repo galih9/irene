@@ -487,7 +487,7 @@ func _init_database() -> void:
 	# =========================================================================
 	# 4. SPECIAL REWARD CHESTS (Hybrid Spawner + Consumable)
 	# =========================================================================
-	var chest_texture := preload("res://icon.svg")
+	var chest_texture := preload("res://icon.jpg")
 	var chest_names := [
 		"Producer Supply Chest", "Grand Producer Chest"
 	]
@@ -1389,11 +1389,13 @@ func get_chest_pool(chest_id: String, board_context: String = "") -> Array[Strin
 	var is_farm := (context == "farm")
 
 	if chest_id == "chest_1":
-		var p1: Array[String] = ["barn_1", "water_1"] if is_farm else ["oven_1", "fridge_1"]
-		return p1
+		if is_farm:
+			return ["barn_1", "water_1"]
+		return ["oven_1", "fridge_1"]
 	elif chest_id == "chest_2":
-		var p2: Array[String] = ["barn_1", "water_1", "tree_1", "pine_1"] if is_farm else ["oven_1", "fridge_1", "rack_1", "foodbox_1"]
-		return p2
+		if is_farm:
+			return ["barn_1", "water_1", "tree_1", "pine_1"]
+		return ["oven_1", "fridge_1", "rack_1", "foodbox_1"]
 
 	var parts := chest_id.split("_")
 	var tier := int(parts[-1]) if not parts.is_empty() else 1

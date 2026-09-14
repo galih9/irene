@@ -1,7 +1,7 @@
 [gd_scene format=3 uid="uid://c6f3a7m4h5j2r"]
 
 [ext_resource type="Script" uid="uid://ciculw8n4uxw2" path="res://scripts/gameplay/item_view.gd" id="1_item"]
-[ext_resource type="Texture2D" uid="uid://lp1xqunym3pe" path="res://icon.svg" id="2_icon"]
+[ext_resource type="Texture2D" uid="uid://bibg5fga2dnaa" path="res://icon.jpg" id="2_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
 bg_color = Color(0.12, 0.12, 0.15, 0.85)

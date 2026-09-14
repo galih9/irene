@@ -70,44 +70,63 @@ func _ready() -> void:
 			tween.tween_property(shop_btn, "scale", Vector2.ONE, 0.2)
 	)
 
+	_setup_nav_button_hover(progression_btn)
+	_setup_nav_button_hover(shop_btn)
+	if is_instance_valid(map_btn):
+		_setup_nav_button_hover(map_btn)
+	if is_instance_valid(inventory_btn):
+		inventory_btn.mouse_entered.connect(func():
+			if is_inventory_unlocked():
+				set_inventory_hover(true)
+		)
+		inventory_btn.mouse_exited.connect(func():
+			set_inventory_hover(false)
+		)
+
 	_update_reward_slot_order()
 	update_inventory_display()
 	update_progression_display()
 	update_reward_slot_display()
 	update_milestone_locks()
 
+func _setup_nav_button_hover(btn: Button) -> void:
+	if not is_instance_valid(btn):
+		return
+	btn.pivot_offset = Vector2(35, 35)
+	btn.mouse_entered.connect(func():
+		if not btn.disabled:
+			if btn == progression_btn and _progression_highlighted:
+				return
+			var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+			tween.tween_property(btn, "scale", Vector2(1.06, 1.06), 0.1)
+	)
+	btn.mouse_exited.connect(func():
+		if btn == progression_btn and _progression_highlighted:
+			return
+		var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		tween.tween_property(btn, "scale", Vector2.ONE, 0.1)
+	)
+
 func set_layout_vertical(vertical: bool) -> void:
 	is_vertical = vertical
 	if is_instance_valid(hbox):
 		hbox.vertical = vertical
-		if vertical:
-			hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-			hbox.add_theme_constant_override("separation", 14)
-		else:
-			hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-			hbox.add_theme_constant_override("separation", 12)
+		hbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		hbox.add_theme_constant_override("separation", 14)
 	if vertical:
 		custom_minimum_size = Vector2(200, 300)
-		for btn in [progression_btn, inventory_btn, shop_btn, map_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn, map_btn, reward_btn]:
 			if is_instance_valid(btn):
-				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				btn.custom_minimum_size = Vector2(0, 58)
-		if is_instance_valid(reward_btn):
-			reward_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			reward_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			reward_btn.custom_minimum_size = Vector2(70, 70)
+				btn.custom_minimum_size = Vector2(70, 70)
 	else:
 		custom_minimum_size = Vector2(664, 116)
-		for btn in [progression_btn, inventory_btn, shop_btn, map_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn, map_btn, reward_btn]:
 			if is_instance_valid(btn):
-				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+				btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				btn.custom_minimum_size = Vector2(0, 60)
-		if is_instance_valid(reward_btn):
-			reward_btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
-			reward_btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-			reward_btn.custom_minimum_size = Vector2(70, 70)
+				btn.custom_minimum_size = Vector2(70, 70)
 
 func update_milestone_locks() -> void:
 	var inv_unlocked := is_inventory_unlocked()
@@ -116,6 +135,7 @@ func update_milestone_locks() -> void:
 	# Backpack button gating
 	if is_instance_valid(inventory_btn):
 		inventory_btn.disabled = not inv_unlocked
+		inventory_btn.tooltip_text = "Backpack" if inv_unlocked else "Backpack (Unlock at 3 Quests)"
 	if is_instance_valid(inventory_icon):
 		inventory_icon.modulate = Color.WHITE if inv_unlocked else Color(0.45, 0.45, 0.45, 0.65)
 	if is_instance_valid(inventory_title):
@@ -130,6 +150,7 @@ func update_milestone_locks() -> void:
 	# Shop button gating
 	if is_instance_valid(shop_btn):
 		shop_btn.disabled = not shop_unlocked
+		shop_btn.tooltip_text = "Shop" if shop_unlocked else "Shop (Unlock at 5 Quests)"
 	if is_instance_valid(shop_icon):
 		shop_icon.modulate = Color.WHITE if shop_unlocked else Color(0.45, 0.45, 0.45, 0.65)
 	if is_instance_valid(shop_title):
@@ -138,6 +159,7 @@ func update_milestone_locks() -> void:
 	# Map button gating
 	if is_instance_valid(map_btn):
 		map_btn.visible = ProgressionManager.is_map_unlocked
+		map_btn.tooltip_text = "Map"
 
 func update_inventory_display() -> void:
 	if not is_inventory_unlocked():

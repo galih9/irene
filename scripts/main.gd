@@ -570,24 +570,18 @@ func _is_stuck_farm_board(items: Array) -> bool:
 	if items.is_empty():
 		return false
 
-	var has_spawner := false
-	var has_barn := false
+	var producer_chains := ["oven", "fridge", "rack", "foodbox", "barn", "water", "tree", "pine", "chest"]
+
 	for it in items:
 		var item_id: String = it.get("item_id", "")
 		var item_data := ItemDatabase.get_item(item_id)
-		if item_data and item_data.is_spawner:
-			has_spawner = true
-			break
-		if item_id.begins_with("barn"):
-			has_barn = true
-
-	if has_spawner or has_barn:
-		return false
+		if (item_data and (item_data.is_spawner or item_data.chain_id in producer_chains)) or item_id.begins_with("barn") or item_id.begins_with("chest") or item_id.begins_with("oven"):
+			return false
 
 	# Check if player has any spawner, chest, or barn in inventory
 	for inv_id in InventoryManager.get_all_item_ids():
 		var inv_data := ItemDatabase.get_item(inv_id)
-		if (inv_data and inv_data.is_spawner) or inv_id.begins_with("barn"):
+		if (inv_data and (inv_data.is_spawner or inv_data.chain_id in producer_chains)) or inv_id.begins_with("barn") or inv_id.begins_with("chest") or inv_id.begins_with("oven"):
 			return false
 
 	return true

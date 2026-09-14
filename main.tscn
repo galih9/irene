@@ -12,12 +12,11 @@
 [ext_resource type="Texture2D" uid="uid://dbtg54ewb48ii" path="res://assets/background/kitchen.jpeg" id="10_bg"]
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="11_opt"]
 [ext_resource type="PackedScene" uid="uid://c6u4m2j5x8qaq" path="res://scenes/save_toast.tscn" id="12_toast"]
-[ext_resource type="Texture2D" uid="uid://cbef3mqam8mpb" path="res://assets/icon/icon_trash.png" id="13_trash"]
 [ext_resource type="PackedScene" path="res://scenes/irene_popup_modal.tscn" id="14_irene_modal"]
 [ext_resource type="PackedScene" path="res://scenes/irene_toast.tscn" id="15_irene_toast"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="16_yellow"]
-[ext_resource type="PackedScene" path="res://scenes/level_selection_modal.tscn" id="17_level_modal"]
-[ext_resource type="PackedScene" path="res://scenes/loading_screen.tscn" id="18_loading_screen"]
+[ext_resource type="PackedScene" uid="uid://c7m1x4lvlsel8" path="res://scenes/level_selection_modal.tscn" id="17_level_modal"]
+[ext_resource type="PackedScene" uid="uid://b8v4l0ad1nhas" path="res://scenes/loading_screen.tscn" id="18_loading_screen"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infoarea"]
 bg_color = Color(0.97, 0.96, 0.93, 0.98)
@@ -102,10 +101,13 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
+offset_right = 0.0
+offset_bottom = 0.0
 grow_horizontal = 2
 grow_vertical = 2
 
 [node name="IreneToast" parent="CanvasLayer/UI" unique_id=987123456 instance=ExtResource("15_irene_toast")]
+layout_mode = 0
 offset_top = 100.0
 offset_bottom = 168.0
 
@@ -245,4 +247,3 @@ layout_mode = 1
 z_index = 180
 
 [node name="LoadingScreen" parent="CanvasLayer" unique_id=1748291034 instance=ExtResource("18_loading_screen")]
-layout_mode = 1

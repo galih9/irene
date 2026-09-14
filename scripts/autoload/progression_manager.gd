@@ -60,7 +60,7 @@ func get_chest_reward_for_item(item_id: String) -> String:
 	elif tier == 5:
 		return "chest_blue_3"
 	elif tier == 4:
-		return "chest_blue_2" if (abs(item_id.hash()) % 2 == 0) else "chest_2"
+		return "chest_purple_1"
 	elif tier == 3:
 		return "chest_green_1" if (item and item.is_spawner) else "chest_yellow_1"
 	elif tier == 2:

@@ -230,7 +230,7 @@ func get_required_feed_item_id() -> String:
 	if not data:
 		return ""
 	match data.id:
-		"bird_2":
+		"bird_1", "bird_2":
 			return "hay_1"
 		"bird_3":
 			return "hay_2"
@@ -241,7 +241,7 @@ func get_required_feed_item_id() -> String:
 		"cow_2":
 			return "hay_4"
 		"cow_3":
-			return "hay_6" # For upgrade
+			return "hay_6" if is_milked_ready else "hay_5"
 		"sheep_1":
 			return "hay_3"
 		"sheep_2":
@@ -257,7 +257,7 @@ func get_required_feed_count() -> int:
 	if not data:
 		return 0
 	match data.id:
-		"bird_2":
+		"bird_1", "bird_2":
 			return 5
 		"bird_3":
 			return 5
@@ -289,6 +289,21 @@ func is_fully_fed() -> bool:
 	if req_cnt <= 0:
 		return true
 	return fed_count >= req_cnt
+
+func can_merge_with(other: ItemView) -> bool:
+	if not other or not other.data or not data:
+		return false
+	if other == self:
+		return false
+	if data.id != other.data.id:
+		return false
+	if not is_normal() or not other.is_normal():
+		return false
+	if needs_feeding_to_upgrade() and not is_fully_fed():
+		return false
+	if other.needs_feeding_to_upgrade() and not other.is_fully_fed():
+		return false
+	return true
 
 func can_accept_feed(feed_item: ItemView) -> bool:
 	if not feed_item or not feed_item.data or not data:
@@ -508,7 +523,7 @@ func _update_visuals() -> void:
 		var max_dim := maxf(tex_size.x, tex_size.y)
 		_base_scale = (70.0 / max_dim) * data.icon_scale if max_dim > 0.0 else 0.48
 	else:
-		var def_tex: Texture2D = preload("res://icon.svg")
+		var def_tex: Texture2D = preload("res://icon.jpg")
 		sprite.texture = def_tex
 		shadow.texture = def_tex
 		glow.texture = def_tex

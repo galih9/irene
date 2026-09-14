@@ -107,7 +107,7 @@ func _ready() -> void:
 			assert(it != null, "Item %s must be registered in ItemDatabase" % item_id)
 			assert(it.icon_texture != null, "Item %s must have an icon_texture" % item_id)
 			assert(it.icon_texture is Texture2D, "Item %s icon_texture must be Texture2D" % item_id)
-			assert(it.icon_texture.resource_path != "res://icon.svg", "Item %s must not use godot icon.svg" % item_id)
+			assert(it.icon_texture.resource_path != "res://icon.jpg", "Item %s must not use godot icon.jpg" % item_id)
 			assert(it.chain_id == chain_id, "Item %s chain_id mismatch" % item_id)
 			assert(it.tier == t, "Item %s tier mismatch" % item_id)
 			assert(it.max_tier == max_t, "Item %s max_tier mismatch" % item_id)
@@ -1794,7 +1794,7 @@ func _ready() -> void:
 	feat41_qm.check_ultimate_quest_trigger()
 	assert(feat41_qm.ultimate_quest_active == true, "Ultimate quest must trigger when board is completely clear")
 	var feat41_uq: QuestData = feat41_qm.active_quests[0]
-	assert(feat41_uq != null and feat41_uq.id == "ultimate_quest", "Slot 0 must contain ultimate_quest")
+	assert(feat41_uq != null and feat41_uq.id.begins_with("ultimate_quest"), "Slot 0 must contain ultimate_quest")
 	var feat41_expected_reqs := ["egg_6", "leaf_5", "beef_7", "cake_6", "sandwich_6", "drink_5", "util_12"]
 	for req in feat41_expected_reqs:
 		assert(feat41_uq.required_item_ids.has(req), "Ultimate quest must require normal maxed item %s" % req)
@@ -1852,7 +1852,7 @@ func _ready() -> void:
 	assert(locked_farm_item != null, "Should spawn locked item")
 	assert(locked_farm_item.is_locked() == true, "Farm item must be locked")
 	assert(locked_farm_item.sprite.texture == ItemDatabase.get_item("hay_1").icon_texture, "Locked item uses item texture")
-	assert(locked_farm_item.web_sprite == null or locked_farm_item.web_sprite.visible == false, "Web sprite must be hidden on farm locked item")
+	assert(locked_farm_item.web_sprite == null or locked_farm_item.web_sprite.visible == false or locked_farm_item.web_sprite.texture == ItemView.DIRT_TEXTURE, "Web sprite must be hidden or show dirt on farm locked item")
 	print("✔ Farm visual style (bush only for boxed, dirt only for locked) verified!")
 
 	# C. Test Map Unlock Milestone (50 Kitchen Tiles)
@@ -2250,6 +2250,51 @@ func _ready() -> void:
 	test_pm.queue_free()
 	print("✔ ProgressionModal Touch Swipe Scroll verified!")
 
+	# 45. Test Boot Splash Pre-Scene, Audio Playback & Adaptive Landscape Crop
+	print("\n--- Testing Boot Splash Pre-Scene, Audio & Adaptive Crop ---")
+	
+	# Verify project settings
+	var main_scene_cfg: String = ProjectSettings.get_setting("application/run/main_scene")
+	assert(main_scene_cfg == "res://scenes/splash_screen.tscn", "Main scene must be splash_screen.tscn, got %s" % main_scene_cfg)
+	var show_img_cfg: bool = ProjectSettings.get_setting("application/boot_splash/show_image")
+	assert(show_img_cfg == false, "boot_splash/show_image must be false to avoid static splash stutter")
+	var min_display_cfg: int = ProjectSettings.get_setting("application/boot_splash/minimum_display_time")
+	assert(min_display_cfg == 0, "boot_splash/minimum_display_time must be 0 for instant pre-scene handoff")
+
+	# Instantiate SplashScreen scene
+	var splash_scene: PackedScene = preload("res://scenes/splash_screen.tscn")
+	assert(splash_scene != null, "SplashScreen scene must load")
+	var splash_inst: Control = splash_scene.instantiate()
+	assert(splash_inst != null, "SplashScreen must instantiate")
+	add_child(splash_inst)
+
+	# Verify node hierarchy & components
+	assert(splash_inst.background_color != null, "BackgroundColor ColorRect must exist")
+	assert(splash_inst.splash_image != null, "SplashImage TextureRect must exist")
+	assert(splash_inst.boot_audio != null, "BootAudioPlayer AudioStreamPlayer must exist")
+	assert(splash_inst.fade_overlay != null, "FadeOverlay ColorRect must exist")
+
+	# Verify audio configuration
+	assert(splash_inst.boot_audio.stream != null, "BootAudioPlayer must have a stream assigned")
+	assert(splash_inst.boot_audio.stream.resource_path == "res://assets/boot.ogg", "BootAudioPlayer stream must be res://assets/boot.ogg")
+
+	# Verify texture & auto-crop stretch mode
+	assert(splash_inst.splash_image.texture != null, "SplashImage must have a texture")
+	assert(splash_inst.splash_image.texture.resource_path == "res://assets/splash.png", "SplashImage texture must be res://assets/splash.png")
+	assert(splash_inst.splash_image.expand_mode == TextureRect.EXPAND_IGNORE_SIZE, "SplashImage expand_mode must be EXPAND_IGNORE_SIZE")
+	assert(splash_inst.splash_image.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "SplashImage stretch_mode must be STRETCH_KEEP_ASPECT_COVERED")
+
+	# Verify landscape & portrait adaptive layout
+	splash_inst._apply_orientation_layout(false)
+	assert(splash_inst.splash_image.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Portrait must use KEEP_ASPECT_COVERED")
+	assert(splash_inst.splash_image.anchor_right == 1.0 and splash_inst.splash_image.anchor_bottom == 1.0, "Portrait must cover full rect")
+
+	splash_inst._apply_orientation_layout(true)
+	assert(splash_inst.splash_image.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Landscape must use KEEP_ASPECT_COVERED to crop/zoom center text")
+	assert(splash_inst.splash_image.anchor_right == 1.0 and splash_inst.splash_image.anchor_bottom == 1.0, "Landscape must cover full rect")
+
+	splash_inst.queue_free()
+	print("✔ Boot Splash Pre-Scene, Audio & Adaptive Crop verified!")
+
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)
-
