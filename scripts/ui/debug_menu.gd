@@ -63,6 +63,16 @@ func _ready() -> void:
 		_spawn_item_debug("cake_2", ItemView.ItemState.BOXED, 3)
 	)
 
+	var mechanics_grid := $Panel/Margin/VBox/Scroll/Content/MechanicsGrid
+	if is_instance_valid(mechanics_grid):
+		var unlock_map_btn := Button.new()
+		unlock_map_btn.text = "Unlock Maps (50 Tiles)"
+		unlock_map_btn.pressed.connect(func():
+			ProgressionManager.unlock_map()
+			GameEvents.show_floating_text.emit("Map Unlocked!", global_position + Vector2(330, 400), Color(0.4, 1.0, 0.5))
+		)
+		mechanics_grid.add_child(unlock_map_btn)
+
 	_populate_spawn_buttons()
 
 func toggle_menu() -> void:

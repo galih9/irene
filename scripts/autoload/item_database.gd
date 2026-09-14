@@ -492,8 +492,8 @@ func _init_database() -> void:
 		"Producer Supply Chest", "Grand Producer Chest"
 	]
 	var chest_descs := [
-		"A special supply chest filled with kitchen appliances! Tap to spawn tier 1 Oven or Fridge. Exhausts and vanishes after 5 uses. Merge to reset charges!",
-		"A grand culinary chest! Tap to spawn tier 1 Oven, Fridge, Rack, or Foodbox. Exhausts and vanishes after 5 uses. Merge to reset charges!"
+		"A special supply chest! Tap to spawn tier 1 producers for your current board (Oven/Fridge in Kitchen, Barn/Water on Farm). Exhausts and vanishes after 5 uses. Merge to reset charges!",
+		"A grand supply chest! Tap to spawn tier 1 producers for your current board (Oven/Fridge/Rack/Foodbox in Kitchen, Barn/Water/Tree/Pine on Farm). Exhausts and vanishes after 5 uses. Merge to reset charges!"
 	]
 	var chest_colors := [
 		Color(0.95, 0.65, 0.25), Color(1.0, 0.85, 0.35)
@@ -522,6 +522,494 @@ func _init_database() -> void:
 		it.spawn_pool = pool
 
 	_register_color_chests()
+	_register_farm_items()
+
+func _register_farm_items() -> void:
+	# =========================================================================
+	# 5. FARM CHAINS (14 Chains)
+	# =========================================================================
+
+	# 5.1 Barn Chain (Tiers 1-5, Spawner at Tier 3+)
+	var barn_textures := [
+		preload("res://assets/items/farm/barn/1.png"),
+		preload("res://assets/items/farm/barn/2.png"),
+		preload("res://assets/items/farm/barn/3.png"),
+		preload("res://assets/items/farm/barn/4.png"),
+		preload("res://assets/items/farm/barn/5.png")
+	]
+	var barn_names := [
+		"Barn Foundation", "Framed Barn", "Finished Barn",
+		"Bigger Barn", "Grand Farm Barn"
+	]
+	var barn_descs := [
+		"A laid stone foundation for a future farm barn. Merge to build!",
+		"The walls and roof framing are up. Merge to complete!",
+		"A completed red barn! Tap to produce fresh farm hay. Uses 1 Energy. Can be boosted with Tools (Lv.3+)!",
+		"A spacious barn with animal stalls! Produces hay, trees, and birds. Uses 1 Energy. Can be boosted with Tools (Lv.3+)!",
+		"The grand master barn! Produces livestock (calves, sheep, piglets), trees, birds, and hay. Uses 1 Energy. Can be boosted with Tools (Lv.3+)!"
+	]
+	for t in range(1, 6):
+		var id := "barn_%d" % t
+		var it := _register_item(
+			id, "barn", "Barn", t, 5,
+			barn_names[t - 1], barn_descs[t - 1],
+			Color(0.85, 0.32, 0.25), barn_textures[t - 1]
+		)
+		it.min_spawner_tier = 3
+		it.is_spawner = (t >= 3)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		it.spawn_pool = _get_barn_pool(t)
+
+	# 5.2 Hay Chain (Tiers 1-8)
+	var hay_textures := [
+		preload("res://assets/items/farm/hay/1.png"),
+		preload("res://assets/items/farm/hay/2.png"),
+		preload("res://assets/items/farm/hay/3.png"),
+		preload("res://assets/items/farm/hay/4.png"),
+		preload("res://assets/items/farm/hay/5.png"),
+		preload("res://assets/items/farm/hay/6.png"),
+		preload("res://assets/items/farm/hay/7.png"),
+		preload("res://assets/items/farm/hay/8.png")
+	]
+	var hay_names := [
+		"Grass Seed", "Small Grass", "Tall Grass", "Stack of Green Grass",
+		"Yellow Hay Bale", "Stacks of Yellow Hay Bale", "Compost", "Biomass Facility"
+	]
+	var hay_descs := [
+		"Nutritious grass seed. Perfect for feeding baby chicks!",
+		"Fresh green grass shoots. Feed to growing hens and cocks!",
+		"Tall flourishing pasture grass. Needed to feed calves and lambs!",
+		"Hearty green grass stacks. Feed to young cows and young sheep!",
+		"Golden cured hay bale. Feed to mature cows to milk them, and sheep to upgrade!",
+		"Bountiful stacks of golden hay bales. Feed to mature cows to upgrade!",
+		"Rich organic compost. Feed to fruit trees to boost fruit drop!",
+		"Advanced biomass green energy converter! Max tier farm biomass."
+	]
+	for t in range(1, 9):
+		_register_item(
+			"hay_%d" % t, "hay", "Hay", t, 8,
+			hay_names[t - 1], hay_descs[t - 1],
+			Color(0.88, 0.82, 0.28), hay_textures[t - 1]
+		)
+
+	# 5.3 Tree Chain (Tiers 1-4, Spawner at Tier 3+)
+	var tree_textures := [
+		preload("res://assets/items/farm/tree/1.png"),
+		preload("res://assets/items/farm/tree/2.png"),
+		preload("res://assets/items/farm/tree/3.png"),
+		preload("res://assets/items/farm/tree/4.png")
+	]
+	var tree_names := [
+		"Fruit Tree Seed", "Fruit Tree Sapling", "Young Fruit Tree", "Mature Fruit Tree"
+	]
+	var tree_descs := [
+		"A sturdy fruit tree seed waiting for fertile soil.",
+		"A tender fruit sapling. Merge to cultivate an orchard tree!",
+		"A young orchard tree beginning to bear fruit. Tap to harvest fruits! Uses 1 Energy. Feed Compost (Hay Lv.7) to boost fruit drop to 2!",
+		"A magnificent sprawling orchard tree laden with juicy fruits. Uses 1 Energy. Feed Compost (Hay Lv.7) to boost fruit drop to 4!"
+	]
+	for t in range(1, 5):
+		var id := "tree_%d" % t
+		var it := _register_item(
+			id, "tree", "Tree", t, 4,
+			tree_names[t - 1], tree_descs[t - 1],
+			Color(0.28, 0.72, 0.32), tree_textures[t - 1]
+		)
+		it.min_spawner_tier = 3
+		it.is_spawner = (t >= 3)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		it.spawn_pool = _get_tree_pool(t)
+
+	# 5.4 Bird Chain (Tiers 1-8)
+	var bird_textures := [
+		preload("res://assets/items/farm/bird/1.png"),
+		preload("res://assets/items/farm/bird/2.png"),
+		preload("res://assets/items/farm/bird/3.png"),
+		preload("res://assets/items/farm/bird/4.png"),
+		preload("res://assets/items/farm/bird/5.png"),
+		preload("res://assets/items/farm/bird/6.png"),
+		preload("res://assets/items/farm/bird/7.png"),
+		preload("res://assets/items/farm/bird/8.png")
+	]
+	var bird_names := [
+		"Egg in a Nest", "Baby Chick", "Farm Hen", "Proud Cock",
+		"Farm Duck", "Graceful Swan", "Wild Turkey", "Noble Rhea"
+	]
+	var bird_descs := [
+		"A warm clutch of eggs nestled in straw. Merge to hatch!",
+		"A fluffy yellow chick. Feed Grass Seed (Hay Lv.1) 5 times before it can upgrade!",
+		"A plump hen. Feed Small Grass (Hay Lv.2) 5 times before it can upgrade!",
+		"A proud farm cock with vibrant feathers. Feed Small Grass (Hay Lv.2) 10 times before it can upgrade!",
+		"A friendly farm duck enjoying the pond.",
+		"An elegant white swan gliding gracefully.",
+		"A large heritage wild turkey.",
+		"The majestic rhea! Max tier farm avian."
+	]
+	for t in range(1, 9):
+		_register_item(
+			"bird_%d" % t, "bird", "Bird", t, 8,
+			bird_names[t - 1], bird_descs[t - 1],
+			Color(0.96, 0.68, 0.28), bird_textures[t - 1]
+		)
+
+	# 5.5 Pine Chain (Tiers 1-5, Spawner at Tier 3+)
+	var pine_textures := [
+		preload("res://assets/items/farm/pine/1.png"),
+		preload("res://assets/items/farm/pine/2.png"),
+		preload("res://assets/items/farm/pine/3.png"),
+		preload("res://assets/items/farm/pine/4.png"),
+		preload("res://assets/items/farm/pine/5.png")
+	]
+	var pine_names := [
+		"Pine Cone", "Pine Sapling", "Young Pine Tree",
+		"Mature Pine Tree", "Dense Pine Forest"
+	]
+	var pine_descs := [
+		"A resinous pine cone gathered from the woodland.",
+		"A fragrant little pine seedling.",
+		"A young evergreen pine. Tap to produce farm tools! Uses 1 Energy.",
+		"A towering evergreen pine tree. Tap to produce tools and pine cones! Uses 1 Energy.",
+		"A dense evergreen woodland producing tools and pine cones. Uses 1 Energy."
+	]
+	for t in range(1, 6):
+		var id := "pine_%d" % t
+		var it := _register_item(
+			id, "pine", "Pine", t, 5,
+			pine_names[t - 1], pine_descs[t - 1],
+			Color(0.18, 0.58, 0.35), pine_textures[t - 1]
+		)
+		it.min_spawner_tier = 3
+		it.is_spawner = (t >= 3)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		it.spawn_pool = _get_pine_pool(t)
+
+	# 5.6 Water Chain (Tiers 1-6, Spawner at Tier 3+)
+	var water_textures := [
+		preload("res://assets/items/farm/water/1.png"),
+		preload("res://assets/items/farm/water/2.png"),
+		preload("res://assets/items/farm/water/3.png"),
+		preload("res://assets/items/farm/water/4.png"),
+		preload("res://assets/items/farm/water/5.png"),
+		preload("res://assets/items/farm/water/6.png")
+	]
+	var water_names := [
+		"Water Bucket", "Bigger Water Bucket", "Jerrycan",
+		"Water Tank", "Water Tank Car", "Water Tower"
+	]
+	var water_descs := [
+		"A wooden bucket of clear well water.",
+		"A sturdy iron-banded bucket holding more fresh water.",
+		"A portable jerrycan of spring water. Tap to produce watering equipment! Uses 1 Energy.",
+		"A high-capacity galvanized water tank. Produces watering tools. Uses 1 Energy.",
+		"A mobile water tanker on wheels. Produces advanced watering gear. Uses 1 Energy.",
+		"A landmark farm water tower ensuring endless irrigation pressure! Max tier water."
+	]
+	for t in range(1, 7):
+		var id := "water_%d" % t
+		var it := _register_item(
+			id, "water", "Water", t, 6,
+			water_names[t - 1], water_descs[t - 1],
+			Color(0.25, 0.65, 0.95), water_textures[t - 1]
+		)
+		it.min_spawner_tier = 3
+		it.is_spawner = (t >= 3)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		it.spawn_pool = _get_water_pool(t)
+
+	# 5.7 Cow Chain (Tiers 1-6)
+	var cow_textures := [
+		preload("res://assets/items/farm/cow/1.png"),
+		preload("res://assets/items/farm/cow/2.png"),
+		preload("res://assets/items/farm/cow/3.png"),
+		preload("res://assets/items/farm/cow/4.png"),
+		preload("res://assets/items/farm/cow/5.png"),
+		preload("res://assets/items/farm/cow/6.png")
+	]
+	var cow_names := [
+		"Playful Calf", "Young Cow", "Mature Dairy Cow",
+		"Hairy Highland Cow", "Sturdy Ox", "Mighty Bull"
+	]
+	var cow_descs := [
+		"An adorable young calf. Feed Tall Grass (Hay Lv.3) 5 times to upgrade!",
+		"A healthy young cow. Feed Stack of Grass (Hay Lv.4) 5 times to upgrade!",
+		"A gentle dairy cow! Feed Hay Bale (Lv.5) 1 time to milk for fresh milk. Feed Hay Stacks (Lv.6) 1 time to upgrade!",
+		"A thick-coated highland cow adapted to chilly weather.",
+		"A muscular working ox capable of heavy fieldwork.",
+		"The grand master farm bull! Max tier bovine."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"cow_%d" % t, "cow", "Cow", t, 6,
+			cow_names[t - 1], cow_descs[t - 1],
+			Color(0.85, 0.85, 0.82), cow_textures[t - 1]
+		)
+
+	# 5.8 Sheep Chain (Tiers 1-4)
+	var sheep_textures := [
+		preload("res://assets/items/farm/sheep/1.png"),
+		preload("res://assets/items/farm/sheep/2.png"),
+		preload("res://assets/items/farm/sheep/3.png"),
+		preload("res://assets/items/farm/sheep/4.png")
+	]
+	var sheep_names := [
+		"Spring Lamb", "Young Sheep", "Mature Wool Sheep", "Horned Ram"
+	]
+	var sheep_descs := [
+		"A gentle little lamb. Shear with Clipper (Tool Lv.4) to harvest 1 Wool! Feed Hay Lv.3 5 times to upgrade.",
+		"A woolly young sheep. Shear with Clipper (Tool Lv.4) to harvest 3 Wool! Feed Hay Lv.4 5 times to upgrade.",
+		"A full-fleeced mature sheep. Shear with Clipper (Tool Lv.4) to harvest 6 Wool! Feed Hay Lv.5 5 times to upgrade.",
+		"A magnificent ram with curled horns. Shear with Clipper (Tool Lv.4) to harvest 8 Wool! Max tier sheep."
+	]
+	for t in range(1, 5):
+		_register_item(
+			"sheep_%d" % t, "sheep", "Sheep", t, 4,
+			sheep_names[t - 1], sheep_descs[t - 1],
+			Color(0.95, 0.95, 0.9), sheep_textures[t - 1]
+		)
+
+	# 5.9 Pig Chain (Tiers 1-5)
+	var pig_textures := [
+		preload("res://assets/items/farm/pig/1.png"),
+		preload("res://assets/items/farm/pig/2.png"),
+		preload("res://assets/items/farm/pig/3.png"),
+		preload("res://assets/items/farm/pig/4.png"),
+		preload("res://assets/items/farm/pig/5.png")
+	]
+	var pig_names := [
+		"Pink Piglet", "Young Pig", "Mature Pig", "Dirty Pig", "Wild Boar"
+	]
+	var pig_descs := [
+		"A cheerful little piglet. Feed any Hay 10 times to upgrade! Sells for high gold ($50).",
+		"A growing young pig. Feed any Hay 10 times to upgrade! Sells for high gold ($150).",
+		"A well-fed mature pig. Feed any Hay 10 times to upgrade! Sells for high gold ($400).",
+		"A happy pig caked in protective mud. Feed any Hay 10 times to upgrade! Sells for high gold ($1000).",
+		"A legendary wild boar with sharp tusks! Sells for 25 precious Diamonds!"
+	]
+	var pig_sell_values := [50, 150, 400, 1000, 25]
+	for t in range(1, 6):
+		var it := _register_item(
+			"pig_%d" % t, "pig", "Pig", t, 5,
+			pig_names[t - 1], pig_descs[t - 1],
+			Color(0.95, 0.65, 0.7), pig_textures[t - 1]
+		)
+		it.sell_value = pig_sell_values[t - 1]
+
+	# 5.10 Watering Chain (Tiers 1-5)
+	var watering_textures := [
+		preload("res://assets/items/farm/watering/1.png"),
+		preload("res://assets/items/farm/watering/2.png"),
+		preload("res://assets/items/farm/watering/3.png"),
+		preload("res://assets/items/farm/watering/4.png"),
+		preload("res://assets/items/farm/watering/5.png")
+	]
+	var watering_names := [
+		"Water Bottle", "Water Sprayer", "Watering Can",
+		"Portable Tank Sprayer", "Electric Power Sprayer"
+	]
+	var watering_descs := [
+		"A handheld spray bottle. Drag onto Hay, Trees, or Pines to boost them!",
+		"A pump mister bottle. Drag onto Hay, Trees, or Pines to boost them!",
+		"A classic galvanized metal watering can. Drag onto plants to boost!",
+		"A portable backpack sprayer for extensive garden irrigation.",
+		"High-pressure electric spraying system with extended hose! Max tier watering."
+	]
+	for t in range(1, 6):
+		_register_item(
+			"watering_%d" % t, "watering", "Watering", t, 5,
+			watering_names[t - 1], watering_descs[t - 1],
+			Color(0.3, 0.8, 0.85), watering_textures[t - 1]
+		)
+
+	# 5.11 Fruit Chain (Tiers 1-8)
+	var fruit_textures := [
+		preload("res://assets/items/farm/fruit/1.png"),
+		preload("res://assets/items/farm/fruit/2.png"),
+		preload("res://assets/items/farm/fruit/3.png"),
+		preload("res://assets/items/farm/fruit/4.png"),
+		preload("res://assets/items/farm/fruit/5.png"),
+		preload("res://assets/items/farm/fruit/6.png"),
+		preload("res://assets/items/farm/fruit/7.png"),
+		preload("res://assets/items/farm/fruit/8.png")
+	]
+	var fruit_names := [
+		"Crisp Green Apple", "Sweet Red Apple", "Juicy Farm Pear", "Sun-ripened Orange",
+		"Velvet Peach", "Ripe Yellow Banana", "Sweet Concord Grapes", "Grand Harvest Fruit Basket"
+	]
+	var fruit_descs := [
+		"A tart green apple freshly picked from the tree.",
+		"A crisp sweet apple shining in the orchard sunlight.",
+		"A fragrant and juicy ripe orchard pear.",
+		"Bursting with sweet citrus juice.",
+		"Soft, fragrant velvet peach.",
+		"A bunch of golden sweet bananas.",
+		"Plump clusters of sweet wine grapes.",
+		"An extravagant basket overflowing with farm-fresh orchard fruits! Max tier fruit."
+	]
+	for t in range(1, 9):
+		_register_item(
+			"fruit_%d" % t, "fruit", "Fruit", t, 8,
+			fruit_names[t - 1], fruit_descs[t - 1],
+			Color(0.95, 0.45, 0.25), fruit_textures[t - 1]
+		)
+
+	# 5.12 Tool Chain (Tiers 1-10)
+	var tool_textures := [
+		preload("res://assets/items/farm/tool/1.png"),
+		preload("res://assets/items/farm/tool/2.png"),
+		preload("res://assets/items/farm/tool/3.png"),
+		preload("res://assets/items/farm/tool/4.png"),
+		preload("res://assets/items/farm/tool/5.png"),
+		preload("res://assets/items/farm/tool/6.png"),
+		preload("res://assets/items/farm/tool/7.png"),
+		preload("res://assets/items/farm/tool/8.png"),
+		preload("res://assets/items/farm/tool/9.png"),
+		preload("res://assets/items/farm/tool/10.png")
+	]
+	var tool_names := [
+		"Hand Shovel", "Pruning Shears", "Garden Hoe", "Shearing Clipper",
+		"Heavy Pitchfork", "Woodsman Axe", "Steel Pickaxe", "Craftsman Sledge",
+		"Farm Chainsaw", "Master Farm Powerplant"
+	]
+	var tool_descs := [
+		"A small garden trowel for planting seeds.",
+		"Sharp hand clippers for trimming vines.",
+		"A durable iron hoe. Can be fed to Barn (Lv.3+) to boost drop rates!",
+		"Professional shearing clipper! Consumed to shear sheep for wool.",
+		"A sturdy pitchfork for tossing fresh straw and hay bales. Can boost the Barn!",
+		"A sharp felling axe for timber and brush clearing. Can boost the Barn!",
+		"Solid steel pickaxe for breaking hard earth and stone. Can boost the Barn!",
+		"Heavy blacksmith sledgehammer for farm construction. Can boost the Barn!",
+		"Gas-powered timber chainsaw for clearing woodland. Can boost the Barn!",
+		"The supreme industrial farming powerplant! Max tier farm tool."
+	]
+	for t in range(1, 11):
+		_register_item(
+			"tool_%d" % t, "tool", "Tool", t, 10,
+			tool_names[t - 1], tool_descs[t - 1],
+			Color(0.65, 0.68, 0.72), tool_textures[t - 1]
+		)
+
+	# 5.13 Milk Chain (Tiers 1-8)
+	var milk_textures := [
+		preload("res://assets/items/farm/milk/1.png"),
+		preload("res://assets/items/farm/milk/2.png"),
+		preload("res://assets/items/farm/milk/3.png"),
+		preload("res://assets/items/farm/milk/4.png"),
+		preload("res://assets/items/farm/milk/5.png"),
+		preload("res://assets/items/farm/milk/6.png"),
+		preload("res://assets/items/farm/milk/7.png"),
+		preload("res://assets/items/farm/milk/8.png")
+	]
+	var milk_names := [
+		"Fresh Milk Glass", "Pasteurized Milk Bottle", "Heavy Cream Jug", "Fresh Curd Bowl",
+		"Soft Farm Cheese", "Aged Cheddar Wedge", "Gouda Wheel", "Grand Artisan Fromagerie"
+	]
+	var milk_descs := [
+		"Rich warm milk fresh from the dairy cow.",
+		"Chilled bottle of wholesome whole milk.",
+		"Thick golden farm cream, ready for churning.",
+		"Fresh cheese curds separated from whey.",
+		"A wheel of young, soft farm cheese.",
+		"Sharp cheddar aged to perfection in the cellar.",
+		"A massive wheel of waxed Gouda cheese.",
+		"A five-star gourmet spread of cellar-aged artisan cheeses! Max tier dairy."
+	]
+	for t in range(1, 9):
+		_register_item(
+			"milk_%d" % t, "milk", "Milk", t, 8,
+			milk_names[t - 1], milk_descs[t - 1],
+			Color(0.98, 0.96, 0.88), milk_textures[t - 1]
+		)
+
+	# 5.14 Wool Chain (Tiers 1-7)
+	var wool_textures := [
+		preload("res://assets/items/farm/wool/1.png"),
+		preload("res://assets/items/farm/wool/2.png"),
+		preload("res://assets/items/farm/wool/3.png"),
+		preload("res://assets/items/farm/wool/4.png"),
+		preload("res://assets/items/farm/wool/5.png"),
+		preload("res://assets/items/farm/wool/6.png"),
+		preload("res://assets/items/farm/wool/7.png")
+	]
+	var wool_names := [
+		"Wool Tuft", "Cleaned Fleece", "Spinning Yarn Spool", "Knitted Mittens",
+		"Woolen Scarf", "Cozy Cable Sweater", "Farm Boutique Coat"
+	]
+	var wool_descs := [
+		"Soft raw wool sheared from sheep.",
+		"Washed and carded cloud-soft fleece.",
+		"A spool of tightly spun natural woolen yarn.",
+		"Warm knitted mittens to keep hands cozy in winter.",
+		"A thick knit wool scarf with decorative tassels.",
+		"A warm, hand-knit cable sweater with rich texture.",
+		"An elegant, bespoke designer coat tailored from pure farm wool! Max tier clothing."
+	]
+	for t in range(1, 8):
+		_register_item(
+			"wool_%d" % t, "wool", "Wool", t, 7,
+			wool_names[t - 1], wool_descs[t - 1],
+			Color(0.92, 0.88, 0.94), wool_textures[t - 1]
+		)
+
+func _get_barn_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		3:
+			pool = ["hay_1", "hay_1", "hay_2"]
+		4:
+			pool = ["hay_1", "hay_2", "tree_1", "bird_1"]
+		5:
+			pool = ["hay_2", "tree_1", "bird_1", "cow_1", "sheep_1", "pig_1"]
+		_:
+			pool = ["hay_1"]
+	return pool
+
+func _get_tree_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		3:
+			pool = ["fruit_1", "fruit_1", "fruit_2"]
+		4:
+			pool = ["fruit_1", "fruit_2", "fruit_3"]
+		_:
+			pool = ["fruit_1"]
+	return pool
+
+func _get_pine_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		3:
+			pool = ["tool_1", "tool_1", "tool_2"]
+		4:
+			pool = ["tool_1", "tool_2", "tool_3", "pine_1"]
+		5:
+			pool = ["tool_2", "tool_3", "tool_4", "pine_1"]
+		_:
+			pool = ["tool_1"]
+	return pool
+
+func _get_water_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		3:
+			pool = ["watering_1", "watering_1"]
+		4:
+			pool = ["watering_1", "watering_2"]
+		5:
+			pool = ["watering_2", "watering_2", "watering_3"]
+		6:
+			pool = ["watering_2", "watering_3", "watering_4"]
+		_:
+			pool = ["watering_1"]
+	return pool
 
 func _register_color_chests() -> void:
 	var chest_charges := [5, 8, 12, 18]
@@ -654,56 +1142,120 @@ func _register_color_chests() -> void:
 		it.sell_value = int(pow(2, t) * 5)
 		it.spawn_pool = _get_blue_chest_pool(t)
 
-func _get_purple_chest_pool(tier: int) -> Array[String]:
+func _get_purple_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["exp_1", "exp_1", "exp_1", "exp_2", "exp_2", "foodbox_1", "oven_1"]
+			pool = ["exp_1", "exp_1", "exp_1", "exp_2", "exp_2"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["exp_2", "exp_2", "exp_3", "exp_3", "foodbox_1", "oven_1", "fridge_1"]
+			pool = ["exp_2", "exp_2", "exp_3", "exp_3"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["exp_3", "exp_3", "exp_4", "exp_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["exp_3", "exp_3", "exp_4", "exp_4"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["exp_4", "exp_4", "exp_5", "exp_5", "exp_6", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["exp_4", "exp_4", "exp_5", "exp_5", "exp_6"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
-func _get_green_chest_pool(tier: int) -> Array[String]:
+func _get_green_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["energy_1", "energy_1", "energy_1", "energy_2", "energy_2", "foodbox_1", "oven_1"]
+			pool = ["energy_1", "energy_1", "energy_1", "energy_2", "energy_2"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["energy_2", "energy_2", "energy_3", "energy_3", "foodbox_1", "oven_1", "fridge_1"]
+			pool = ["energy_2", "energy_2", "energy_3", "energy_3"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["energy_3", "energy_3", "energy_4", "energy_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["energy_3", "energy_3", "energy_4", "energy_4"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["energy_4", "energy_4", "energy_5", "energy_5", "energy_6", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["energy_4", "energy_4", "energy_5", "energy_5", "energy_6"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
-func _get_yellow_chest_pool(tier: int) -> Array[String]:
+func _get_yellow_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["gold_1", "gold_1", "gold_1", "gold_2", "gold_2", "foodbox_1", "oven_1"]
+			pool = ["gold_1", "gold_1", "gold_1", "gold_2", "gold_2"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["gold_2", "gold_2", "gold_3", "gold_3", "foodbox_1", "oven_1", "fridge_1"]
+			pool = ["gold_2", "gold_2", "gold_3", "gold_3"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["gold_3", "gold_3", "gold_4", "gold_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["gold_3", "gold_3", "gold_4", "gold_4"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["gold_4", "gold_4", "gold_5", "gold_5", "gold_6", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["gold_4", "gold_4", "gold_5", "gold_5", "gold_6"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
-func _get_blue_chest_pool(tier: int) -> Array[String]:
+func _get_blue_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["diamond_1", "diamond_1", "diamond_1", "diamond_2", "diamond_2", "foodbox_1", "oven_1"]
+			pool = ["diamond_1", "diamond_1", "diamond_1", "diamond_2", "diamond_2"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["diamond_2", "diamond_2", "diamond_3", "diamond_3", "foodbox_1", "oven_1", "fridge_1"]
+			pool = ["diamond_2", "diamond_2", "diamond_3", "diamond_3"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["diamond_3", "diamond_3", "diamond_4", "diamond_4", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["diamond_3", "diamond_3", "diamond_4", "diamond_4"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["diamond_4", "diamond_4", "diamond_5", "diamond_5", "foodbox_1", "oven_1", "fridge_1", "rack_1"]
+			pool = ["diamond_4", "diamond_4", "diamond_5", "diamond_5"]
+			if is_farm:
+				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
+			else:
+				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
 func _get_foodbox_pool(tier: int) -> Array[String]:
@@ -827,9 +1379,47 @@ func get_item(id: String) -> ItemData:
 func has_item(id: String) -> bool:
 	return _items.has(id)
 
-func get_spawner_drop(spawner_id: String) -> String:
+func get_chest_pool(chest_id: String, board_context: String = "") -> Array[String]:
+	var context := board_context
+	if context.is_empty() and is_instance_valid(SaveManager):
+		context = SaveManager.current_board_id
+	if context.is_empty():
+		context = "kitchen"
+
+	var is_farm := (context == "farm")
+
+	if chest_id == "chest_1":
+		var p1: Array[String] = ["barn_1", "water_1"] if is_farm else ["oven_1", "fridge_1"]
+		return p1
+	elif chest_id == "chest_2":
+		var p2: Array[String] = ["barn_1", "water_1", "tree_1", "pine_1"] if is_farm else ["oven_1", "fridge_1", "rack_1", "foodbox_1"]
+		return p2
+
+	var parts := chest_id.split("_")
+	var tier := int(parts[-1]) if not parts.is_empty() else 1
+
+	if chest_id.begins_with("chest_purple"):
+		return _get_purple_chest_pool(tier, is_farm)
+	elif chest_id.begins_with("chest_green"):
+		return _get_green_chest_pool(tier, is_farm)
+	elif chest_id.begins_with("chest_yellow"):
+		return _get_yellow_chest_pool(tier, is_farm)
+	elif chest_id.begins_with("chest_blue"):
+		return _get_blue_chest_pool(tier, is_farm)
+
+	return []
+
+func get_spawner_drop(spawner_id: String, board_context: String = "") -> String:
 	var item: ItemData = get_item(spawner_id)
-	if not item or not item.is_spawner or item.spawn_pool.is_empty():
+	if not item or not item.is_spawner:
+		return "egg_1"
+
+	if item.chain_id.begins_with("chest"):
+		var pool := get_chest_pool(item.id, board_context)
+		if not pool.is_empty():
+			return pool[randi() % pool.size()]
+
+	if item.spawn_pool.is_empty():
 		return "egg_1"
 	return item.spawn_pool[randi() % item.spawn_pool.size()]
 

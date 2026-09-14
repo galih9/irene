@@ -4,6 +4,7 @@ extends Control
 signal progression_pressed()
 signal inventory_pressed()
 signal shop_pressed()
+signal map_pressed()
 signal reward_slot_pressed()
 
 @export var reward_slot_on_left: bool = true:
@@ -15,6 +16,7 @@ signal reward_slot_pressed()
 @onready var progression_btn: Button = $HBoxContainer/ProgressionBtn
 @onready var inventory_btn: Button = $HBoxContainer/InventoryBtn
 @onready var shop_btn: Button = $HBoxContainer/ShopBtn
+@onready var map_btn: Button = $HBoxContainer/MapBtn
 @onready var reward_btn: Button = $HBoxContainer/RewardBtn
 
 @onready var inventory_icon: TextureRect = $HBoxContainer/InventoryBtn/Margin/HBox/Icon
@@ -47,6 +49,8 @@ func _ready() -> void:
 	progression_btn.pressed.connect(_on_progression_pressed)
 	inventory_btn.pressed.connect(_on_inventory_pressed)
 	shop_btn.pressed.connect(_on_shop_pressed)
+	if is_instance_valid(map_btn):
+		map_btn.pressed.connect(_on_map_pressed)
 	if is_instance_valid(reward_btn):
 		reward_btn.pressed.connect(_on_reward_slot_pressed)
 
@@ -54,6 +58,7 @@ func _ready() -> void:
 	GameEvents.progression_changed.connect(update_progression_display)
 	GameEvents.reward_queue_changed.connect(update_reward_slot_display)
 	GameEvents.quest_count_changed.connect(func(_cnt): update_milestone_locks())
+	GameEvents.map_unlocked.connect(func(): update_milestone_locks())
 	GameEvents.quest_milestone_unlocked.connect(func(milestone):
 		update_milestone_locks()
 		if milestone == "backpack":
@@ -83,7 +88,7 @@ func set_layout_vertical(vertical: bool) -> void:
 			hbox.add_theme_constant_override("separation", 12)
 	if vertical:
 		custom_minimum_size = Vector2(200, 300)
-		for btn in [progression_btn, inventory_btn, shop_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn, map_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -94,7 +99,7 @@ func set_layout_vertical(vertical: bool) -> void:
 			reward_btn.custom_minimum_size = Vector2(70, 70)
 	else:
 		custom_minimum_size = Vector2(664, 116)
-		for btn in [progression_btn, inventory_btn, shop_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn, map_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
@@ -129,6 +134,10 @@ func update_milestone_locks() -> void:
 		shop_icon.modulate = Color.WHITE if shop_unlocked else Color(0.45, 0.45, 0.45, 0.65)
 	if is_instance_valid(shop_title):
 		shop_title.text = "Shop" if shop_unlocked else "Locked (5)"
+
+	# Map button gating
+	if is_instance_valid(map_btn):
+		map_btn.visible = ProgressionManager.is_map_unlocked
 
 func update_inventory_display() -> void:
 	if not is_inventory_unlocked():
@@ -240,6 +249,11 @@ func _on_shop_pressed() -> void:
 	SoundManager.play_click()
 	shop_pressed.emit()
 	GameEvents.request_shop_open.emit()
+
+func _on_map_pressed() -> void:
+	SoundManager.play_click()
+	map_pressed.emit()
+	GameEvents.request_map_open.emit()
 
 # =============================================================================
 # Temporary Reward Slot Management

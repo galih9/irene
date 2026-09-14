@@ -40,6 +40,49 @@ extends Node2D
 		if is_inside_tree():
 			_apply_board_styling()
 
+@export var board_theme: String = "kitchen": # "kitchen" or "farm"
+	set(val):
+		board_theme = val
+		_apply_theme_styling()
+		_apply_theme_to_all_items()
+
+func _apply_theme_styling() -> void:
+	if board_theme == "farm":
+		# Farm Board Styling: transparent dark green background, alternating light yellow and light brown tiles
+		board_bg_color = Color(0.08, 0.22, 0.12, 0.78)
+		board_border_color = Color(0.24, 0.44, 0.28, 0.85)
+		tile_bg_color = Color(0.96, 0.91, 0.74, 0.90)       # Light yellow
+		tile_bg_alt_color = Color(0.84, 0.74, 0.61, 0.90)   # Light brown
+		tile_border_color = Color(0.65, 0.55, 0.42, 0.65)
+		tile_locked_bg_color = Color(0.48, 0.45, 0.38, 0.85)
+		tile_locked_bg_alt_color = Color(0.42, 0.39, 0.33, 0.85)
+		tile_locked_border_color = Color(0.35, 0.32, 0.26, 0.7)
+		tile_hover_empty_color = Color(0.55, 0.75, 0.50, 0.92)
+		tile_hover_merge_color = Color(0.30, 0.80, 0.45, 0.95)
+	else:
+		# Kitchen Board Styling (slate blue cozy kitchen)
+		board_bg_color = Color(0.1, 0.12, 0.16, 0.95)
+		board_border_color = Color(0.2, 0.25, 0.32, 0.8)
+		tile_bg_color = Color(0.18, 0.21, 0.27, 0.9)
+		tile_bg_alt_color = Color(0.24, 0.28, 0.35, 0.9)
+		tile_border_color = Color(0.28, 0.32, 0.4, 0.5)
+		tile_locked_bg_color = Color(0.10, 0.11, 0.14, 0.95)
+		tile_locked_bg_alt_color = Color(0.13, 0.14, 0.18, 0.95)
+		tile_locked_border_color = Color(0.20, 0.22, 0.26, 0.6)
+		tile_hover_empty_color = Color(0.28, 0.38, 0.52, 0.95)
+		tile_hover_merge_color = Color(0.25, 0.65, 0.38, 0.95)
+
+	if is_inside_tree():
+		_apply_board_styling()
+		_apply_cells_styling()
+
+func _apply_theme_to_all_items() -> void:
+	for c in range(_grid.size()):
+		for r in range(_grid[c].size()):
+			var it: ItemView = _grid[c][r]
+			if is_instance_valid(it):
+				it.board_theme = board_theme
+
 var tile_margin: float:
 	get:
 		return cell_spacing
@@ -151,6 +194,7 @@ var _indicator_base_scale: Vector2 = Vector2.ONE
 var bottom_nav_bar: BottomNavBar = null
 
 func _ready() -> void:
+	_apply_theme_styling()
 	_apply_board_styling()
 	_init_grid()
 	_create_cells()
@@ -392,6 +436,7 @@ func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemS
 		existing.queue_free()
 
 	var item: ItemView = item_view_scene.instantiate()
+	item.board_theme = board_theme
 	items_container.add_child(item)
 	item.scale = Vector2.ONE * (cell_size / 88.0)
 	item.setup(data, state as ItemView.ItemState, req_level, b_var, w_var)
@@ -409,6 +454,7 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 		return null
 
 	var item: ItemView = item_view_scene.instantiate()
+	item.board_theme = board_theme
 	items_container.add_child(item)
 	item.scale = Vector2.ONE * (cell_size / 88.0)
 	item.setup(data)
@@ -621,6 +667,24 @@ func _handle_release(mouse_pos: Vector2) -> void:
 	_update_hover_cursor(mouse_pos)
 
 func _handle_item_tap(item: ItemView) -> void:
+	# 0. Cow Lv.3 Milking
+	if item.data.id == "cow_3" and item.is_milked_ready:
+		var empty_cells := get_empty_cells()
+		if empty_cells.is_empty():
+			item.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Board is Full!", item.global_position + Vector2(0, -50), Color(1.0, 0.4, 0.4))
+			return
+		item.is_milked_ready = false
+		item.animate_spawner_tap()
+		SoundManager.play_spawn()
+		spawn_item_flight(item.global_position, empty_cells[0], "milk_1")
+		GameEvents.show_floating_text.emit("Milked +1 Fresh Milk! 🥛", item.global_position + Vector2(0, -50), Color(0.95, 0.95, 0.8))
+		item._update_visuals()
+		select_item(item)
+		GameEvents.board_changed.emit()
+		return
+
 	# 1. Spawner tap
 	if item.data.is_spawner:
 		_trigger_spawner(item)
@@ -670,7 +734,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 	SoundManager.play_spawn()
 
 	# Pick drop item
-	var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id)
+	var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
 	if spawner.data.id.begins_with("foodbox"):
 		if SaveManager and SaveManager.tutorial_manager_ref and SaveManager.tutorial_manager_ref.current_step == TutorialManager.TutorialStep.SPAWN_ITEM:
 			drop_id = "egg_1"
@@ -686,6 +750,31 @@ func _trigger_spawner(spawner: ItemView) -> void:
 			best_coord = ec
 
 	spawn_item_flight(spawner.global_position, best_coord, drop_id)
+
+	# Special Producer Boosting
+	# 1. Barn Boost: tool boosted barn increases drop level & extra spawn
+	if spawner.data.chain_id == "barn" and spawner.is_boosted:
+		spawner.boost_charges = maxi(0, spawner.boost_charges - 1)
+		if spawner.boost_charges <= 0:
+			spawner.is_boosted = false
+		var extra_cells := get_empty_cells()
+		if not extra_cells.is_empty():
+			var extra_drop := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+			var it_d := ItemDatabase.get_item(extra_drop)
+			if it_d and it_d.tier < it_d.max_tier:
+				var next_id := it_d.get_next_tier_id()
+				if ItemDatabase.has_item(next_id):
+					extra_drop = next_id
+			spawn_item_flight(spawner.global_position, extra_cells[0], extra_drop)
+
+	# 2. Tree Boost: Compost boosted fruit tree drops 2 (Tier 3) or 4 (Tier 4) fruits
+	if spawner.data.chain_id == "tree" and spawner.is_boosted:
+		var target_count := 2 if spawner.data.tier == 3 else 4
+		for f in range(target_count - 1):
+			var extra_cells := get_empty_cells()
+			if not extra_cells.is_empty():
+				var f_drop := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+				spawn_item_flight(spawner.global_position, extra_cells[0], f_drop)
 
 	# If the spawner is consumable (e.g. Chest) and exhausted, it vanishes!
 	if spawner.data.disappears_when_exhausted and spawner.current_charges <= 0:
@@ -736,6 +825,121 @@ func _can_merge(data_a: ItemData, data_b: ItemData) -> bool:
 		return false
 	return true
 
+func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
+	if not dragged or not target_item or not dragged.data or not target_item.data:
+		return false
+	if not dragged.is_normal() or not target_item.is_normal():
+		return false
+
+	# 1. Shearing Sheep with Tool Lv.4
+	if target_item.can_be_sheared(dragged):
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.shear_cooldown = 10.0
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+
+		var wool_count := 1
+		match target_item.data.tier:
+			1: wool_count = 1
+			2: wool_count = 3
+			3: wool_count = 6
+			4: wool_count = 8
+			_: wool_count = 1
+
+		for i in range(wool_count):
+			var empty_cells := get_empty_cells()
+			if not empty_cells.is_empty():
+				spawn_item_flight(target_item.global_position, empty_cells[0], "wool_1")
+
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.show_floating_text.emit("Sheared +%d Wool! ✂️" % wool_count, target_item.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
+		GameEvents.board_changed.emit()
+		return true
+
+	# 2. Feeding Animals, Cow Milking Feed, and Tree Compost
+	if target_item.can_accept_feed(dragged):
+		# Cow 3 milk ready feed (Hay Lv.5)
+		if target_item.data.id == "cow_3" and dragged.data.id == "hay_5":
+			_clear_source_slot(dragged)
+			dragged.queue_free()
+			target_item.is_milked_ready = true
+			target_item.animate_merge_pop()
+			SoundManager.play_consume()
+			GameEvents.show_floating_text.emit("Fed! Cow Ready to Milk! 🥛", target_item.global_position + Vector2(0, -45), Color(0.9, 1.0, 0.4))
+			target_item._update_visuals()
+			select_item(target_item)
+			GameEvents.board_changed.emit()
+			return true
+
+		# Tree 3/4 Fruit Boost feed (Hay Lv.7 Compost)
+		if target_item.data.id in ["tree_3", "tree_4"] and dragged.data.id == "hay_7":
+			_clear_source_slot(dragged)
+			dragged.queue_free()
+			target_item.is_boosted = true
+			target_item.boost_charges = 10
+			target_item.animate_merge_pop()
+			SoundManager.play_consume()
+			var bonus := 2 if target_item.data.id == "tree_3" else 4
+			GameEvents.show_floating_text.emit("Tree Boosted! (+%d Fruit Drop) 🍎" % bonus, target_item.global_position + Vector2(0, -45), Color(0.4, 1.0, 0.4))
+			target_item._update_visuals()
+			select_item(target_item)
+			GameEvents.board_changed.emit()
+			return true
+
+		# Regular animal feeding
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.fed_count += 1
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+		var req_cnt := target_item.get_required_feed_count()
+		if target_item.fed_count >= req_cnt:
+			GameEvents.show_floating_text.emit("Fully Fed! Ready to Merge! ⭐", target_item.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.2))
+		else:
+			GameEvents.show_floating_text.emit("Fed! (%d/%d)" % [target_item.fed_count, req_cnt], target_item.global_position + Vector2(0, -45), Color(0.5, 1.0, 0.5))
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
+	# 3. Boosting Barn with Tools (Tool Lv.3+)
+	if target_item.can_be_boosted_by_tool(dragged):
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.is_boosted = true
+		target_item.boost_charges += 5
+		target_item.current_charges = target_item.max_charges
+		target_item.producer_status = ItemView.ProducerStatus.READY
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+		GameEvents.show_floating_text.emit("Barn Boosted! (+Drop Tier & Spawns) 🛠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.75, 0.3))
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
+	# 4. Watering Plants (Hay, Tree, Pine)
+	if target_item.can_be_watered(dragged):
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.is_boosted = true
+		target_item.boost_charges += 5
+		if target_item.data.is_spawner:
+			target_item.current_cooldown = 0.0
+			target_item.current_charges = target_item.max_charges
+			target_item.producer_status = ItemView.ProducerStatus.READY
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+		GameEvents.show_floating_text.emit("Watered & Boosted! 💧", target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
+	return false
+
 func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	var target_item := get_item_at(target_coord)
 	var is_hidden_target: bool = (target_item and target_item.is_hidden())
@@ -754,6 +958,12 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 		select_item(dragged)
 		return
 
+	# Case 1.5: Special Interaction (Feeding, Shearing, Tool Boosting, Watering)
+	if target_item and not target_item.is_boxed() and not target_item.is_locked():
+		if _try_special_interaction(dragged, target_item):
+			_update_hover_cursor(get_global_mouse_position())
+			return
+
 	# Case 2: Target is Boxed -> cannot merge or swap, bounce back
 	if target_item and target_item.is_boxed():
 		target_item.animate_wobble()
@@ -770,6 +980,17 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	# Case 3: Target is Locked -> can only merge if same type and tier
 	if target_item and target_item.is_locked():
 		if _can_merge(dragged.data, target_item.data):
+			if dragged.needs_feeding_to_upgrade() and not dragged.is_fully_fed():
+				dragged.animate_wobble()
+				SoundManager.play_error()
+				GameEvents.show_floating_text.emit(
+					"Feed animal before merging! (%d/%d)" % [dragged.fed_count, dragged.get_required_feed_count()],
+					target_item.global_position + Vector2(0, -45),
+					Color(1.0, 0.45, 0.45)
+				)
+				_return_item_to_origin(dragged)
+				select_item(dragged)
+				return
 			_execute_merge(dragged, target_item)
 		else:
 			target_item.animate_wobble()
@@ -785,6 +1006,22 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 
 	# Case 4: Dropped onto merge target
 	if target_item and _can_merge(dragged.data, target_item.data):
+		if target_item.needs_feeding_to_upgrade() or dragged.needs_feeding_to_upgrade():
+			if not target_item.is_fully_fed() or not dragged.is_fully_fed():
+				target_item.animate_wobble()
+				dragged.animate_wobble()
+				SoundManager.play_error()
+				var msg := "Feed both animals to merge!"
+				if not target_item.is_fully_fed() and not dragged.is_fully_fed():
+					msg = "Feed both animals first!"
+				elif not target_item.is_fully_fed():
+					msg = "Target needs feed (%d/%d)" % [target_item.fed_count, target_item.get_required_feed_count()]
+				else:
+					msg = "Dragged animal needs feed (%d/%d)" % [dragged.fed_count, dragged.get_required_feed_count()]
+				GameEvents.show_floating_text.emit(msg, target_item.global_position + Vector2(0, -45), Color(1.0, 0.45, 0.45))
+				_return_item_to_origin(dragged)
+				select_item(dragged)
+				return
 		_execute_merge(dragged, target_item)
 		return
 
@@ -850,6 +1087,12 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 
 	# If target was locked, it unlocks into normal item!
 	target.setup(new_data, ItemView.ItemState.NORMAL)
+	target.board_theme = board_theme
+	target.fed_count = 0
+	target.shear_cooldown = 0.0
+	target.is_boosted = false
+	target.boost_charges = 0
+	target.is_milked_ready = false
 	target.animate_merge_pop()
 
 	var pop_pos := target.global_position + Vector2(0, -50)
@@ -858,6 +1101,7 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 		text_msg = "Unlocked!\n%s" % [new_data.display_name]
 		GameEvents.locked_item_cleared.emit(target.grid_coord, new_data.id)
 		reveal_surrounding_items(target.grid_coord)
+		check_map_unlock_milestone()
 
 	GameEvents.show_floating_text.emit(
 		text_msg,
@@ -906,6 +1150,20 @@ func _return_item_to_origin(item: ItemView) -> void:
 func _sell_item(item: ItemView) -> void:
 	var value := item.data.sell_value
 	var item_id := item.data.id
+
+	# Special case: Wild Boar sells for Diamonds!
+	if item_id == "pig_5":
+		var diamond_value := 25
+		EconomyManager.add_gems(diamond_value)
+		SoundManager.play_consume()
+		GameEvents.show_floating_text.emit("+%d Diamonds (Boar Sold) 💎" % diamond_value, item.global_position + Vector2(0, -40), Color(0.45, 0.88, 1.0))
+		remove_item(item)
+		item.queue_free()
+		GameEvents.item_sold.emit(item_id, diamond_value)
+		GameEvents.board_changed.emit()
+		GameEvents.inventory_changed.emit()
+		return
+
 	EconomyManager.add_coins(value)
 	SoundManager.play_consume()
 	GameEvents.show_floating_text.emit("+%d Gold (Sold)" % value, item.global_position + Vector2(0, -40), Color(1.0, 0.85, 0.2))
@@ -961,7 +1219,29 @@ func check_boxed_items_unlock(current_level: int) -> void:
 					GameEvents.item_unboxed.emit(unbox_id)
 				any_unboxed = true
 	if any_unboxed:
+		check_map_unlock_milestone()
 		GameEvents.board_changed.emit()
+
+func get_unlocked_tile_count() -> int:
+	var count: int = 0
+	for c in range(cols):
+		for r in range(rows):
+			if c < _grid.size() and r < _grid[c].size():
+				var it: ItemView = _grid[c][r]
+				if it == null:
+					if _cells.size() > c and _cells[c].size() > r and not _cells[c][r].is_hidden_cell:
+						count += 1
+				elif it.is_normal():
+					count += 1
+	return count
+
+func check_map_unlock_milestone() -> void:
+	if board_theme != "kitchen":
+		return
+	var unlocked_count := get_unlocked_tile_count()
+	if unlocked_count >= 50:
+		if is_instance_valid(ProgressionManager) and not ProgressionManager.is_map_unlocked:
+			ProgressionManager.unlock_map()
 
 func get_all_items_on_board(only_usable: bool = false) -> Array[ItemView]:
 	var items: Array[ItemView] = []
@@ -996,7 +1276,13 @@ func serialize_items() -> Array[Dictionary]:
 					"item_state": int(it.item_state),
 					"unlock_level": it.unlock_level,
 					"box_variant": it.box_variant,
-					"web_variant": it.web_variant
+					"web_variant": it.web_variant,
+					"fed_count": it.fed_count,
+					"shear_cooldown": it.shear_cooldown,
+					"is_boosted": it.is_boosted,
+					"boost_charges": it.boost_charges,
+					"is_milked_ready": it.is_milked_ready,
+					"board_theme": it.board_theme
 				}
 				if it.data.is_spawner:
 					dict["spawner_charges"] = it.current_charges
@@ -1017,12 +1303,24 @@ func load_items(items_data: Array) -> void:
 		var w_var: int = int(entry.get("web_variant", -1))
 		if is_valid_coord(Vector2i(c, r)) and not item_id.is_empty():
 			var spawned := spawn_item_at(Vector2i(c, r), item_id, state_val, req_level, b_var, w_var)
-			if spawned and entry.has("spawner_charges"):
-				var charges: int = int(entry.get("spawner_charges", spawned.max_charges))
-				var cooldown: float = float(entry.get("spawner_cooldown", 0.0))
-				var status_val: int = int(entry.get("producer_status", -1))
-				spawned.restore_spawner_state(charges, cooldown, status_val)
+			if spawned:
+				spawned.board_theme = board_theme
+				if entry.has("spawner_charges"):
+					var charges: int = int(entry.get("spawner_charges", spawned.max_charges))
+					var cooldown: float = float(entry.get("spawner_cooldown", 0.0))
+					var status_val: int = int(entry.get("producer_status", -1))
+					spawned.restore_spawner_state(charges, cooldown, status_val)
+				spawned.restore_interaction_state(
+					int(entry.get("fed_count", 0)),
+					float(entry.get("shear_cooldown", 0.0)),
+					bool(entry.get("is_boosted", false)),
+					int(entry.get("boost_charges", 0)),
+					bool(entry.get("is_milked_ready", false))
+				)
 	check_boxed_items_unlock(ProgressionManager.player_level)
+	check_map_unlock_milestone()
+	update_all_cells_lock_visuals()
+	GameEvents.board_changed.emit()
 	update_all_cells_lock_visuals()
 	GameEvents.board_changed.emit()
 
@@ -1056,6 +1354,7 @@ func reveal_surrounding_items(center_coord: Vector2i, ring_radius: int = 1) -> A
 					update_cell_lock_visual(neighbor_coord)
 					revealed.append(neighbor_item)
 	if not revealed.is_empty():
+		check_map_unlock_milestone()
 		GameEvents.board_changed.emit()
 	return revealed
 

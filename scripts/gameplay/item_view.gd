@@ -31,7 +31,30 @@ const WEB_TEXTURES: Array[Texture2D] = [
 	preload("res://assets/items/extras/box/web6.png"),
 ]
 
+const BUSH_TEXTURE: Texture2D = preload("res://assets/items/extras/bush/bush.png")
+const DIRT_TEXTURE: Texture2D = preload("res://assets/items/extras/bush/dirt.png")
+
+const SHEEP_ALT_TEXTURES: Dictionary = {
+	"sheep_1": preload("res://assets/items/farm/sheep/1alt.png"),
+	"sheep_2": preload("res://assets/items/farm/sheep/2alt.png"),
+	"sheep_3": preload("res://assets/items/farm/sheep/3alt.png"),
+	"sheep_4": preload("res://assets/items/farm/sheep/4alt.png")
+}
+
 const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
+
+@export var board_theme: String = "kitchen": # "kitchen" or "farm"
+	set(val):
+		board_theme = val
+		if is_inside_tree():
+			_update_visuals()
+
+# Special interaction state
+@export var fed_count: int = 0
+@export var shear_cooldown: float = 0.0
+@export var is_boosted: bool = false
+@export var boost_charges: int = 0
+@export var is_milked_ready: bool = false
 
 @export_group("Locked Item Visuals")
 @export var locked_item_modulate: Color = LOCKED_ITEM_MODULATE:
@@ -108,6 +131,11 @@ func _ready() -> void:
 	glow.visible = false
 
 func _process(delta: float) -> void:
+	if shear_cooldown > 0.0:
+		shear_cooldown = maxf(0.0, shear_cooldown - delta)
+		if shear_cooldown <= 0.0:
+			_update_visuals()
+
 	if not data or not data.is_spawner or item_state != ItemState.NORMAL:
 		return
 
@@ -189,6 +217,136 @@ func restore_spawner_state(charges: int, cooldown: float, status_val: int = -1) 
 	else:
 		producer_status = ProducerStatus.READY if current_charges > 0 else ProducerStatus.EXHAUST
 	_update_visuals()
+
+func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false) -> void:
+	fed_count = fed
+	shear_cooldown = s_cd
+	is_boosted = boosted
+	boost_charges = b_charges
+	is_milked_ready = milk_ready
+	_update_visuals()
+
+func get_required_feed_item_id() -> String:
+	if not data:
+		return ""
+	match data.id:
+		"bird_2":
+			return "hay_1"
+		"bird_3":
+			return "hay_2"
+		"bird_4":
+			return "hay_2"
+		"cow_1":
+			return "hay_3"
+		"cow_2":
+			return "hay_4"
+		"cow_3":
+			return "hay_6" # For upgrade
+		"sheep_1":
+			return "hay_3"
+		"sheep_2":
+			return "hay_4"
+		"sheep_3":
+			return "hay_5"
+		"pig_1", "pig_2", "pig_3", "pig_4":
+			return "hay" # Any hay level!
+		_:
+			return ""
+
+func get_required_feed_count() -> int:
+	if not data:
+		return 0
+	match data.id:
+		"bird_2":
+			return 5
+		"bird_3":
+			return 5
+		"bird_4":
+			return 10
+		"cow_1":
+			return 5
+		"cow_2":
+			return 5
+		"cow_3":
+			return 1 # hay_6 1 time to upgrade
+		"sheep_1":
+			return 5
+		"sheep_2":
+			return 5
+		"sheep_3":
+			return 5
+		"pig_1", "pig_2", "pig_3", "pig_4":
+			return 10
+		_:
+			return 0
+
+func needs_feeding_to_upgrade() -> bool:
+	var req_cnt := get_required_feed_count()
+	return req_cnt > 0 and fed_count < req_cnt
+
+func is_fully_fed() -> bool:
+	var req_cnt := get_required_feed_count()
+	if req_cnt <= 0:
+		return true
+	return fed_count >= req_cnt
+
+func can_accept_feed(feed_item: ItemView) -> bool:
+	if not feed_item or not feed_item.data or not data:
+		return false
+	if not is_normal() or not feed_item.is_normal():
+		return false
+	var feed_id := feed_item.data.id
+
+	# Pig: any level of hay, up to 10 times
+	if data.id in ["pig_1", "pig_2", "pig_3", "pig_4"]:
+		return feed_id.begins_with("hay_") and fed_count < 10
+
+	# Cow Level 3 special:
+	# can be fed hay_5 to be milked (if not already milk ready)
+	# can be fed hay_6 (1 time) to upgrade
+	if data.id == "cow_3":
+		if feed_id == "hay_5" and not is_milked_ready:
+			return true
+		if feed_id == "hay_6" and fed_count < 1:
+			return true
+		return false
+
+	# Tree Level 3 and 4: can be fed with hay_7 one time to boost fruit drop
+	if data.id in ["tree_3", "tree_4"] and feed_id == "hay_7":
+		return not is_boosted
+
+	# Regular animal feeds
+	var req_id := get_required_feed_item_id()
+	if req_id.is_empty():
+		return false
+	return feed_id == req_id and fed_count < get_required_feed_count()
+
+func can_be_sheared(tool_item: ItemView = null) -> bool:
+	if not data or not data.chain_id == "sheep":
+		return false
+	if not is_normal():
+		return false
+	if shear_cooldown > 0.0:
+		return false
+	if tool_item == null:
+		return true
+	return tool_item.data != null and tool_item.data.id == "tool_4"
+
+func can_be_boosted_by_tool(tool_item: ItemView) -> bool:
+	if not data or not data.chain_id == "barn":
+		return false
+	if not is_normal():
+		return false
+	if not tool_item or not tool_item.data or not tool_item.data.chain_id == "tool":
+		return false
+	return tool_item.data.tier >= 3
+
+func can_be_watered(watering_item: ItemView) -> bool:
+	if not data or not (data.chain_id in ["hay", "tree", "pine"]):
+		return false
+	if not is_normal():
+		return false
+	return watering_item != null and watering_item.data != null and watering_item.data.chain_id == "watering"
 
 func is_normal() -> bool:
 	return item_state == ItemState.NORMAL
@@ -289,32 +447,46 @@ func _update_visuals() -> void:
 				visuals.move_child(web_sprite, sprite.get_index() + 1)
 
 	if item_state == ItemState.BOXED:
-		# Boxed status: use box texture variants, hide tier, hide spawner
-		var box_tex: Texture2D = get_box_texture()
-		sprite.texture = box_tex
-		shadow.texture = box_tex
-		# Subtle tint toward data.color for visual chain recognition
-		if data:
-			sprite.modulate = Color.WHITE.lerp(data.color, 0.3)
+		if board_theme == "farm":
+			sprite.texture = BUSH_TEXTURE
+			shadow.texture = BUSH_TEXTURE
+			sprite.modulate = Color.WHITE
+			var tex_size := BUSH_TEXTURE.get_size()
+			var max_dim := maxf(tex_size.x, tex_size.y)
+			_base_scale = (74.0 / max_dim) if max_dim > 0.0 else 0.48
+			sprite.scale = Vector2(_base_scale, _base_scale)
+			shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
+			glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
+
+			if web_sprite:
+				web_sprite.visible = false # Bush only, no web, no dirt
 		else:
-			sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
-		var tex_size := box_tex.get_size() if box_tex else Vector2(432, 432)
-		var max_dim := maxf(tex_size.x, tex_size.y)
-		_base_scale = (74.0 / max_dim) if max_dim > 0.0 else 0.48
+			# Boxed status: use box texture variants, hide tier, hide spawner
+			var box_tex: Texture2D = get_box_texture()
+			sprite.texture = box_tex
+			shadow.texture = box_tex
+			# Subtle tint toward data.color for visual chain recognition
+			if data:
+				sprite.modulate = Color.WHITE.lerp(data.color, 0.3)
+			else:
+				sprite.modulate = Color(1.0, 1.0, 1.0, 1.0)
+			var tex_size := box_tex.get_size() if box_tex else Vector2(432, 432)
+			var max_dim := maxf(tex_size.x, tex_size.y)
+			_base_scale = (74.0 / max_dim) if max_dim > 0.0 else 0.48
 
-		sprite.scale = Vector2(_base_scale, _base_scale)
-		shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
-		glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
+			sprite.scale = Vector2(_base_scale, _base_scale)
+			shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
+			glow.scale = Vector2(_base_scale * 1.18, _base_scale * 1.18)
 
-		# Stacked web on top of boxed item
-		if web_sprite:
-			var web_tex: Texture2D = get_web_texture()
-			web_sprite.texture = web_tex
-			var web_dim := maxf(web_tex.get_width(), web_tex.get_height()) if web_tex else 94.0
-			var web_scale := (78.0 / web_dim) if web_dim > 0.0 else 0.8
-			web_sprite.scale = Vector2(web_scale, web_scale)
-			web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
-			web_sprite.visible = true
+			# Stacked web on top of boxed item
+			if web_sprite:
+				var web_tex: Texture2D = get_web_texture()
+				web_sprite.texture = web_tex
+				var web_dim := maxf(web_tex.get_width(), web_tex.get_height()) if web_tex else 94.0
+				var web_scale := (78.0 / web_dim) if web_dim > 0.0 else 0.8
+				web_sprite.scale = Vector2(web_scale, web_scale)
+				web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
+				web_sprite.visible = true
 
 		tier_badge.visible = false
 		spawner_badge.visible = false
@@ -324,11 +496,15 @@ func _update_visuals() -> void:
 		return
 
 	# Determine texture and scale for revealed items (NORMAL or LOCKED)
-	if data.icon_texture:
-		sprite.texture = data.icon_texture
-		shadow.texture = data.icon_texture
-		glow.texture = data.icon_texture
-		var tex_size := data.icon_texture.get_size()
+	var active_tex: Texture2D = data.icon_texture
+	if data.chain_id == "sheep" and shear_cooldown > 0.0:
+		active_tex = SHEEP_ALT_TEXTURES.get(data.id, data.icon_texture)
+
+	if active_tex:
+		sprite.texture = active_tex
+		shadow.texture = active_tex
+		glow.texture = active_tex
+		var tex_size := active_tex.get_size()
 		var max_dim := maxf(tex_size.x, tex_size.y)
 		_base_scale = (70.0 / max_dim) * data.icon_scale if max_dim > 0.0 else 0.48
 	else:
@@ -345,15 +521,24 @@ func _update_visuals() -> void:
 	if item_state == ItemState.LOCKED:
 		# Locked status: disabled dark gray filter (more grayish and more transparent)
 		sprite.modulate = locked_item_modulate
-		# Stacked web on top of locked item
 		if web_sprite:
-			var web_tex: Texture2D = get_web_texture()
-			web_sprite.texture = web_tex
-			var web_dim := maxf(web_tex.get_width(), web_tex.get_height()) if web_tex else 94.0
-			var web_scale := (76.0 / web_dim) if web_dim > 0.0 else 0.8
-			web_sprite.scale = Vector2(web_scale, web_scale)
-			web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
-			web_sprite.visible = true
+			if board_theme == "farm":
+				# Farm theme: dirt effect on locked item, no web
+				web_sprite.texture = DIRT_TEXTURE
+				var dirt_dim := maxf(DIRT_TEXTURE.get_width(), DIRT_TEXTURE.get_height()) if DIRT_TEXTURE else 94.0
+				var dirt_scale := (76.0 / dirt_dim) if dirt_dim > 0.0 else 0.8
+				web_sprite.scale = Vector2(dirt_scale, dirt_scale)
+				web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
+				web_sprite.visible = true
+			else:
+				# Kitchen theme: web texture
+				var web_tex: Texture2D = get_web_texture()
+				web_sprite.texture = web_tex
+				var web_dim := maxf(web_tex.get_width(), web_tex.get_height()) if web_tex else 94.0
+				var web_scale := (76.0 / web_dim) if web_dim > 0.0 else 0.8
+				web_sprite.scale = Vector2(web_scale, web_scale)
+				web_sprite.modulate = Color(1.0, 1.0, 1.0, 0.95)
+				web_sprite.visible = true
 
 		if tier_badge:
 			tier_badge.visible = false
@@ -362,12 +547,16 @@ func _update_visuals() -> void:
 			status_badge.visible = false
 		stop_idle_animation()
 	else:
-		# Normal status: active coloring and badges, hide web
+		# Normal status: active coloring and badges, hide web/dirt
 		if web_sprite:
 			web_sprite.visible = false
 
 		if tier_badge:
 			tier_badge.visible = false
+
+		glow.visible = is_boosted
+		if is_boosted:
+			glow.modulate = Color(1.0, 0.85, 0.2, 0.6)
 
 		if data.is_spawner:
 			if data.disappears_when_exhausted:
@@ -400,7 +589,15 @@ func _update_visuals() -> void:
 				start_idle_animation()
 		else:
 			spawner_badge.visible = false
-			if status_badge:
+			if shear_cooldown > 0.0:
+				if status_badge and status_label:
+					status_badge.visible = true
+					status_label.text = "%ds" % int(ceil(shear_cooldown))
+			elif needs_feeding_to_upgrade():
+				if status_badge and status_label:
+					status_badge.visible = true
+					status_label.text = "%d/%d" % [fed_count, get_required_feed_count()]
+			elif status_badge:
 				status_badge.visible = false
 			sprite.modulate = Color.WHITE if data.icon_texture else data.color
 			stop_idle_animation()

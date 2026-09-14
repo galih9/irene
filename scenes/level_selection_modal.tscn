@@ -1,0 +1,267 @@
+[gd_scene format=3 uid="uid://c7m1x4lvlsel8"]
+
+[ext_resource type="Script" path="res://scripts/ui/level_selection_modal.gd" id="1_lvl"]
+[ext_resource type="Texture2D" path="res://assets/characters/irene/greeting.png" id="2_irene"]
+[ext_resource type="Texture2D" path="res://assets/characters/ivan/greeting.png" id="3_ivan"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.97, 0.96, 0.94, 0.98)
+border_width_left = 3
+border_width_top = 3
+border_width_right = 3
+border_width_bottom = 3
+border_color = Color(0.88, 0.76, 0.52, 0.95)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+shadow_color = Color(0.08, 0.06, 0.04, 0.2)
+shadow_size = 20
+shadow_offset = Vector2(0, 8)
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn"]
+bg_color = Color(0.92, 0.88, 0.84, 0.9)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.8, 0.74, 0.68, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_close_btn_hover"]
+bg_color = Color(0.88, 0.35, 0.35, 0.95)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.75, 0.25, 0.25, 0.9)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_card"]
+bg_color = Color(1, 1, 1, 0.85)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.82, 0.75, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_normal"]
+bg_color = Color(0.3, 0.72, 0.42, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_hover"]
+bg_color = Color(0.35, 0.8, 0.48, 1)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_disabled"]
+bg_color = Color(0.72, 0.72, 0.72, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+
+[node name="LevelSelectionModal" type="Control"]
+z_index = 200
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+pivot_offset = Vector2(360, 800)
+script = ExtResource("1_lvl")
+
+[node name="Dimmer" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0, 0, 0, 0.6)
+
+[node name="Panel" type="Panel" parent="."]
+custom_minimum_size = Vector2(580, 520)
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -290.0
+offset_top = -260.0
+offset_right = 290.0
+offset_bottom = 260.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="Panel"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 20.0
+offset_right = -24.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+
+[node name="Header" type="HBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+
+[node name="Title" type="Label" parent="Panel/VBox/Header"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_colors/font_color = Color(0.24, 0.18, 0.12, 1)
+theme_override_font_sizes/font_size = 24
+text = "Select Area"
+vertical_alignment = 1
+
+[node name="CloseBtn" type="Button" parent="Panel/VBox/Header"]
+custom_minimum_size = Vector2(36, 36)
+layout_mode = 2
+theme_override_colors/font_color = Color(0.35, 0.3, 0.25, 1)
+theme_override_font_sizes/font_size = 18
+theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
+theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
+text = "✕"
+
+[node name="CardsContainer" type="VBoxContainer" parent="Panel/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 16
+
+[node name="KitchenCard" type="Panel" parent="Panel/VBox/CardsContainer"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="Panel/VBox/CardsContainer/KitchenCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/CardsContainer/KitchenCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Portrait" type="TextureRect" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox"]
+custom_minimum_size = Vector2(100, 140)
+layout_mode = 2
+texture = ExtResource("2_irene")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Irene's Kitchen"
+
+[node name="Desc" type="Label" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.44, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Bake pastries, prepare dishes, and run the cozy village kitchen!"
+autowrap_mode = 2
+
+[node name="ActionBtn" type="Button" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Current"
+
+[node name="FarmCard" type="Panel" parent="Panel/VBox/CardsContainer"]
+custom_minimum_size = Vector2(0, 180)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="Panel/VBox/CardsContainer/FarmCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/CardsContainer/FarmCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Portrait" type="TextureRect" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox"]
+custom_minimum_size = Vector2(100, 140)
+layout_mode = 2
+texture = ExtResource("3_ivan")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Ivan's Farm"
+
+[node name="Desc" type="Label" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.44, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Raise livestock, boost orchards, shear sheep, and harvest fresh produce!"
+autowrap_mode = 2
+
+[node name="ActionBtn" type="Button" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Travel"

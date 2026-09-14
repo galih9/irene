@@ -36,8 +36,14 @@ signal reward_queue_changed()
 signal player_exp_changed(level: int, current_exp: int, required_exp: int)
 signal player_leveled_up(new_level: int)
 
-# Irene Character Dialogue & Tutorial
+# Irene & Ivan Character Dialogue & Tutorial
 signal locked_item_cleared(coord: Vector2i, item_id: String)
 signal irene_dialogue_requested(text: String, emotion: String, callback: Callable)
+signal character_dialogue_requested(character: String, text: String, emotion: String, callback: Callable)
 signal irene_toast_requested(text: String, emotion: String, duration: float)
 signal tutorial_step_changed(step: int)
+
+# Map & Levels
+signal map_unlocked()
+signal request_map_open()
+signal level_change_requested(target_level_id: String)

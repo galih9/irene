@@ -16,6 +16,8 @@
 [ext_resource type="PackedScene" path="res://scenes/irene_popup_modal.tscn" id="14_irene_modal"]
 [ext_resource type="PackedScene" path="res://scenes/irene_toast.tscn" id="15_irene_toast"]
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="16_yellow"]
+[ext_resource type="PackedScene" path="res://scenes/level_selection_modal.tscn" id="17_level_modal"]
+[ext_resource type="PackedScene" path="res://scenes/loading_screen.tscn" id="18_loading_screen"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infoarea"]
 bg_color = Color(0.97, 0.96, 0.93, 0.98)
@@ -188,6 +190,13 @@ theme_override_font_sizes/font_size = 12
 text = "Tap any item on the board to view info"
 autowrap_mode = 2
 
+[node name="ExtraInfoLabel" type="Label" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox/TextVBox" unique_id=98712345]
+visible = false
+layout_mode = 2
+theme_override_colors/font_color = Color(0.18, 0.55, 0.28, 1)
+theme_override_font_sizes/font_size = 11
+autowrap_mode = 2
+
 [node name="SellBtn" type="Button" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox" unique_id=93817290]
 custom_minimum_size = Vector2(96, 48)
 layout_mode = 2
@@ -229,5 +238,11 @@ layout_mode = 1
 [node name="IrenePopupModal" parent="CanvasLayer/Modals" unique_id=987654321 instance=ExtResource("14_irene_modal")]
 layout_mode = 1
 
+[node name="LevelSelectionModal" parent="CanvasLayer/Modals" unique_id=1984729102 instance=ExtResource("17_level_modal")]
+layout_mode = 1
+
 [node name="SaveToast" parent="CanvasLayer" unique_id=1849204857 instance=ExtResource("12_toast")]
 z_index = 180
+
+[node name="LoadingScreen" parent="CanvasLayer" unique_id=1748291034 instance=ExtResource("18_loading_screen")]
+layout_mode = 1

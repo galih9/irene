@@ -8,6 +8,10 @@ var _claimed_rewards: Dictionary = {} # item_id -> bool
 var player_level: int = 1
 var player_exp: int = 0
 
+# Map & Multi-level state
+var is_map_unlocked: bool = false
+var farm_visited_first_time: bool = false
+
 # Temporary Reward Queue (infinitely stackable FIFO)
 var _reward_queue: Array[String] = []
 
@@ -49,40 +53,40 @@ func is_claimed(item_id: String) -> bool:
 
 func get_chest_reward_for_item(item_id: String) -> String:
 	var item := ItemDatabase.get_item(item_id)
-	if not item:
-		return ""
-	if item.chain_id.begins_with("chest"):
-		return ""
+	var tier := item.tier if item else 1
 
-	# Discovering max tier items (tier >= 4) rewards a higher tier chest
-	if item.tier >= item.max_tier and item.max_tier >= 4:
-		var high_chests := ["chest_purple_2", "chest_yellow_2", "chest_blue_1", "chest_green_2"]
-		return high_chests[abs(item_id.hash()) % high_chests.size()]
-
-	# Discovering tier 3+ spawners rewards an Energy or Gold Chest
-	if item.is_spawner and item.tier >= 3:
-		return "chest_green_1" if (item.tier % 2 == 1) else "chest_yellow_1"
-
-	# Discovering tier 4+ food/materials rewards a Purple EXP Chest
-	if item.tier >= 4:
-		return "chest_purple_1"
-
-	return ""
+	if tier >= 6:
+		return "chest_blue_4"
+	elif tier == 5:
+		return "chest_blue_3"
+	elif tier == 4:
+		return "chest_blue_2" if (abs(item_id.hash()) % 2 == 0) else "chest_2"
+	elif tier == 3:
+		return "chest_green_1" if (item and item.is_spawner) else "chest_yellow_1"
+	elif tier == 2:
+		return "chest_blue_1"
+	else:
+		return "chest_1"
 
 func get_reward_for_item(item_id: String) -> Dictionary:
 	var item := ItemDatabase.get_item(item_id)
 	var tier := item.tier if item else 1
-	var coins := 15 + (tier - 1) * 20
-	var gems := 0
-	if tier >= 5:
-		gems = 5
-	elif tier >= 4:
+	var gems := 1
+	if tier >= 6:
+		gems = 25
+	elif tier == 5:
+		gems = 15
+	elif tier == 4:
+		gems = 8
+	elif tier == 3:
+		gems = 4
+	elif tier == 2:
 		gems = 2
-	elif tier >= 3:
+	else:
 		gems = 1
-	var exp_reward := 5 + (tier - 1) * 8
+
 	var chest_reward := get_chest_reward_for_item(item_id)
-	return {"coins": coins, "gems": gems, "exp": exp_reward, "chest": chest_reward}
+	return {"coins": 0, "gems": gems, "exp": 0, "chest": chest_reward}
 
 func claim_reward(item_id: String) -> Dictionary:
 	if not is_unlocked(item_id) or is_claimed(item_id):
@@ -91,12 +95,8 @@ func claim_reward(item_id: String) -> Dictionary:
 	_claimed_rewards[item_id] = true
 	var reward := get_reward_for_item(item_id)
 	
-	if reward.coins > 0:
-		EconomyManager.add_coins(reward.coins)
 	if reward.gems > 0:
 		EconomyManager.add_gems(reward.gems)
-	if reward.has("exp") and reward.exp > 0:
-		add_exp(reward.exp)
 	if reward.has("chest") and not str(reward.chest).is_empty():
 		push_reward(str(reward.chest))
 
@@ -204,21 +204,60 @@ func _on_level_up(new_lvl: int) -> void:
 	GameEvents.player_leveled_up.emit(new_lvl)
 	GameEvents.show_floating_text.emit("LEVEL UP! Level %d!" % new_lvl, Vector2(360, 400), Color(0.95, 0.75, 1.0))
 
+func unlock_map(silent: bool = false) -> void:
+	if is_map_unlocked:
+		return
+	is_map_unlocked = true
+	GameEvents.map_unlocked.emit()
+	if not silent:
+		SoundManager.play_quest()
+		var dialogue: Array[Dictionary] = [
+			{
+				"character": "irene",
+				"emotion": "happy",
+				"text": "Incredible work! You have unlocked over 50 tiles in our kitchen! The bistro is thriving again! 🎉"
+			},
+			{
+				"character": "irene",
+				"emotion": "explain",
+				"text": "With our kitchen bustling, we need fresh farm harvests and animal goods. Let me introduce my friend Ivan!"
+			},
+			{
+				"character": "ivan",
+				"emotion": "greeting",
+				"text": "Howdy! I'm Ivan! I run the farm outside the town. We've got barns, livestock, orchards, and pines that need care!"
+			},
+			{
+				"character": "irene",
+				"emotion": "admire",
+				"text": "A new Maps button is now available in your navigation bar! Tap it anytime to visit Ivan's farm or return here!"
+			}
+		]
+		var modals := get_tree().root.find_children("", "IrenePopupModal", true, false)
+		if not modals.is_empty():
+			modals[0].show_dialogue_sequence(dialogue)
+
 func serialize_data() -> Dictionary:
 	return {
 		"unlocked_items": _unlocked_items.duplicate(),
 		"claimed_rewards": _claimed_rewards.duplicate(),
 		"player_level": player_level,
 		"player_exp": player_exp,
-		"reward_queue": _reward_queue.duplicate()
+		"reward_queue": _reward_queue.duplicate(),
+		"is_map_unlocked": is_map_unlocked,
+		"farm_visited_first_time": farm_visited_first_time
 	}
 
-func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = []) -> void:
+func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false) -> void:
 	_unlocked_items = unlocked.duplicate()
 	_claimed_rewards = claimed.duplicate()
 	player_level = maxi(1, level)
 	player_exp = maxi(0, exp_val)
+	is_map_unlocked = map_unlocked
+	farm_visited_first_time = farm_visited
 	load_reward_queue(queue_data)
+	if is_map_unlocked:
+		GameEvents.map_unlocked.emit()
 	GameEvents.progression_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())
 
@@ -228,6 +267,8 @@ func reset_all() -> void:
 	_reward_queue.clear()
 	player_level = 1
 	player_exp = 0
+	is_map_unlocked = false
+	farm_visited_first_time = false
 	GameEvents.progression_changed.emit()
 	GameEvents.reward_queue_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())

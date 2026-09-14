@@ -18,15 +18,36 @@ var ultimate_quest_completed: bool = false
 
 const MAX_QUESTS: int = 3
 
-var _customer_names: Array[String] = [
+var current_board_theme: String = "kitchen"
+var _boards_data: Dictionary = {} # theme_id -> Dictionary of state
+
+const KITCHEN_CUSTOMERS: Array[String] = [
 	"Mayor Bob", "Florist Lily", "Mechanic Rex", "Grandma Rose",
 	"Chef Luigi", "Artist Chloe", "Explorer Sam", "Professor Oak"
 ]
 
-var _customer_colors: Array[Color] = [
+const KITCHEN_CUSTOMER_COLORS: Array[Color] = [
 	Color(0.2, 0.6, 0.9), Color(0.9, 0.4, 0.6), Color(0.9, 0.6, 0.2),
 	Color(0.4, 0.8, 0.4), Color(0.8, 0.3, 0.3), Color(0.7, 0.3, 0.8)
 ]
+
+const FARM_CUSTOMERS: Array[String] = [
+	"Ivan the Farmer", "Daisy the Cowherd", "Old MacDonald", "Shepherd Dan",
+	"Orchard Jack", "Farmer Jill", "Silvia the Weaver", "Ranger Pete"
+]
+
+const FARM_CUSTOMER_COLORS: Array[Color] = [
+	Color(0.25, 0.7, 0.35), Color(0.85, 0.6, 0.2), Color(0.9, 0.45, 0.25),
+	Color(0.3, 0.65, 0.8), Color(0.65, 0.4, 0.25), Color(0.8, 0.75, 0.2)
+]
+
+var _customer_names: Array[String]:
+	get:
+		return FARM_CUSTOMERS if current_board_theme == "farm" else KITCHEN_CUSTOMERS
+
+var _customer_colors: Array[Color]:
+	get:
+		return FARM_CUSTOMER_COLORS if current_board_theme == "farm" else KITCHEN_CUSTOMER_COLORS
 
 const MILESTONE_BACKPACK: int = 5
 const MILESTONE_SHOP: int = 5
@@ -93,9 +114,61 @@ func _apply_card_sizes() -> void:
 
 func setup(board: Board, _inventory = null) -> void:
 	board_ref = board
-	_init_starter_quests()
+	if is_instance_valid(board) and not board.board_theme.is_empty():
+		current_board_theme = board.board_theme
+	if _boards_data.has(current_board_theme):
+		_restore_board_state(_boards_data[current_board_theme])
+	else:
+		_init_starter_quests()
+		_save_current_board_state()
 	_rebuild_cards()
 	update_quest_status()
+
+func switch_board(theme_id: String) -> void:
+	if current_board_theme == theme_id:
+		return
+
+	# 1. Save current board quest state
+	_save_current_board_state()
+
+	# 2. Switch theme
+	current_board_theme = theme_id
+
+	# 3. Restore or initialize target board state
+	if _boards_data.has(theme_id):
+		_restore_board_state(_boards_data[theme_id])
+	else:
+		_init_starter_quests()
+		_save_current_board_state()
+
+	_rebuild_cards()
+	update_quest_status()
+
+func _save_current_board_state() -> void:
+	_boards_data[current_board_theme] = {
+		"active_quests": _serialize_quest_array(active_quests),
+		"slot_cooldowns": _slot_cooldowns.duplicate(),
+		"slot_total_cooldowns": _slot_total_cooldowns.duplicate(),
+		"pending_starter_quests": _serialize_quest_array(_pending_starter_quests),
+		"completed_quest_count": completed_quest_count,
+		"ultimate_quest_active": ultimate_quest_active,
+		"ultimate_quest_completed": ultimate_quest_completed
+	}
+
+func _restore_board_state(data: Dictionary) -> void:
+	completed_quest_count = int(data.get("completed_quest_count", 0))
+	ultimate_quest_active = data.get("ultimate_quest_active", false)
+	ultimate_quest_completed = data.get("ultimate_quest_completed", false)
+	var sc = data.get("slot_cooldowns", [])
+	var stc = data.get("slot_total_cooldowns", [])
+	if sc is Array and sc.size() == MAX_QUESTS:
+		for i in range(MAX_QUESTS):
+			_slot_cooldowns[i] = float(sc[i])
+			_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and stc.size() == MAX_QUESTS) else float(sc[i])
+	
+	active_quests = _deserialize_quest_array(data.get("active_quests", []))
+	_pending_starter_quests = _deserialize_quest_list(data.get("pending_starter_quests", []))
+	GameEvents.quest_count_changed.emit(completed_quest_count)
 
 func get_first_card() -> QuestCard:
 	if not _cards.is_empty() and is_instance_valid(_cards[0]):
@@ -103,6 +176,12 @@ func get_first_card() -> QuestCard:
 	return null
 
 func _init_starter_quests() -> void:
+	if current_board_theme == "farm":
+		_init_farm_starter_quests()
+	else:
+		_init_kitchen_starter_quests()
+
+func _init_kitchen_starter_quests() -> void:
 	active_quests.clear()
 	active_quests.resize(MAX_QUESTS)
 	active_quests.fill(null)
@@ -140,6 +219,47 @@ func _init_starter_quests() -> void:
 	q3.required_item_ids = ["egg_2", "leaf_2"]
 	q3.reward_coins = 55
 	q3.reward_gems = 1
+	q3.reward_exp = 25
+	_pending_starter_quests.append(q3)
+
+func _init_farm_starter_quests() -> void:
+	active_quests.clear()
+	active_quests.resize(MAX_QUESTS)
+	active_quests.fill(null)
+	_slot_cooldowns = [0.0, 6.0, 14.0]
+	_slot_total_cooldowns = [0.0, 6.0, 14.0]
+	_pending_starter_quests.clear()
+
+	# Farm Quest 1: Morning Grazing
+	var q1 := QuestData.new()
+	q1.id = "farm_quest_1"
+	q1.customer_name = "Ivan the Farmer"
+	q1.customer_color = Color(0.25, 0.7, 0.35)
+	q1.required_item_ids = ["hay_1"]
+	q1.reward_coins = 35
+	q1.reward_gems = 1
+	q1.reward_exp = 15
+	active_quests[0] = q1
+
+	# Farm Quest 2: Fresh Bales
+	var q2 := QuestData.new()
+	q2.id = "farm_quest_2"
+	q2.customer_name = "Daisy the Cowherd"
+	q2.customer_color = Color(0.85, 0.6, 0.2)
+	q2.required_item_ids = ["hay_2"]
+	q2.reward_coins = 45
+	q2.reward_gems = 1
+	q2.reward_exp = 20
+	_pending_starter_quests.append(q2)
+
+	# Farm Quest 3: Livestock Feed
+	var q3 := QuestData.new()
+	q3.id = "farm_quest_3"
+	q3.customer_name = "Old MacDonald"
+	q3.customer_color = Color(0.9, 0.45, 0.25)
+	q3.required_item_ids = ["hay_2", "hay_1"]
+	q3.reward_coins = 60
+	q3.reward_gems = 2
 	q3.reward_exp = 25
 	_pending_starter_quests.append(q3)
 
@@ -239,10 +359,11 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	GameEvents.show_floating_text.emit("Order Complete!\n" + reward_str, global_position + Vector2(332, 100), Color(0.3, 1.0, 0.4))
 
 	# Handle Ultimate Quest completion
-	if quest.id == "ultimate_quest":
+	if quest.id.begins_with("ultimate_quest"):
 		ultimate_quest_active = false
 		ultimate_quest_completed = true
-		GameEvents.show_floating_text.emit("🏆 KITCHEN MASTERED! ULTIMATE FEAST COMPLETE! 🏆", global_position + Vector2(332, 50), Color(1.0, 0.85, 0.2))
+		var completion_text := "🏆 FARM MASTERED! GRAND HARVEST COMPLETE! 🏆" if current_board_theme == "farm" else "🏆 KITCHEN MASTERED! ULTIMATE FEAST COMPLETE! 🏆"
+		GameEvents.show_floating_text.emit(completion_text, global_position + Vector2(332, 50), Color(1.0, 0.85, 0.2))
 
 	# Replace with cooldown timer before next customer arrives
 	var idx := active_quests.find(quest)
@@ -287,18 +408,35 @@ func check_ultimate_quest_trigger() -> void:
 	# Trigger Ultimate Quest
 	ultimate_quest_active = true
 	var uq := QuestData.new()
-	uq.id = "ultimate_quest"
-	uq.customer_name = "👑 Royal Food Critic Irene"
-	uq.customer_color = Color(1.0, 0.84, 0.0)
-	uq.required_item_ids = [
-		"egg_6",       # Foodbox max normal
-		"leaf_5",      # Foodbox max normal
-		"beef_7",      # Oven max normal
-		"cake_6",      # Oven max normal
-		"sandwich_6",  # Oven max normal
-		"drink_5",     # Fridge max normal
-		"util_12"      # Rack max normal
-	]
+	var arrival_msg := ""
+	if current_board_theme == "farm":
+		uq.id = "ultimate_quest_farm"
+		uq.customer_name = "👑 County Fair Judge Ivan"
+		uq.customer_color = Color(1.0, 0.84, 0.0)
+		uq.required_item_ids = [
+			"hay_6",
+			"fruit_5",
+			"milk_4",
+			"wool_4",
+			"pine_5",
+			"tool_4"
+		]
+		arrival_msg = "👑 GRAND HARVEST FESTIVAL QUEST ARRIVED! 👑"
+	else:
+		uq.id = "ultimate_quest_kitchen"
+		uq.customer_name = "👑 Royal Food Critic Irene"
+		uq.customer_color = Color(1.0, 0.84, 0.0)
+		uq.required_item_ids = [
+			"egg_6",       # Foodbox max normal
+			"leaf_5",      # Foodbox max normal
+			"beef_7",      # Oven max normal
+			"cake_6",      # Oven max normal
+			"sandwich_6",  # Oven max normal
+			"drink_5",     # Fridge max normal
+			"util_12"      # Rack max normal
+		]
+		arrival_msg = "👑 ULTIMATE FEAST QUEST ARRIVED! 👑"
+
 	uq.reward_coins = 5000
 	uq.reward_gems = 200
 	uq.reward_energy = 100
@@ -311,29 +449,45 @@ func check_ultimate_quest_trigger() -> void:
 	if not _cards.is_empty() and is_instance_valid(_cards[0]):
 		_cards[0].slide_in_from_top()
 
-	GameEvents.show_floating_text.emit("👑 ULTIMATE FEAST QUEST ARRIVED! 👑", global_position + Vector2(330, 80), Color(1.0, 0.85, 0.2))
+	GameEvents.show_floating_text.emit(arrival_msg, global_position + Vector2(330, 80), Color(1.0, 0.85, 0.2))
 	SoundManager.play_quest()
 
 func _generate_new_quest() -> QuestData:
 	var q := QuestData.new()
 	q.id = "quest_%d" % randi()
-	q.customer_name = _customer_names[randi() % _customer_names.size()]
-	q.customer_color = _customer_colors[randi() % _customer_colors.size()]
+	var is_farm := (current_board_theme == "farm")
+	var names_pool: Array[String] = FARM_CUSTOMERS if is_farm else KITCHEN_CUSTOMERS
+	var colors_pool: Array[Color] = FARM_CUSTOMER_COLORS if is_farm else KITCHEN_CUSTOMER_COLORS
+	q.customer_name = names_pool[randi() % names_pool.size()]
+	q.customer_color = colors_pool[randi() % colors_pool.size()]
 
 	# Randomly choose between 1 or 2 items
 	var count := 1 if randf() < 0.4 else 2
 	var reqs: Array[String] = []
 	var total_tier := 0
 
-	var possible_pools := [
-		["egg_1", "egg_2", "egg_3", "egg_4"],
-		["leaf_1", "leaf_2", "leaf_3", "leaf_4"],
-		["beef_1", "beef_2", "beef_3", "beef_4"],
-		["cake_1", "cake_2", "cake_3", "cake_4"],
-		["sandwich_1", "sandwich_2", "sandwich_3", "sandwich_4"],
-		["drink_1", "drink_2", "drink_3", "drink_4"],
-		["util_1", "util_2", "util_3", "util_4"]
-	]
+	var possible_pools: Array[Array] = []
+	if is_farm:
+		possible_pools = [
+			["hay_1", "hay_2", "hay_3", "hay_4"],
+			["fruit_1", "fruit_2", "fruit_3", "fruit_4"],
+			["pine_1", "pine_2", "pine_3", "pine_4"],
+			["milk_1", "milk_2", "milk_3", "milk_4"],
+			["wool_1", "wool_2", "wool_3", "wool_4"],
+			["tree_1", "tree_2", "tree_3"],
+			["tool_1", "tool_2", "tool_3"],
+			["water_1", "water_2", "water_3"]
+		]
+	else:
+		possible_pools = [
+			["egg_1", "egg_2", "egg_3", "egg_4"],
+			["leaf_1", "leaf_2", "leaf_3", "leaf_4"],
+			["beef_1", "beef_2", "beef_3", "beef_4"],
+			["cake_1", "cake_2", "cake_3", "cake_4"],
+			["sandwich_1", "sandwich_2", "sandwich_3", "sandwich_4"],
+			["drink_1", "drink_2", "drink_3", "drink_4"],
+			["util_1", "util_2", "util_3", "util_4"]
+		]
 
 	# Filter out any pool whose chain the player hasn't unlocked yet
 	var unlocked_pools: Array[Array] = []
@@ -345,10 +499,16 @@ func _generate_new_quest() -> QuestData:
 			unlocked_pools.append(pool)
 
 	if unlocked_pools.is_empty():
-		unlocked_pools = [
-			["egg_1", "egg_2", "egg_3", "egg_4"],
-			["leaf_1", "leaf_2", "leaf_3", "leaf_4"]
-		]
+		if is_farm:
+			unlocked_pools = [
+				["hay_1", "hay_2", "hay_3"],
+				["fruit_1", "fruit_2"]
+			]
+		else:
+			unlocked_pools = [
+				["egg_1", "egg_2", "egg_3", "egg_4"],
+				["leaf_1", "leaf_2", "leaf_3", "leaf_4"]
+			]
 
 	if completed_quest_count < 5:
 		var low_tier_unlocked: Array[Array] = []
@@ -361,7 +521,7 @@ func _generate_new_quest() -> QuestData:
 			if not low_pool.is_empty():
 				low_tier_unlocked.append(low_pool)
 		if low_tier_unlocked.is_empty():
-			low_tier_unlocked = [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
+			low_tier_unlocked = [["hay_1", "hay_2"]] if is_farm else [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
 
 		var chosen_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
 		var starter_reqs: Array[String] = [chosen_pool[randi() % chosen_pool.size()]]
@@ -408,7 +568,10 @@ func complete_active_quest_debug() -> void:
 		_on_deliver_pressed(active_quests[0] as QuestData)
 
 func serialize_data() -> Dictionary:
+	_save_current_board_state()
 	return {
+		"current_board_theme": current_board_theme,
+		"boards_quests": _boards_data,
 		"quests": serialize_quests(),
 		"completed_quest_count": completed_quest_count,
 		"slot_cooldowns": _slot_cooldowns.duplicate(),
@@ -418,21 +581,38 @@ func serialize_data() -> Dictionary:
 	}
 
 func load_data(data: Dictionary) -> void:
-	completed_quest_count = int(data.get("completed_quest_count", 0))
-	ultimate_quest_active = data.get("ultimate_quest_active", false)
-	ultimate_quest_completed = data.get("ultimate_quest_completed", false)
-	var sc = data.get("slot_cooldowns", [])
-	var stc = data.get("slot_total_cooldowns", [])
-	if sc is Array and sc.size() == MAX_QUESTS:
-		for i in range(MAX_QUESTS):
-			_slot_cooldowns[i] = float(sc[i])
-			_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and stc.size() == MAX_QUESTS) else float(sc[i])
-	load_quests(data.get("quests", []))
-	GameEvents.quest_count_changed.emit(completed_quest_count)
+	if data.has("boards_quests"):
+		_boards_data = data["boards_quests"]
+	else:
+		_boards_data.clear()
+
+	if data.has("current_board_theme"):
+		current_board_theme = str(data["current_board_theme"])
+
+	if _boards_data.has(current_board_theme):
+		_restore_board_state(_boards_data[current_board_theme])
+	else:
+		completed_quest_count = int(data.get("completed_quest_count", 0))
+		ultimate_quest_active = data.get("ultimate_quest_active", false)
+		ultimate_quest_completed = data.get("ultimate_quest_completed", false)
+		var sc = data.get("slot_cooldowns", [])
+		var stc = data.get("slot_total_cooldowns", [])
+		if sc is Array and sc.size() == MAX_QUESTS:
+			for i in range(MAX_QUESTS):
+				_slot_cooldowns[i] = float(sc[i])
+				_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and stc.size() == MAX_QUESTS) else float(sc[i])
+		load_quests(data.get("quests", []))
+		_save_current_board_state()
+
+	_rebuild_cards()
+	update_quest_status()
 
 func serialize_quests() -> Array[Dictionary]:
+	return _serialize_quest_array(active_quests)
+
+func _serialize_quest_array(arr: Array) -> Array[Dictionary]:
 	var result: Array[Dictionary] = []
-	for q in active_quests:
+	for q in arr:
 		if q is QuestData:
 			var qd: QuestData = q
 			result.append({
@@ -448,6 +628,38 @@ func serialize_quests() -> Array[Dictionary]:
 		else:
 			result.append({})
 	return result
+
+func _deserialize_quest_array(arr: Array) -> Array[Variant]:
+	var result: Array[Variant] = []
+	result.resize(MAX_QUESTS)
+	result.fill(null)
+	for i in range(mini(arr.size(), MAX_QUESTS)):
+		var entry = arr[i]
+		if entry is Dictionary and not entry.is_empty():
+			result[i] = _dict_to_quest(entry)
+	return result
+
+func _deserialize_quest_list(arr: Array) -> Array[QuestData]:
+	var result: Array[QuestData] = []
+	for entry in arr:
+		if entry is Dictionary and not entry.is_empty():
+			result.append(_dict_to_quest(entry))
+	return result
+
+func _dict_to_quest(entry: Dictionary) -> QuestData:
+	var q := QuestData.new()
+	q.id = str(entry.get("id", "quest_%d" % randi()))
+	q.customer_name = str(entry.get("customer_name", "Customer"))
+	q.customer_color = Color.from_string(str(entry.get("customer_color", "#4da6ff")), Color(0.3, 0.7, 1.0))
+	var reqs: Array[String] = []
+	for req in entry.get("required_item_ids", []):
+		reqs.append(str(req))
+	q.required_item_ids = reqs
+	q.reward_coins = int(entry.get("reward_coins", 25))
+	q.reward_gems = int(entry.get("reward_gems", 0))
+	q.reward_energy = int(entry.get("reward_energy", 0))
+	q.reward_exp = int(entry.get("reward_exp", 15))
+	return q
 
 func load_quests(quests_data: Variant, completed_count: int = -1) -> void:
 	if completed_count >= 0:
@@ -471,18 +683,6 @@ func load_quests(quests_data: Variant, completed_count: int = -1) -> void:
 		for i in range(mini(list.size(), MAX_QUESTS)):
 			var entry = list[i]
 			if entry is Dictionary and not entry.is_empty():
-				var q := QuestData.new()
-				q.id = str(entry.get("id", "quest_%d" % randi()))
-				q.customer_name = str(entry.get("customer_name", "Customer"))
-				q.customer_color = Color.from_string(str(entry.get("customer_color", "#4da6ff")), Color(0.3, 0.7, 1.0))
-				var reqs: Array[String] = []
-				for req in entry.get("required_item_ids", []):
-					reqs.append(str(req))
-				q.required_item_ids = reqs
-				q.reward_coins = int(entry.get("reward_coins", 25))
-				q.reward_gems = int(entry.get("reward_gems", 0))
-				q.reward_energy = int(entry.get("reward_energy", 0))
-				q.reward_exp = int(entry.get("reward_exp", 15))
-				active_quests[i] = q
+				active_quests[i] = _dict_to_quest(entry)
 	_rebuild_cards()
 	update_quest_status()

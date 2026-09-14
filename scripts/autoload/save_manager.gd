@@ -18,6 +18,10 @@ var board_ref: Board = null
 var quest_manager_ref: QuestManager = null
 var tutorial_manager_ref: Node = null
 
+var current_board_id: String = "kitchen"
+var kitchen_board_items: Array = []
+var farm_board_items: Array = []
+
 var _saved_completed_quest_count: int = 0
 
 var completed_quest_count: int:
@@ -65,12 +69,23 @@ func get_save_info() -> Dictionary:
 func delete_save() -> bool:
 	if not has_save():
 		return true
-	var err := DirAccess.remove_absolute(SAVE_FILE_PATH)
+	var global_path := ProjectSettings.globalize_path(SAVE_FILE_PATH)
+	DirAccess.remove_absolute(global_path)
+	var dir := DirAccess.open("user://")
+	if dir:
+		dir.remove("savegame.json")
+	DirAccess.remove_absolute(SAVE_FILE_PATH)
 	should_load_on_start = false
-	return err == OK
+	return not has_save()
 
 func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 	save_started.emit(is_auto_save)
+
+	if is_instance_valid(board_ref):
+		if current_board_id == "farm":
+			farm_board_items = board_ref.serialize_items()
+		else:
+			kitchen_board_items = board_ref.serialize_items()
 
 	var save_data := {
 		"version": 1,
@@ -79,12 +94,18 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		"currencies": EconomyManager.serialize_data(),
 		"progression": ProgressionManager.serialize_data(),
 		"inventory": InventoryManager.serialize_data(),
+		"current_board_id": current_board_id,
+		"boards": {
+			"kitchen": kitchen_board_items,
+			"farm": farm_board_items
+		},
 		"board": {
 			"cols": board_ref.cols if is_instance_valid(board_ref) else 7,
 			"rows": board_ref.rows if is_instance_valid(board_ref) else 9,
 			"items": board_ref.serialize_items() if is_instance_valid(board_ref) else []
 		},
 		"quests": quest_manager_ref.serialize_quests() if is_instance_valid(quest_manager_ref) else [],
+		"quests_data": quest_manager_ref.serialize_data() if is_instance_valid(quest_manager_ref) else {},
 		"completed_quest_count": completed_quest_count,
 		"tutorial": tutorial_manager_ref.serialize_data() if is_instance_valid(tutorial_manager_ref) else {},
 		"settings": {
@@ -145,7 +166,9 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 			prog.get("claimed_rewards", {}),
 			int(prog.get("player_level", 1)),
 			int(prog.get("player_exp", 0)),
-			prog.get("reward_queue", [])
+			prog.get("reward_queue", []),
+			bool(prog.get("is_map_unlocked", false)),
+			bool(prog.get("farm_visited_first_time", false))
 		)
 
 	# 3. Restore Inventory
@@ -153,19 +176,39 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 		var inv: Dictionary = data["inventory"]
 		InventoryManager.load_data(inv)
 
-	# 4. Restore Board
+	# 4. Restore Board(s)
+	if data.has("current_board_id"):
+		current_board_id = data["current_board_id"]
+	else:
+		current_board_id = "kitchen"
+
+	if data.has("boards"):
+		var boards_dict: Dictionary = data["boards"]
+		kitchen_board_items = boards_dict.get("kitchen", [])
+		farm_board_items = boards_dict.get("farm", [])
+	elif data.has("board"):
+		kitchen_board_items = data["board"].get("items", [])
+		farm_board_items = []
+
 	var b := target_board if is_instance_valid(target_board) else board_ref
-	if is_instance_valid(b) and data.has("board"):
-		var board_dict: Dictionary = data["board"]
-		var items_list: Array = board_dict.get("items", [])
-		b.load_items(items_list)
+	if is_instance_valid(b):
+		b.board_theme = current_board_id
+		var active_items: Array = farm_board_items if current_board_id == "farm" else kitchen_board_items
+		if not active_items.is_empty():
+			b.load_items(active_items)
+		elif data.has("board") and current_board_id == "kitchen":
+			var board_dict: Dictionary = data["board"]
+			var items_list: Array = board_dict.get("items", [])
+			b.load_items(items_list)
 
 	# 5. Restore Quests
 	var q := target_quest_mgr if is_instance_valid(target_quest_mgr) else quest_manager_ref
 	var completed_cnt := int(data.get("completed_quest_count", 0))
 	_saved_completed_quest_count = completed_cnt
 	if is_instance_valid(q):
-		if data.has("quests"):
+		if data.has("quests_data"):
+			q.load_data(data["quests_data"])
+		elif data.has("quests"):
 			var quests_list: Array = data.get("quests", [])
 			q.load_quests(quests_list, completed_cnt)
 		else:
@@ -200,3 +243,14 @@ func serialize_data() -> Dictionary:
 func load_data(data: Dictionary) -> void:
 	if data.has("completed_quest_count"):
 		self.completed_quest_count = int(data.get("completed_quest_count", 0))
+
+func get_board_items(board_id: String) -> Array:
+	if board_id == "farm":
+		return farm_board_items
+	return kitchen_board_items
+
+func set_board_items(board_id: String, items: Array) -> void:
+	if board_id == "farm":
+		farm_board_items = items
+	else:
+		kitchen_board_items = items

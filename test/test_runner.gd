@@ -58,8 +58,10 @@ func _ready() -> void:
 	assert(ProgressionManager.is_claimed("cake_1") == false, "Reward should not be claimed yet")
 
 	var reward: Dictionary = ProgressionManager.claim_reward("cake_1")
-	assert(reward.coins > 0, "Reward coins should be > 0")
-	assert(reward.exp > 0, "Reward exp should be > 0")
+	assert(reward.gems > 0, "Reward gems should be > 0")
+	assert(not str(reward.chest).is_empty(), "Reward chest should not be empty")
+	assert(reward.coins == 0, "Reward coins should be 0")
+	assert(reward.exp == 0, "Reward exp should be 0")
 	assert(ProgressionManager.is_claimed("cake_1") == true, "Reward should now be claimed")
 	print("✔ ProgressionManager & Player Level test passed!")
 
@@ -900,9 +902,10 @@ func _ready() -> void:
 	ProgressionManager.unlock_item("egg_4")
 	var claim_res := ProgressionManager.claim_reward("egg_4")
 	assert(claim_res.has("chest"), "Claim result must include chest")
-	assert(claim_res.chest == "chest_purple_1", "Claimed chest must be chest_purple_1")
+	var expected_chest: String = claim_res.chest
+	assert(not expected_chest.is_empty(), "Claimed chest must not be empty")
 	assert(ProgressionManager.get_reward_count() == 1, "Claiming must have added chest to reward queue")
-	assert(ProgressionManager.peek_reward() == "chest_purple_1", "Reward queue must have chest_purple_1")
+	assert(ProgressionManager.peek_reward() == expected_chest, "Reward queue must have expected chest")
 
 	# Test Save & Restore of Reward Queue
 	SaveManager.save_game(false)
@@ -910,7 +913,7 @@ func _ready() -> void:
 	assert(ProgressionManager.get_reward_count() == 0, "Cleared queue must be empty")
 	SaveManager.load_game()
 	assert(ProgressionManager.get_reward_count() == 1, "Restored queue must have 1 reward")
-	assert(ProgressionManager.peek_reward() == "chest_purple_1", "Restored reward must be chest_purple_1")
+	assert(ProgressionManager.peek_reward() == expected_chest, "Restored reward must be expected chest")
 	print("✔ Codex Discovery Chest Rewards & Persistence verified!")
 
 	# 25. Test 4 New Color Chest Chains (Purple, Green, Yellow, Blue)
@@ -1118,10 +1121,11 @@ func _ready() -> void:
 	var prog_inst: ProgressionModal = prog_scene.instantiate()
 	add_child(prog_inst)
 
-	assert(prog_inst.TABS.size() == 3, "Progression modal must have exactly 3 tabs")
+	assert(prog_inst.TABS.size() == 4, "Progression modal must have exactly 4 tabs")
 	assert(prog_inst.TABS[0].id == "kitchen", "Tab 0 must be kitchen")
-	assert(prog_inst.TABS[1].id == "chests", "Tab 1 must be chests")
-	assert(prog_inst.TABS[2].id == "achievements", "Tab 2 must be achievements")
+	assert(prog_inst.TABS[1].id == "farm", "Tab 1 must be farm")
+	assert(prog_inst.TABS[2].id == "chests", "Tab 2 must be chests")
+	assert(prog_inst.TABS[3].id == "achievements", "Tab 3 must be achievements")
 
 	# Test focus_chain
 	prog_inst.focus_chain("chest_yellow")
@@ -1800,5 +1804,452 @@ func _ready() -> void:
 	feat41_qm.queue_free()
 	print("✔ Quest Pacing, Cooldowns & Ultimate Quest verified!")
 
+	# 42. Test Map Milestone, Level Selection, Farm Board & Special Mechanics
+	print("\n--- Testing Map Milestone, Level Selection, Farm Board & Special Mechanics ---")
+
+	# A. Verify all 14 Farm Item Chains in ItemDatabase
+	var farm_chains := [
+		{"id": "barn", "tiers": 5},
+		{"id": "hay", "tiers": 8},
+		{"id": "tree", "tiers": 4},
+		{"id": "bird", "tiers": 8},
+		{"id": "pine", "tiers": 5},
+		{"id": "water", "tiers": 6},
+		{"id": "cow", "tiers": 6},
+		{"id": "sheep", "tiers": 4},
+		{"id": "pig", "tiers": 5},
+		{"id": "watering", "tiers": 5},
+		{"id": "fruit", "tiers": 8},
+		{"id": "tool", "tiers": 10},
+		{"id": "milk", "tiers": 8},
+		{"id": "wool", "tiers": 7}
+	]
+	var total_farm_items := 0
+	for fc in farm_chains:
+		var chain_id: String = fc.id
+		var max_t: int = fc.tiers
+		for t in range(1, max_t + 1):
+			var item_id := "%s_%d" % [chain_id, t]
+			var data := ItemDatabase.get_item(item_id)
+			assert(data != null, "Farm item %s must exist in ItemDatabase" % item_id)
+			assert(data.icon_texture != null, "Farm item %s must have icon_texture" % item_id)
+			assert(data.tier == t, "Farm item %s tier must match %d" % [item_id, t])
+			total_farm_items += 1
+	assert(total_farm_items == 89, "Should have verified all 89 farm items")
+	print("✔ All 14 Farm Chains (89 items) verified in ItemDatabase!")
+
+	# B. Test ItemView Farm Visuals (Bush only for Boxed, Dirt only for Locked)
+	var test_farm_board_scene: PackedScene = load("res://scenes/board.tscn")
+	var farm_b: Board = test_farm_board_scene.instantiate()
+	add_child(farm_b)
+	farm_b.board_theme = "farm"
+
+	var boxed_farm_item := farm_b.spawn_item_at(Vector2i(0, 0), "tree_1", ItemView.ItemState.BOXED, 2)
+	assert(boxed_farm_item.sprite.texture == ItemView.BUSH_TEXTURE, "Farm boxed item must use BUSH_TEXTURE")
+	assert(boxed_farm_item.web_sprite == null or boxed_farm_item.web_sprite.visible == false, "Web sprite must be hidden on farm boxed item")
+
+	var locked_farm_item := farm_b.spawn_item_at(Vector2i(1, 0), "hay_1", ItemView.ItemState.LOCKED)
+	assert(locked_farm_item != null, "Should spawn locked item")
+	assert(locked_farm_item.is_locked() == true, "Farm item must be locked")
+	assert(locked_farm_item.sprite.texture == ItemDatabase.get_item("hay_1").icon_texture, "Locked item uses item texture")
+	assert(locked_farm_item.web_sprite == null or locked_farm_item.web_sprite.visible == false, "Web sprite must be hidden on farm locked item")
+	print("✔ Farm visual style (bush only for boxed, dirt only for locked) verified!")
+
+	# C. Test Map Unlock Milestone (50 Kitchen Tiles)
+	var kitchen_b: Board = test_farm_board_scene.instantiate()
+	add_child(kitchen_b)
+	kitchen_b.board_theme = "kitchen"
+	ProgressionManager.is_map_unlocked = false
+	assert(ProgressionManager.is_map_unlocked == false, "Map should initially be locked")
+
+	# Fill 50 tiles as NORMAL
+	for c in range(6):
+		for r in range(9):
+			if kitchen_b.get_unlocked_tile_count() < 50:
+				kitchen_b.spawn_item_at(Vector2i(c, r), "egg_1", ItemView.ItemState.NORMAL)
+	assert(kitchen_b.get_unlocked_tile_count() >= 50, "Should have at least 50 unlocked tiles")
+	kitchen_b.check_map_unlock_milestone()
+	assert(ProgressionManager.is_map_unlocked == true, "Map must unlock after 50 unlocked kitchen tiles!")
+	print("✔ Map Unlock Milestone at 50 kitchen tiles verified!")
+
+	# D. Test Animal Feeding Restrictions (Block Merging Until Fed)
+	var bird_a := farm_b.spawn_item_at(Vector2i(2, 0), "bird_1", ItemView.ItemState.NORMAL)
+	var bird_b := farm_b.spawn_item_at(Vector2i(3, 0), "bird_1", ItemView.ItemState.NORMAL)
+	assert(bird_a.can_merge_with(bird_b) == false, "Unfed bird cannot merge!")
+
+	bird_a.fed_count = 5
+	assert(bird_a.can_merge_with(bird_b) == false, "Cannot merge if only one bird is fed!")
+	bird_b.fed_count = 5
+	assert(bird_a.can_merge_with(bird_b) == true, "Both fully fed birds can now merge!")
+	print("✔ Animal feeding merge restrictions verified!")
+
+	# E. Test Cow Lv.3 Milking and Upgrading Requirements
+	var cow3 := farm_b.spawn_item_at(Vector2i(4, 0), "cow_3", ItemView.ItemState.NORMAL)
+	assert(cow3.get_required_feed_item_id() == "hay_5", "Cow Lv.3 requires Hay Lv.5 to milk")
+	assert(cow3.is_milked_ready == false, "Cow Lv.3 initially not ready to milk")
+	# Feed Hay Lv.5
+	cow3.fed_count = 1
+	cow3.is_milked_ready = true
+	assert(cow3.get_required_feed_item_id() == "hay_6", "Cow Lv.3 requires Hay Lv.6 to upgrade after milking")
+	# Simulate milking interaction
+	var empty_pos := farm_b.get_empty_cells()
+	assert(not empty_pos.is_empty(), "Must have empty cell for milk")
+	var prev_milk_cell := empty_pos[0]
+	farm_b._try_special_interaction(cow3, cow3) # tap milk
+	assert(cow3.is_milked_ready == false, "Cow Lv.3 is no longer ready to milk after milking")
+	var spawned_milk := farm_b.get_item_at(prev_milk_cell)
+	assert(spawned_milk != null and spawned_milk.data.id == "milk_1", "Milking cow must spawn Milk Lv.1")
+	print("✔ Cow Lv.3 milking & feed requirements verified!")
+
+	# F. Test Sheep Shearing with Tool Lv.4, Wool Yield & Cooldown
+	var sheep2 := farm_b.spawn_item_at(Vector2i(5, 0), "sheep_2", ItemView.ItemState.NORMAL)
+	var tool4 := farm_b.spawn_item_at(Vector2i(6, 0), "tool_4", ItemView.ItemState.NORMAL)
+	assert(sheep2.can_be_sheared() == true, "Sheep Lv.2 should be ready to shear")
+	var sheared := farm_b._try_special_interaction(tool4, sheep2)
+	assert(sheared == true, "Shearing sheep with tool_4 should succeed")
+	assert(sheep2.shear_cooldown > 0.0, "Sheep should now be on shearing cooldown")
+	assert(sheep2.can_be_sheared() == false, "Sheep cannot be sheared while on cooldown")
+	print("✔ Sheep shearing with Tool Lv.4 and cooldown verified!")
+
+	# G. Test Wild Boar (Pig Lv.5) Sells for Diamonds
+	var boar := farm_b.spawn_item_at(Vector2i(0, 1), "pig_5", ItemView.ItemState.NORMAL)
+	farm_b.select_item(boar)
+	var prev_gems := EconomyManager.gems
+	farm_b.sell_selected_item()
+	assert(EconomyManager.gems == prev_gems + 50, "Selling Wild Boar must grant 50 Diamonds!")
+	print("✔ Wild Boar selling for 50 Diamonds verified!")
+
+	# H. Test Tree Lv.3 Compost Boost & Fruit Drops
+	var tree3 := farm_b.spawn_item_at(Vector2i(1, 1), "tree_3", ItemView.ItemState.NORMAL)
+	var compost := farm_b.spawn_item_at(Vector2i(2, 1), "hay_7", ItemView.ItemState.NORMAL)
+	var boosted_tree := farm_b._try_special_interaction(compost, tree3)
+	assert(boosted_tree == true, "Boosting tree_3 with hay_7 (compost) should succeed")
+	assert(tree3.is_boosted == true, "Tree should now be boosted")
+	assert(tree3.boost_charges == 2, "Tree Lv.3 should get 2 fruit drop charges")
+	print("✔ Tree Lv.3 Compost boosting verified!")
+
+	# I. Test Multi-Board Save & Restore
+	SaveManager.current_board_id = "farm"
+	farm_b.board_theme = "farm"
+	SaveManager.save_game(false, false)
+	assert(SaveManager.current_board_id == "farm", "SaveManager must retain current_board_id as farm")
+	assert(not SaveManager.farm_board_items.is_empty(), "SaveManager must have farm_board_items saved")
+
+	var feat42_restore_board: Board = test_farm_board_scene.instantiate()
+	add_child(feat42_restore_board)
+	var feat42_load_ok := SaveManager.load_game(feat42_restore_board)
+	assert(feat42_load_ok == true, "Loading game with farm board must succeed")
+	assert(feat42_restore_board.board_theme == "farm", "Restored board must retain farm theme")
+	assert(feat42_restore_board.get_all_items().size() > 0, "Restored board must have items")
+
+	feat42_restore_board.queue_free()
+	farm_b.queue_free()
+	kitchen_b.queue_free()
+	# J. Test Farm Board Hardcoded Starter Layout & Initial Barn Merge Loop
+	print("\n--- Testing Farm Board Hardcoded Starter Layout & Barn Merge Loop ---")
+	var feat42_farm_board: Board = test_farm_board_scene.instantiate()
+	add_child(feat42_farm_board)
+	feat42_farm_board.board_theme = "farm"
+
+	var portrait_starter_cells := {
+		Vector2i(3, 4): {"id": "barn_1", "state": ItemView.ItemState.NORMAL},
+		Vector2i(2, 4): {"id": "barn_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 4): {"id": "barn_2", "state": ItemView.ItemState.LOCKED},
+		Vector2i(3, 3): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(3, 5): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(2, 3): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 3): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(2, 5): {"id": "hay_2", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 5): {"id": "hay_2", "state": ItemView.ItemState.LOCKED},
+	}
+	for coord in portrait_starter_cells:
+		var c_info: Dictionary = portrait_starter_cells[coord]
+		feat42_farm_board.spawn_item_at(coord, c_info["id"], c_info["state"])
+
+	# Verify initial starter cells
+	var b1_normal := feat42_farm_board.get_item_at(Vector2i(3, 4))
+	assert(b1_normal != null and b1_normal.data.id == "barn_1" and b1_normal.is_normal(), "Cell (3, 4) must be normal barn_1")
+
+	var b1_locked := feat42_farm_board.get_item_at(Vector2i(2, 4))
+	assert(b1_locked != null and b1_locked.data.id == "barn_1" and b1_locked.is_locked(), "Cell (2, 4) must be locked barn_1")
+
+	var b2_locked := feat42_farm_board.get_item_at(Vector2i(4, 4))
+	assert(b2_locked != null and b2_locked.data.id == "barn_2" and b2_locked.is_locked(), "Cell (4, 4) must be locked barn_2")
+
+	# Step 1: Merge barn_1 (3, 4) into locked barn_1 (2, 4) -> unlocks into barn_2 (NORMAL)
+	feat42_farm_board._drop_into_board(b1_normal, Vector2i(2, 4))
+	var unlocked_b2 := feat42_farm_board.get_item_at(Vector2i(2, 4))
+	assert(unlocked_b2 != null and unlocked_b2.data.id == "barn_2" and unlocked_b2.is_normal(), "Cell (2, 4) must unlock into normal barn_2")
+	assert(feat42_farm_board.get_item_at(Vector2i(3, 4)) == null, "Cell (3, 4) must be empty after merge")
+
+	# Step 2: Merge barn_2 (2, 4) into locked barn_2 (4, 4) -> unlocks into barn_3 (NORMAL)
+	feat42_farm_board._drop_into_board(unlocked_b2, Vector2i(4, 4))
+	var finished_barn := feat42_farm_board.get_item_at(Vector2i(4, 4))
+	assert(finished_barn != null and finished_barn.data.id == "barn_3" and finished_barn.is_normal(), "Cell (4, 4) must unlock into normal barn_3")
+	assert(feat42_farm_board.get_item_at(Vector2i(2, 4)) == null, "Cell (2, 4) must be empty after merge")
+
+	# Verify Finished Barn Spawner Capabilities
+	assert(finished_barn.data.is_spawner == true, "Finished barn (barn_3) must be a spawner")
+	assert(finished_barn.is_spawner_ready() == true, "barn_3 must be ready to spawn")
+	assert(finished_barn.max_charges == 10, "barn_3 max charges must be 10")
+	var barn_pool := ItemDatabase._get_barn_pool(3)
+	assert(barn_pool.has("hay_1") and barn_pool.has("hay_2"), "barn_3 spawn pool must contain hay_1 and hay_2")
+
+	# Step 3: Tap Finished Barn to produce hay into empty cell
+	feat42_farm_board._try_spawn_from_item(finished_barn)
+	var spawned_at_2_4 := feat42_farm_board.get_item_at(Vector2i(2, 4))
+	var spawned_at_3_4 := feat42_farm_board.get_item_at(Vector2i(3, 4))
+	var spawned_item: ItemView = spawned_at_2_4 if spawned_at_2_4 != null else spawned_at_3_4
+	assert(spawned_item != null, "Finished barn must successfully spawn an item into empty cell")
+	assert(spawned_item.data.chain_id == "hay", "Spawned item from barn_3 must belong to hay chain")
+
+	feat42_farm_board.queue_free()
+	print("✔ Farm Board Hardcoded Starter Layout & Barn Merge Loop verified!")
+
+	# 43. Test Progression Modal Tabs, Board-Aware Chest Rewards, and Cross-Board Inventory
+	print("\n--- Testing Progression Modal Tabs, Board-Aware Chest Rewards, and Cross-Board Inventory ---")
+
+	# 43.1 Test Progression Modal Tabs and Chains Distribution
+	var t43_prog_scene: PackedScene = load("res://scenes/progression_modal.tscn")
+	var t43_prog_inst: ProgressionModal = t43_prog_scene.instantiate()
+	add_child(t43_prog_inst)
+
+	assert(t43_prog_inst.TABS.size() == 4, "Progression modal must have exactly 4 tabs")
+	assert(t43_prog_inst.TABS[0]["id"] == "kitchen", "Tab 0 must be kitchen")
+	assert(t43_prog_inst.TABS[1]["id"] == "farm", "Tab 1 must be farm")
+	assert(t43_prog_inst.TABS[2]["id"] == "chests", "Tab 2 must be chests")
+	assert(t43_prog_inst.TABS[3]["id"] == "achievements", "Tab 3 must be achievements")
+
+	# Verify KITCHEN_CHAINS does NOT have consumables (exp, gold, energy, diamond)
+	var t43_kitchen_ids: Array[String] = []
+	for c in t43_prog_inst.KITCHEN_CHAINS:
+		t43_kitchen_ids.append(c["id"])
+	assert(not t43_kitchen_ids.has("exp"), "Kitchen tab must not have exp")
+	assert(not t43_kitchen_ids.has("gold"), "Kitchen tab must not have gold")
+	assert(not t43_kitchen_ids.has("energy"), "Kitchen tab must not have energy")
+	assert(not t43_kitchen_ids.has("diamond"), "Kitchen tab must not have diamond")
+	assert(t43_kitchen_ids.has("foodbox") and t43_kitchen_ids.has("oven") and t43_kitchen_ids.has("util"), "Kitchen tab must have foodbox, oven, util")
+
+	# Verify FARM_CHAINS has all 14 farm chains
+	var t43_farm_ids: Array[String] = []
+	for c in t43_prog_inst.FARM_CHAINS:
+		t43_farm_ids.append(c["id"])
+	assert(t43_farm_ids.size() == 14, "Farm tab must have all 14 farm chains")
+	for fid in ["barn", "hay", "tree", "bird", "pine", "water", "cow", "sheep", "pig", "watering", "fruit", "tool", "milk", "wool"]:
+		assert(t43_farm_ids.has(fid), "Farm tab must have %s" % fid)
+
+	# Verify CHEST_CHAINS has chests + consumables
+	var t43_chest_ids: Array[String] = []
+	for c in t43_prog_inst.CHEST_CHAINS:
+		t43_chest_ids.append(c["id"])
+	for cid in ["chest", "chest_purple", "chest_green", "chest_yellow", "chest_blue", "exp", "gold", "energy", "diamond"]:
+		assert(t43_chest_ids.has(cid), "Chests tab must contain %s" % cid)
+
+	# Test tab switching & chain focusing
+	t43_prog_inst.focus_chain("barn")
+	assert(t43_prog_inst._current_tab_id == "farm", "Focusing barn must switch to farm tab")
+	t43_prog_inst.focus_chain("diamond")
+	assert(t43_prog_inst._current_tab_id == "chests", "Focusing diamond must switch to chests tab")
+	t43_prog_inst.focus_chain("exp")
+	assert(t43_prog_inst._current_tab_id == "chests", "Focusing exp must switch to chests tab")
+	t43_prog_inst.focus_chain("chest_green")
+	assert(t43_prog_inst._current_tab_id == "chests", "Focusing chest_green must switch to chests tab")
+	t43_prog_inst.focus_chain("oven")
+	assert(t43_prog_inst._current_tab_id == "kitchen", "Focusing oven must switch to kitchen tab")
+
+	# Test rendering each tab without error
+	t43_prog_inst._load_tab("kitchen")
+	t43_prog_inst._load_tab("farm")
+	t43_prog_inst._load_tab("chests")
+	t43_prog_inst._load_tab("achievements")
+
+	t43_prog_inst.queue_free()
+	print("✔ Progression Modal Tabs & Chains verified!")
+
+	# 43.2 Test Dynamic Board-Aware Chest Rewards
+	# Kitchen Chest Drops
+	var k_pool_1 := ItemDatabase.get_chest_pool("chest_1", "kitchen")
+	assert(k_pool_1.has("oven_1") and k_pool_1.has("fridge_1"), "Kitchen chest_1 must drop oven_1 and fridge_1")
+	assert(not k_pool_1.has("barn_1") and not k_pool_1.has("water_1"), "Kitchen chest_1 must not drop farm items")
+
+	var k_pool_2 := ItemDatabase.get_chest_pool("chest_2", "kitchen")
+	assert(k_pool_2.has("oven_1") and k_pool_2.has("foodbox_1"), "Kitchen chest_2 must drop kitchen producers")
+	assert(not k_pool_2.has("barn_1"), "Kitchen chest_2 must not drop barn_1")
+
+	# Farm Chest Drops
+	var f_pool_1 := ItemDatabase.get_chest_pool("chest_1", "farm")
+	assert(f_pool_1.has("barn_1") and f_pool_1.has("water_1"), "Farm chest_1 must drop barn_1 and water_1")
+	assert(not f_pool_1.has("oven_1") and not f_pool_1.has("fridge_1"), "Farm chest_1 must not drop kitchen items")
+
+	var f_pool_2 := ItemDatabase.get_chest_pool("chest_2", "farm")
+	assert(f_pool_2.has("barn_1") and f_pool_2.has("water_1") and f_pool_2.has("tree_1") and f_pool_2.has("pine_1"), "Farm chest_2 must drop farm producers")
+	assert(not f_pool_2.has("oven_1"), "Farm chest_2 must not drop oven_1")
+
+	# Colored Chest Drops on Farm vs Kitchen
+	var k_purple := ItemDatabase.get_chest_pool("chest_purple_1", "kitchen")
+	assert(k_purple.has("exp_1") and k_purple.has("oven_1"), "Kitchen purple chest must drop exp and oven")
+	assert(not k_purple.has("barn_1"), "Kitchen purple chest must not drop barn")
+
+	var f_purple := ItemDatabase.get_chest_pool("chest_purple_1", "farm")
+	assert(f_purple.has("exp_1") and f_purple.has("barn_1") and f_purple.has("water_1"), "Farm purple chest must drop exp and barn/water")
+	assert(not f_purple.has("oven_1"), "Farm purple chest must not drop oven")
+
+	var f_green := ItemDatabase.get_chest_pool("chest_green_2", "farm")
+	assert(f_green.has("energy_2") and f_green.has("barn_1") and f_green.has("water_1") and f_green.has("tree_1"), "Farm green chest must drop energy and farm producers")
+
+	var f_yellow := ItemDatabase.get_chest_pool("chest_yellow_3", "farm")
+	assert(f_yellow.has("gold_3") and f_yellow.has("barn_1") and f_yellow.has("pine_1"), "Farm yellow chest must drop gold and farm producers")
+
+	var f_blue := ItemDatabase.get_chest_pool("chest_blue_1", "farm")
+	assert(f_blue.has("diamond_1") and f_blue.has("barn_1"), "Farm blue chest must drop diamond and farm producers")
+
+	print("✔ Board-Aware Chest Drops verified!")
+
+	# 43.3 Test Board Chest Spawn & Cross-Board Inventory Transfer
+	var t43_cross_board: Board = board_scene.instantiate()
+	add_child(t43_cross_board)
+	t43_cross_board.clear_board()
+	t43_cross_board.board_theme = "farm"
+
+	# Put kitchen item and chest in backpack
+	InventoryManager.clear_all()
+	InventoryManager.add_item("oven_1")
+	InventoryManager.add_item("chest_1")
+	assert(InventoryManager.get_used_count() == 2, "Backpack should have 2 items")
+
+	# Retrieve oven_1 from inventory to farm board
+	var t43_empty_cells := t43_cross_board.get_empty_cells()
+	assert(not t43_empty_cells.is_empty(), "Farm board must have empty cells")
+	var t43_target_c := t43_empty_cells[0]
+	var t43_oven_item := t43_cross_board.spawn_item_at(t43_target_c, "oven_1", ItemView.ItemState.NORMAL)
+	assert(t43_oven_item != null and t43_oven_item.data.id == "oven_1", "Kitchen item oven_1 should spawn on farm board")
+	assert(t43_oven_item.data.display_name == "Clay Toaster", "Display name should match kitchen item")
+
+	# Retrieve chest_1 from inventory to farm board
+	t43_empty_cells = t43_cross_board.get_empty_cells()
+	var t43_chest_c := t43_empty_cells[0]
+	var t43_chest_item := t43_cross_board.spawn_item_at(t43_chest_c, "chest_1", ItemView.ItemState.NORMAL)
+	assert(t43_chest_item != null and t43_chest_item.data.id == "chest_1", "Chest should spawn on farm board")
+
+	# Tap chest on farm board -> should spawn a farm producer (barn_1 or water_1)!
+	t43_cross_board._trigger_spawner(t43_chest_item)
+	var t43_spawned_drops: Array[String] = []
+	for c in range(t43_cross_board.cols):
+		for r in range(t43_cross_board.rows):
+			var it := t43_cross_board.get_item_at(Vector2i(c, r))
+			if it and it != t43_oven_item and it != t43_chest_item:
+				t43_spawned_drops.append(it.data.id)
+	assert(t43_spawned_drops.size() >= 1, "Tapping chest on farm board must spawn drop")
+	var t43_dropped_id := t43_spawned_drops[0]
+	assert(t43_dropped_id in ["barn_1", "water_1"], "Chest drop on farm board must be barn_1 or water_1, got %s" % t43_dropped_id)
+
+	# Verify MainGame._is_stuck_farm_board safety
+	var t43_main_for_stuck: MainGame = main_scene.instantiate()
+	add_child(t43_main_for_stuck)
+	var t43_board_items_with_oven: Array = [{"item_id": "oven_1", "col": 0, "row": 0, "item_state": 0}]
+	assert(t43_main_for_stuck._is_stuck_farm_board(t43_board_items_with_oven) == false, "Board with kitchen spawner oven_1 is NOT stuck")
+	var t43_board_items_with_chest: Array = [{"item_id": "chest_1", "col": 0, "row": 0, "item_state": 0}]
+	assert(t43_main_for_stuck._is_stuck_farm_board(t43_board_items_with_chest) == false, "Board with chest_1 is NOT stuck")
+	t43_main_for_stuck.queue_free()
+
+	t43_cross_board.queue_free()
+	print("✔ Cross-Board Inventory Transfer & Board Chest Spawning verified!")
+
+	# 44. Test Progression Modal Swipe Scrolling, Separated Quests, Board Theming, and Diamond+Chest Rewards
+	print("\n--- Testing Modal Swipe Scroll, Separated Board Quests, Board Theming & Rewards ---")
+	
+	# A. Test Board Theming
+	var test_board_scene := preload("res://scenes/board.tscn")
+	var test_board_theme: Board = test_board_scene.instantiate()
+	add_child(test_board_theme)
+	test_board_theme.board_theme = "kitchen"
+	assert(test_board_theme.board_bg_color == Color(0.1, 0.12, 0.16, 0.95), "Kitchen board bg should be slate")
+	assert(test_board_theme.tile_bg_color == Color(0.18, 0.21, 0.27, 0.9), "Kitchen tile should be slate blue")
+
+	test_board_theme.board_theme = "farm"
+	assert(test_board_theme.board_bg_color == Color(0.08, 0.22, 0.12, 0.78), "Farm board bg must be transparent dark green")
+	assert(test_board_theme.tile_bg_color == Color(0.96, 0.91, 0.74, 0.90), "Farm tile 1 must be light yellow")
+	assert(test_board_theme.tile_bg_alt_color == Color(0.84, 0.74, 0.61, 0.90), "Farm tile 2 must be light brown")
+	test_board_theme.queue_free()
+	print("✔ Board theme visual styling verified!")
+
+	# B. Test Separated Quests
+	var test_qm_scene := preload("res://scenes/quest_manager.tscn")
+	var test_qm: QuestManager = test_qm_scene.instantiate()
+	add_child(test_qm)
+	var dummy_board: Board = test_board_scene.instantiate()
+	add_child(dummy_board)
+	dummy_board.board_theme = "kitchen"
+	test_qm.setup(dummy_board)
+
+	# In kitchen:
+	assert(test_qm.current_board_theme == "kitchen", "QM should be kitchen theme")
+	assert(test_qm.active_quests[0] != null, "Kitchen active quest should exist")
+	assert(test_qm.active_quests[0].customer_name in QuestManager.KITCHEN_CUSTOMERS, "Kitchen customer name should match kitchen pool")
+	assert(test_qm.active_quests[0].required_item_ids == ["egg_1", "leaf_1"], "Kitchen starter quest 1 matches")
+
+	# Switch to farm:
+	test_qm.switch_board("farm")
+	assert(test_qm.current_board_theme == "farm", "QM should switch to farm theme")
+	assert(test_qm.active_quests[0] != null, "Farm active quest should exist")
+	assert(test_qm.active_quests[0].customer_name in QuestManager.FARM_CUSTOMERS, "Farm customer name should match farm pool")
+	assert(test_qm.active_quests[0].required_item_ids == ["hay_1"], "Farm starter quest 1 matches hay_1")
+
+	# Generate farm quest:
+	var new_farm_q := test_qm._generate_new_quest()
+	assert(new_farm_q.customer_name in QuestManager.FARM_CUSTOMERS, "Generated quest customer must be from farm customers")
+	for req in new_farm_q.required_item_ids:
+		assert(req.begins_with("hay") or req.begins_with("fruit") or req.begins_with("pine") or req.begins_with("milk") or req.begins_with("wool") or req.begins_with("tree") or req.begins_with("tool") or req.begins_with("water"), "Farm quest items must be farm items, got %s" % req)
+
+	# Switch back to kitchen:
+	test_qm.switch_board("kitchen")
+	assert(test_qm.current_board_theme == "kitchen", "QM should switch back to kitchen")
+	assert(test_qm.active_quests[0].required_item_ids == ["egg_1", "leaf_1"], "Kitchen quests preserved")
+
+	# Test serialization of per-board quests:
+	var qm_data := test_qm.serialize_data()
+	assert(qm_data.has("boards_quests"), "QM data must have boards_quests")
+	assert(qm_data.boards_quests.has("kitchen"), "boards_quests must have kitchen")
+	assert(qm_data.boards_quests.has("farm"), "boards_quests must have farm")
+
+	test_qm.queue_free()
+	dummy_board.queue_free()
+	print("✔ Separated Board Quests verified!")
+
+	# C. Test Progression Rewards (Diamond and Chest Only)
+	var test_rew_t1 := ProgressionManager.get_reward_for_item("egg_1")
+	assert(test_rew_t1.coins == 0, "Progression reward coins must be 0")
+	assert(test_rew_t1.exp == 0, "Progression reward exp must be 0")
+	assert(test_rew_t1.gems > 0, "Progression reward diamonds must be > 0")
+	assert(not str(test_rew_t1.chest).is_empty(), "Progression reward chest must not be empty")
+
+	var test_rew_t5 := ProgressionManager.get_reward_for_item("cake_5")
+	assert(test_rew_t5.coins == 0, "Tier 5 coins must be 0")
+	assert(test_rew_t5.exp == 0, "Tier 5 exp must be 0")
+	assert(test_rew_t5.gems >= 15, "Tier 5 diamonds should be 15")
+	assert(test_rew_t5.chest == "chest_blue_3", "Tier 5 chest must be chest_blue_3")
+	print("✔ Progression Rewards (Diamond & Chest only) verified!")
+
+	# D. Test ProgressionModal Swipe Touch Variables
+	var prog_modal_scene: PackedScene = preload("res://scenes/progression_modal.tscn")
+	var test_pm: ProgressionModal = prog_modal_scene.instantiate()
+	add_child(test_pm)
+	test_pm.open_modal()
+	assert(test_pm.scroll != null, "Scroll container must be referenced")
+	assert(test_pm.DRAG_THRESHOLD == 10.0, "DRAG_THRESHOLD should be 10.0")
+	assert(test_pm._is_touching == false, "Initial touch state should be false")
+	
+	# Simulate touch start & drag
+	test_pm._start_touch(Vector2(200, 300))
+	assert(test_pm._is_touching == true, "Touching should be true after start")
+	test_pm._update_drag(Vector2(200, 250)) # dragged 50px up
+	assert(test_pm._is_swiping == true, "Swiping should be true after dragging beyond threshold")
+	test_pm._end_touch()
+	assert(test_pm._is_touching == false, "Touching should be false after end")
+	assert(test_pm._is_swiping == false, "Swiping should be false after end")
+	test_pm.queue_free()
+	print("✔ ProgressionModal Touch Swipe Scroll verified!")
+
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)
+

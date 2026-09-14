@@ -21,6 +21,15 @@ const EMOTION_TEXTURES: Dictionary = {
 	"admire": preload("res://assets/characters/irene/admire.png")
 }
 
+const IVAN_EMOTION_TEXTURES: Dictionary = {
+	"greeting": preload("res://assets/characters/ivan/greeting.png"),
+	"explain": preload("res://assets/characters/ivan/explain.png"),
+	"excited": preload("res://assets/characters/ivan/excited.png"),
+	"confused": preload("res://assets/characters/ivan/confused.png"),
+	"shocked": preload("res://assets/characters/ivan/shocked.png"),
+	"happy": preload("res://assets/characters/ivan/excited.png")
+}
+
 var _dialogue_queue: Array[Dictionary] = []
 var _current_dialogue: Dictionary = {}
 var _on_complete_callback: Callable = Callable()
@@ -38,12 +47,16 @@ func _ready() -> void:
 	continue_btn.pressed.connect(_on_continue_pressed)
 
 	GameEvents.irene_dialogue_requested.connect(func(text: String, emotion: String, cb: Callable):
-		show_dialogue(text, emotion, cb)
+		show_dialogue(text, emotion, cb, "irene")
+	)
+	GameEvents.character_dialogue_requested.connect(func(char_name: String, text: String, emotion: String, cb: Callable):
+		show_dialogue(text, emotion, cb, char_name)
 	)
 
-func show_dialogue(text: String, emotion: String = "explain", callback: Callable = Callable()) -> void:
+func show_dialogue(text: String, emotion: String = "explain", callback: Callable = Callable(), character: String = "irene") -> void:
 	_dialogue_queue.clear()
 	_dialogue_queue.append({
+		"character": character,
 		"text": text,
 		"emotion": emotion
 	})
@@ -85,12 +98,18 @@ func _start_next_line() -> void:
 	_current_dialogue = _dialogue_queue.pop_front()
 	var text: String = _current_dialogue.get("text", "")
 	var emotion: String = _current_dialogue.get("emotion", "explain")
+	var character: String = _current_dialogue.get("character", "irene")
 
-	_set_emotion(emotion)
+	if name_label:
+		name_label.text = "Ivan" if character.to_lower() == "ivan" else "Irene"
+
+	_set_emotion(emotion, character)
 	_start_typewriter(text)
 
-func _set_emotion(emotion: String) -> void:
-	var tex: Texture2D = EMOTION_TEXTURES.get(emotion, EMOTION_TEXTURES["explain"])
+func _set_emotion(emotion: String, character: String = "irene") -> void:
+	var tex_dict := IVAN_EMOTION_TEXTURES if character.to_lower() == "ivan" else EMOTION_TEXTURES
+	var default_tex: Texture2D = tex_dict.get("explain", tex_dict.get("greeting"))
+	var tex: Texture2D = tex_dict.get(emotion, default_tex)
 	portrait_rect.texture = tex
 	if portrait_glow:
 		portrait_glow.texture = tex
