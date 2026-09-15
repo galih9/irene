@@ -705,13 +705,28 @@ func _ready() -> void:
 	cursor_test_board.queue_free()
 	print("✔ Custom Cursor System verified!")
 
-	# 18. Test Looped BGM System
-	print("\n--- Testing Looped BGM System ---")
+	# 18. Test Multi-Track Looped BGM System & Splash Screen Duration
+	print("\n--- Testing Multi-Track Looped BGM System & Splash Screen ---")
 	assert(SoundManager._bgm_player != null, "BGM player must exist in SoundManager")
-	assert(SoundManager._bgm_player.stream is AudioStreamMP3, "BGM stream must be AudioStreamMP3")
-	var bgm_stream: AudioStreamMP3 = SoundManager._bgm_player.stream as AudioStreamMP3
-	assert(bgm_stream.loop == true, "BGM stream loop property must be true")
+	assert(SoundManager.BGM_MENU == "res://assets/background/ambient.mp3", "BGM_MENU path must match ambient.mp3")
+	assert(SoundManager.BGM_KITCHEN == "res://assets/background/kitchen.mp3", "BGM_KITCHEN path must match kitchen.mp3")
+	assert(SoundManager.BGM_FARM == "res://assets/background/farm.mp3", "BGM_FARM path must match farm.mp3")
 
+	# Test track switching
+	SoundManager.play_bgm(SoundManager.BGM_MENU)
+	assert(SoundManager.current_bgm_track == SoundManager.BGM_MENU, "Current track should be BGM_MENU")
+	assert(SoundManager._bgm_player.stream is AudioStreamMP3, "Menu BGM stream must be AudioStreamMP3")
+	assert((SoundManager._bgm_player.stream as AudioStreamMP3).loop == true, "Menu BGM stream must loop")
+
+	SoundManager.play_bgm("kitchen")
+	assert(SoundManager.current_bgm_track == SoundManager.BGM_KITCHEN, "Switching to 'kitchen' must set BGM_KITCHEN")
+	assert((SoundManager._bgm_player.stream as AudioStreamMP3).loop == true, "Kitchen BGM stream must loop")
+
+	SoundManager.play_bgm("farm")
+	assert(SoundManager.current_bgm_track == SoundManager.BGM_FARM, "Switching to 'farm' must set BGM_FARM")
+	assert((SoundManager._bgm_player.stream as AudioStreamMP3).loop == true, "Farm BGM stream must loop")
+
+	# Test BGM toggle enable / disable
 	var initial_bgm := SoundManager.bgm_enabled
 	SoundManager.set_bgm_enabled(false)
 	assert(SoundManager.bgm_enabled == false, "set_bgm_enabled(false) must update state")
@@ -719,7 +734,10 @@ func _ready() -> void:
 	SoundManager.set_bgm_enabled(true)
 	assert(SoundManager.bgm_enabled == true, "set_bgm_enabled(true) must update state")
 	SoundManager.set_bgm_enabled(initial_bgm)
-	print("✔ Looped BGM System verified!")
+
+	# Verify SplashScreen duration constant is 3.0s
+	assert(SplashScreen.SPLASH_DURATION == 3.0, "SplashScreen duration must be 3.0 seconds")
+	print("✔ Multi-Track Looped BGM System & Splash Screen verified!")
 
 	# 19. Test Sound Effects (Kenney SFX Audio Pool)
 	print("\n--- Testing Kenney SFX Audio Pool ---")

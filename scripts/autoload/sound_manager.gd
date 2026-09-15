@@ -13,8 +13,13 @@ const SFX_POOL_SIZE: int = 8
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_index: int = 0
 
-# --- Preloaded Audio Assets ---
-const BGM_PATH: String = "res://assets/bgm/bgm.mp3"
+# --- Preloaded & Configured Audio Assets ---
+const BGM_MENU: String = "res://assets/background/ambient.mp3"
+const BGM_KITCHEN: String = "res://assets/background/kitchen.mp3"
+const BGM_FARM: String = "res://assets/background/farm.mp3"
+
+var current_bgm_track: String = ""
+var _cached_bgm_streams: Dictionary = {}
 
 const STREAM_PICKUP: AudioStream = preload("res://assets/bgm/switch_001.ogg")
 const STREAM_DROP: AudioStream = preload("res://assets/bgm/drop_001.ogg")
@@ -56,11 +61,10 @@ func _ready() -> void:
 	# 1. Initialize BGM Player
 	_bgm_player = AudioStreamPlayer.new()
 	_bgm_player.name = "BGMPlayer"
-	var bgm_stream := load(BGM_PATH)
-	if bgm_stream is AudioStreamMP3:
-		bgm_stream.loop = true
-	_bgm_player.stream = bgm_stream
 	_bgm_player.volume_db = bgm_volume_db
+	var initial_stream := get_bgm_stream(BGM_MENU)
+	_bgm_player.stream = initial_stream
+	current_bgm_track = BGM_MENU
 	add_child(_bgm_player)
 
 	# 2. Initialize SFX Voice Pool
@@ -74,16 +78,56 @@ func _ready() -> void:
 	# 3. Start BGM if enabled and not booting to splash screen
 	var main_scene_path: String = ProjectSettings.get_setting("application/run/main_scene", "")
 	if bgm_enabled and not main_scene_path.ends_with("splash_screen.tscn"):
-		play_bgm()
+		play_bgm(BGM_MENU)
 
 # ==============================================================================
 # BGM Management
 # ==============================================================================
 
-func play_bgm() -> void:
-	if not _bgm_player or not bgm_enabled:
+func get_bgm_stream(track_path: String) -> AudioStream:
+	if _cached_bgm_streams.has(track_path):
+		return _cached_bgm_streams[track_path]
+	if ResourceLoader.exists(track_path):
+		var stream := load(track_path)
+		if stream is AudioStreamMP3:
+			stream.loop = true
+		_cached_bgm_streams[track_path] = stream
+		return stream
+	return null
+
+func resolve_bgm_track(track_identifier: String) -> String:
+	match track_identifier.to_lower():
+		"menu", "ambient", "main_menu":
+			return BGM_MENU
+		"kitchen", "kitchen_board":
+			return BGM_KITCHEN
+		"farm", "farm_board":
+			return BGM_FARM
+		"":
+			return current_bgm_track if not current_bgm_track.is_empty() else BGM_MENU
+		_:
+			return track_identifier
+
+func play_bgm(track: String = "") -> void:
+	if not is_instance_valid(_bgm_player):
 		return
-	if not _bgm_player.playing:
+
+	var resolved_path := resolve_bgm_track(track)
+	if resolved_path.is_empty():
+		resolved_path = BGM_MENU
+
+	var stream := get_bgm_stream(resolved_path)
+	if stream == null:
+		push_warning("SoundManager: Failed to load BGM track: %s" % resolved_path)
+		return
+
+	if _bgm_player.stream == stream and _bgm_player.playing:
+		return
+
+	_bgm_player.stream = stream
+	current_bgm_track = resolved_path
+
+	if bgm_enabled:
 		_bgm_player.play()
 
 func stop_bgm() -> void:
@@ -99,7 +143,7 @@ func set_bgm_enabled(enabled: bool) -> void:
 	if not is_instance_valid(_bgm_player):
 		return
 	if bgm_enabled:
-		play_bgm()
+		play_bgm(current_bgm_track)
 	else:
 		stop_bgm()
 

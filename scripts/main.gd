@@ -102,6 +102,11 @@ func _ready() -> void:
 
 	apply_orientation(OrientationManager.is_landscape if is_instance_valid(OrientationManager) else false)
 
+	# Play board-specific BGM
+	if is_instance_valid(SoundManager):
+		var target_bgm := SoundManager.BGM_FARM if SaveManager.current_board_id == "farm" else SoundManager.BGM_KITCHEN
+		SoundManager.play_bgm(target_bgm)
+
 	tutorial_manager.start_tutorial_if_needed()
 
 func _process(_delta: float) -> void:
@@ -492,8 +497,11 @@ func switch_board(target_board_id: String) -> void:
 		if is_instance_valid(quest_manager):
 			quest_manager.switch_board(target_board_id)
 
-		# 3. Update background
+		# 3. Update background & BGM
 		apply_orientation(OrientationManager.is_landscape if is_instance_valid(OrientationManager) else false)
+		if is_instance_valid(SoundManager):
+			var target_bgm := SoundManager.BGM_FARM if target_board_id == "farm" else SoundManager.BGM_KITCHEN
+			SoundManager.play_bgm(target_bgm)
 
 		# 4. Load or initialize board items
 		if target_board_id == "farm":

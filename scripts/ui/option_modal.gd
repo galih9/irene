@@ -118,6 +118,8 @@ func _on_menu_pressed() -> void:
 	# Auto-save before returning to main menu
 	SaveManager.save_game(false, false)
 	SaveManager.is_gameplay_active = false
+	if is_instance_valid(SoundManager):
+		SoundManager.play_bgm(SoundManager.BGM_MENU)
 	get_tree().change_scene_to_file("res://scenes/main_menu.tscn")
 
 func _on_debug_pressed() -> void:

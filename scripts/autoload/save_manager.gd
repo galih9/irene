@@ -69,12 +69,11 @@ func get_save_info() -> Dictionary:
 func delete_save() -> bool:
 	if not has_save():
 		return true
-	var global_path := ProjectSettings.globalize_path(SAVE_FILE_PATH)
-	DirAccess.remove_absolute(global_path)
-	var dir := DirAccess.open("user://")
-	if dir:
-		dir.remove("savegame.json")
-	DirAccess.remove_absolute(SAVE_FILE_PATH)
+	var err := DirAccess.remove_absolute(SAVE_FILE_PATH)
+	if err != OK:
+		var dir := DirAccess.open("user://")
+		if dir:
+			dir.remove("savegame.json")
 	should_load_on_start = false
 	return not has_save()
 

@@ -36,6 +36,9 @@ func _ready() -> void:
 	if OS.has_feature("web"):
 		quit_btn.visible = false
 
+	if is_instance_valid(SoundManager):
+		SoundManager.play_bgm(SoundManager.BGM_MENU)
+
 	_update_save_state()
 	_animate_title()
 

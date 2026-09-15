@@ -1,10 +1,10 @@
 [gd_scene format=3 uid="uid://c7k2p8b5y1x0v"]
 
-[ext_resource type="Script" path="res://scripts/ui/splash_screen.gd" id="1_splash"]
-[ext_resource type="Texture2D" path="res://assets/splash.png" id="2_img"]
-[ext_resource type="AudioStream" path="res://assets/boot.ogg" id="3_audio"]
+[ext_resource type="Script" uid="uid://ow5pcxgwfjus" path="res://scripts/ui/splash_screen.gd" id="1_splash"]
+[ext_resource type="Texture2D" uid="uid://d03k2q3ae4iga" path="res://assets/splash.png" id="2_img"]
+[ext_resource type="AudioStream" uid="uid://b8vxr3ymv5lxf" path="res://assets/boot.ogg" id="3_audio"]
 
-[node name="SplashScreen" type="Control"]
+[node name="SplashScreen" type="Control" unique_id=1564421400]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -13,7 +13,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_splash")
 
-[node name="BackgroundColor" type="ColorRect" parent="."]
+[node name="BackgroundColor" type="ColorRect" parent="." unique_id=356523295]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -22,7 +22,7 @@ grow_horizontal = 2
 grow_vertical = 2
 color = Color(0.945098, 0.407843, 0.082353, 1)
 
-[node name="SplashImage" type="TextureRect" parent="."]
+[node name="SplashImage" type="TextureRect" parent="." unique_id=537056175]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -33,11 +33,10 @@ texture = ExtResource("2_img")
 expand_mode = 1
 stretch_mode = 6
 
-[node name="BootAudioPlayer" type="AudioStreamPlayer" parent="."]
+[node name="BootAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=661922363]
 stream = ExtResource("3_audio")
-bus = &"Master"
 
-[node name="FadeOverlay" type="ColorRect" parent="."]
+[node name="FadeOverlay" type="ColorRect" parent="." unique_id=1627316400]
 visible = false
 layout_mode = 1
 anchors_preset = 15

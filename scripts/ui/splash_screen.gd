@@ -10,6 +10,7 @@ signal splash_completed()
 const NEXT_SCENE_PATH: String = "res://scenes/main_menu.tscn"
 const BOOT_SOUND_PATH: String = "res://assets/boot.ogg"
 const SPLASH_TEXTURE_PATH: String = "res://assets/splash.png"
+const SPLASH_DURATION: float = 3.0
 
 @onready var background_color: ColorRect = $BackgroundColor
 @onready var splash_image: TextureRect = $SplashImage
@@ -17,7 +18,6 @@ const SPLASH_TEXTURE_PATH: String = "res://assets/splash.png"
 @onready var fade_overlay: ColorRect = $FadeOverlay
 
 var _is_transitioning: bool = false
-var _min_display_timer: float = 0.0
 var _can_skip: bool = false
 
 func _ready() -> void:
@@ -34,12 +34,10 @@ func _ready() -> void:
 
 	get_viewport().size_changed.connect(_on_viewport_size_changed)
 
-	# 3. Setup audio player
+	# 3. Setup audio player - plays boot sound exactly once on splash display
 	if is_instance_valid(boot_audio):
 		if boot_audio.stream == null and ResourceLoader.exists(BOOT_SOUND_PATH):
 			boot_audio.stream = load(BOOT_SOUND_PATH)
-		if not boot_audio.finished.is_connected(_on_audio_finished):
-			boot_audio.finished.connect(_on_audio_finished)
 		boot_audio.play()
 
 	# 4. Fade in from background color
@@ -49,13 +47,13 @@ func _ready() -> void:
 		var tween := create_tween()
 		tween.tween_property(fade_overlay, "modulate:a", 0.0, 0.25).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 
-	# Allow skipping after a brief moment
-	var skip_timer := get_tree().create_timer(0.3)
+	# Allow skipping via input after a brief moment
+	var skip_timer := get_tree().create_timer(0.4)
 	skip_timer.timeout.connect(func(): _can_skip = true)
 
-	# Fallback safety timeout if audio finished signal is delayed or audio is disabled
-	var safety_timer := get_tree().create_timer(2.2)
-	safety_timer.timeout.connect(func():
+	# 3-second splash screen duration timer
+	var splash_timer := get_tree().create_timer(SPLASH_DURATION)
+	splash_timer.timeout.connect(func():
 		if not _is_transitioning:
 			_start_transition()
 	)
@@ -102,10 +100,6 @@ func _apply_orientation_layout(is_landscape: bool) -> void:
 	# Keep pivot centered for any scale tweens or rotations
 	splash_image.pivot_offset = splash_image.size / 2.0
 
-func _on_audio_finished() -> void:
-	if not _is_transitioning:
-		_start_transition(0.3)
-
 func _start_transition(fade_duration: float = 0.3) -> void:
 	if _is_transitioning:
 		return
@@ -123,9 +117,9 @@ func _start_transition(fade_duration: float = 0.3) -> void:
 func _complete_transition() -> void:
 	splash_completed.emit()
 
-	# Start BGM when entering main menu
+	# Start ambient BGM when entering main menu
 	if is_instance_valid(SoundManager) and SoundManager.bgm_enabled:
-		SoundManager.play_bgm()
+		SoundManager.play_bgm(SoundManager.BGM_MENU)
 
 	# Change scene to main menu
 	var err := get_tree().change_scene_to_file(NEXT_SCENE_PATH)
