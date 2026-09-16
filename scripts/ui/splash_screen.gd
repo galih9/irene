@@ -7,7 +7,7 @@ extends Control
 
 signal splash_completed()
 
-const NEXT_SCENE_PATH: String = "res://scenes/main_menu.tscn"
+const NEXT_SCENE_PATH: String = "res://scenes/startup_loading_screen.tscn"
 const BOOT_SOUND_PATH: String = "res://assets/boot.ogg"
 const SPLASH_TEXTURE_PATH: String = "res://assets/splash.png"
 const SPLASH_DURATION: float = 3.0

@@ -455,7 +455,7 @@ func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemS
 	GameEvents.board_changed.emit()
 	return item
 
-func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id: String) -> ItemView:
+func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id: String, extra_data: Dictionary = {}) -> ItemView:
 	if not is_valid_coord(target_coord):
 		return null
 	var data := ItemDatabase.get_item(item_id)
@@ -467,6 +467,24 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 	items_container.add_child(item)
 	item.scale = Vector2.ONE * (cell_size / 88.0)
 	item.setup(data)
+	if extra_data.has("spawner_charges") and item.data and item.data.is_spawner:
+		var charges: int = int(extra_data.get("spawner_charges", item.max_charges))
+		var cooldown: float = float(extra_data.get("spawner_cooldown", 0.0))
+		var status_val: int = int(extra_data.get("producer_status", -1))
+		item.restore_spawner_state(charges, cooldown, status_val)
+	if extra_data.has("fed_count") or extra_data.has("shear_cooldown"):
+		item.restore_interaction_state(
+			int(extra_data.get("fed_count", 0)),
+			float(extra_data.get("shear_cooldown", 0.0)),
+			bool(extra_data.get("is_boosted", false)),
+			int(extra_data.get("boost_charges", 0)),
+			bool(extra_data.get("is_milked_ready", false)),
+			int(extra_data.get("water_fed", 0))
+		)
+	elif extra_data.has("water_fed"):
+		item.water_fed = int(extra_data.get("water_fed", 0))
+		item._update_visuals()
+
 	_grid[target_coord.x][target_coord.y] = item
 	item.grid_coord = target_coord
 	item.is_in_inventory = false
@@ -720,6 +738,55 @@ func _try_spawn_from_item(item: ItemView) -> bool:
 	return true
 
 func _trigger_spawner(spawner: ItemView) -> void:
+	# Tree fruit harvest check: only drop fruit if fed with water!
+	if spawner.data and spawner.data.chain_id == "tree":
+		if spawner.water_fed <= 0:
+			spawner.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Needs Water to bear fruit! 💧", spawner.global_position + Vector2(0, -50), Color(0.4, 0.8, 1.0))
+			return
+
+		if not EconomyManager.has_energy(spawner.data.energy_cost):
+			spawner.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Need Energy!", spawner.global_position + Vector2(0, -50), Color(1.0, 0.4, 0.4))
+			return
+
+		var empty_cells := get_empty_cells()
+		if empty_cells.is_empty():
+			spawner.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Board is Full!", spawner.global_position + Vector2(0, -50), Color(1.0, 0.4, 0.4))
+			GameEvents.board_full_attempted.emit()
+			return
+
+		EconomyManager.consume_energy(spawner.data.energy_cost)
+		spawner.animate_spawner_tap()
+		SoundManager.play_spawn()
+
+		var fruits_to_drop := mini(spawner.water_fed, empty_cells.size())
+		for i in range(fruits_to_drop):
+			var cur_empty := get_empty_cells()
+			if cur_empty.is_empty():
+				break
+			var best_ec := cur_empty[0]
+			var best_d := INF
+			for ec in cur_empty:
+				var d := Vector2(ec).distance_to(Vector2(spawner.grid_coord))
+				if d < best_d:
+					best_d = d
+					best_ec = ec
+			var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+			spawn_item_flight(spawner.global_position, best_ec, drop_id)
+
+		spawner.water_fed -= fruits_to_drop
+		if spawner.water_fed <= 0:
+			spawner.is_boosted = false
+		spawner._update_visuals()
+		select_item(spawner)
+		GameEvents.show_floating_text.emit("Harvested %d Fruit%s! 🍎" % [fruits_to_drop, "s" if fruits_to_drop > 1 else ""], spawner.global_position + Vector2(0, -50), Color(0.4, 1.0, 0.4))
+		GameEvents.board_changed.emit()
+		return
 	if spawner.is_spawner_exhausted():
 		spawner.animate_wobble()
 		SoundManager.play_error()
@@ -953,15 +1020,25 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 	if target_item.can_be_watered(dragged):
 		_clear_source_slot(dragged)
 		dragged.queue_free()
-		target_item.is_boosted = true
-		target_item.boost_charges += 5
-		if target_item.data.is_spawner:
-			target_item.current_cooldown = 0.0
-			target_item.current_charges = target_item.max_charges
-			target_item.producer_status = ItemView.ProducerStatus.READY
-		target_item.animate_merge_pop()
-		SoundManager.play_consume()
-		GameEvents.show_floating_text.emit("Watered & Boosted! 💧", target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
+
+		if target_item.data.chain_id == "tree":
+			var water_yield := maxi(1, dragged.data.tier)
+			target_item.water_fed += water_yield
+			target_item.is_boosted = true
+			target_item.animate_merge_pop()
+			SoundManager.play_consume()
+			GameEvents.show_floating_text.emit("Watered! (+%d Fruit Yield) 💧🍎" % water_yield, target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
+		else:
+			target_item.is_boosted = true
+			target_item.boost_charges += 5
+			if target_item.data.is_spawner:
+				target_item.current_cooldown = 0.0
+				target_item.current_charges = target_item.max_charges
+				target_item.producer_status = ItemView.ProducerStatus.READY
+			target_item.animate_merge_pop()
+			SoundManager.play_consume()
+			GameEvents.show_floating_text.emit("Watered & Boosted! 💧", target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
+
 		target_item._update_visuals()
 		select_item(target_item)
 		GameEvents.board_changed.emit()
@@ -1087,7 +1164,20 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		return
 
 	var item_id := item.data.id
-	var success := InventoryManager.add_item(item_id)
+	var extra_data: Dictionary = {
+		"fed_count": item.fed_count,
+		"shear_cooldown": item.shear_cooldown,
+		"is_boosted": item.is_boosted,
+		"boost_charges": item.boost_charges,
+		"is_milked_ready": item.is_milked_ready,
+		"water_fed": item.water_fed
+	}
+	if item.data.is_spawner:
+		extra_data["spawner_charges"] = item.current_charges
+		extra_data["spawner_cooldown"] = item.current_cooldown
+		extra_data["producer_status"] = int(item.producer_status)
+
+	var success := InventoryManager.add_item(item_id, extra_data)
 	if success:
 		SoundManager.play_pickup()
 		if bottom_nav_bar:
@@ -1311,6 +1401,7 @@ func serialize_items() -> Array[Dictionary]:
 					"is_boosted": it.is_boosted,
 					"boost_charges": it.boost_charges,
 					"is_milked_ready": it.is_milked_ready,
+					"water_fed": it.water_fed,
 					"board_theme": it.board_theme
 				}
 				if it.data.is_spawner:
@@ -1344,7 +1435,8 @@ func load_items(items_data: Array) -> void:
 					float(entry.get("shear_cooldown", 0.0)),
 					bool(entry.get("is_boosted", false)),
 					int(entry.get("boost_charges", 0)),
-					bool(entry.get("is_milked_ready", false))
+					bool(entry.get("is_milked_ready", false)),
+					int(entry.get("water_fed", 0))
 				)
 	check_boxed_items_unlock(ProgressionManager.player_level)
 	check_map_unlock_milestone()

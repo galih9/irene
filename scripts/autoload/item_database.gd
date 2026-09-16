@@ -963,11 +963,31 @@ func _get_barn_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		3:
+			# Tier 3 Finished Barn: Pure Hay (100% Hay)
 			pool = ["hay_1", "hay_1", "hay_2"]
 		4:
-			pool = ["hay_1", "hay_2", "tree_1", "bird_1"]
+			# Tier 4 Bigger Barn: 70% Hay, 20% Tree, 10% Bird (Reduced animal rate from 25%)
+			pool = [
+				"hay_1", "hay_1", "hay_1", "hay_1",
+				"hay_2", "hay_2", "hay_2",
+				"tree_1", "tree_1",
+				"bird_1"
+			]
 		5:
-			pool = ["hay_2", "tree_1", "bird_1", "cow_1", "sheep_1", "pig_1"]
+			# Tier 5 Grand Farm Barn: 70% Hay, 20% Trees, 10% Animals (Reduced from 66.7% Animals)
+			# Each animal (bird, cow, sheep, pig) has a 2.5% chance (1 in 40 drops)
+			pool = [
+				# Hay (28/40 = 70%)
+				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
+				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
+				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
+				"hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3",
+				# Trees (8/40 = 20%)
+				"tree_1", "tree_1", "tree_1", "tree_1", "tree_1", "tree_1",
+				"tree_2", "tree_2",
+				# Animals (4/40 = 10% total, 2.5% each)
+				"bird_1", "cow_1", "sheep_1", "pig_1"
+			]
 		_:
 			pool = ["hay_1"]
 	return pool

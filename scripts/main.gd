@@ -397,17 +397,15 @@ func _get_interaction_info_text(item: ItemView) -> String:
 		if lvl == 3:
 			if item.is_milked_ready:
 				return "🥛 Ready to milk! (Spawns Milk Lv.1)"
-			elif item.fed_count >= 2:
+			elif item.fed_count >= 1:
 				return "✨ Fully fed! Ready to merge/upgrade"
-			elif item.fed_count == 1:
-				return "🌾 Milk collected! Feed 1x Hay Lv.6 to upgrade"
 			else:
-				return "🌾 Feed 1x Hay Lv.5 to milk, then 1x Hay Lv.6 to upgrade"
+				return "🌾 Feed 1x Hay Lv.5 to milk, or Hay Lv.6 to upgrade"
 		else:
-			if item.fed_count >= 5:
-				return "✨ Fully fed (5/5)! Ready to merge/upgrade"
+			if item.fed_count >= 1:
+				return "✨ Fully fed (1/1)! Ready to merge/upgrade"
 			else:
-				return "🌾 Fed: %d/5 Hay. Feed 5 times to merge/upgrade" % item.fed_count
+				return "🌾 Fed: %d/1 Hay. Feed 1 time to merge/upgrade" % item.fed_count
 
 	elif chain_id == "sheep":
 		var wool_yield: int = 1
@@ -422,32 +420,32 @@ func _get_interaction_info_text(item: ItemView) -> String:
 			shear_str = "✂ Ready to shear with Tool Lv.4 (+%d Wool)" % wool_yield
 
 		var feed_str: String = ""
-		if item.fed_count >= 5:
-			feed_str = " | ✨ Fully Fed (5/5)"
+		if item.fed_count >= 1:
+			feed_str = " | ✨ Fully Fed (1/1)"
 		else:
-			feed_str = " | 🌾 Fed: %d/5 Hay" % item.fed_count
+			feed_str = " | 🌾 Fed: %d/1 Hay" % item.fed_count
 		return shear_str + feed_str
 
 	elif chain_id == "bird":
-		if item.fed_count >= 5:
-			return "✨ Fully fed (5/5)! Ready to merge/upgrade"
+		if item.fed_count >= 1:
+			return "✨ Fully fed (1/1)! Ready to merge/upgrade"
 		else:
-			return "🌾 Fed: %d/5 Hay. Feed 5 times to merge/upgrade" % item.fed_count
+			return "🌾 Fed: %d/1 Hay. Feed 1 time to merge/upgrade" % item.fed_count
 
 	elif chain_id == "pig":
 		if lvl == 5:
 			return "💎 Wild Boar: Sells for 50 Diamonds!"
-		elif item.fed_count >= 10:
-			return "✨ Fully fed (10/10)! Ready to merge/upgrade"
+		elif item.fed_count >= 1:
+			return "✨ Fully fed (1/1)! Ready to merge/upgrade"
 		else:
-			return "🌾 Feed Progress: %d/10 (Any Hay). Needs 10 feeds to merge" % item.fed_count
+			return "🌾 Feed Progress: %d/1 (Any Hay). Needs 1 feed to merge" % item.fed_count
 
 	elif chain_id == "tree":
 		if lvl in [3, 4]:
-			if item.is_boosted:
-				return "⚡ Boosted with Compost! Fruit charges left: %d" % item.boost_charges
+			if item.water_fed > 0:
+				return "🍎 Watered! Ready to drop %d fruit(s). Tap to harvest!" % item.water_fed
 			else:
-				return "⚡ Boost with Compost (Hay Lv.7) to spawn %d free fruits!" % (2 if lvl == 3 else 4)
+				return "💧 Thirsty! Drag Water or Watering tool onto tree to grow fruit"
 		elif item.is_boosted:
 			return "💧 Water Boosted! Extra spawn charges: %d" % item.boost_charges
 		else:
@@ -599,10 +597,14 @@ func _setup_initial_farm_board() -> void:
 	board.board_theme = "farm"
 
 	var boxed_pool := [
-		"tree_1", "tree_2", "pine_1", "pine_2",
-		"bird_1", "bird_2", "cow_1", "sheep_1",
-		"pig_1", "water_1", "barn_1", "tool_1",
-		"tool_2", "fruit_1", "fruit_2", "hay_2", "hay_3"
+		"tree_1", "tree_1", "tree_2",
+		"pine_1", "pine_1", "pine_2",
+		"water_1", "water_1", "water_2",
+		"barn_1", "barn_1", "barn_2",
+		"tool_1", "tool_1", "tool_2",
+		"fruit_1", "fruit_2",
+		"hay_2", "hay_2", "hay_3", "hay_3",
+		"bird_1", "cow_1", "sheep_1", "pig_1"
 	]
 
 	var is_ls := (board.cols == 9 and board.rows == 7)

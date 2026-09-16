@@ -4,7 +4,9 @@ signal save_started(is_auto_save: bool)
 signal save_completed(success: bool, is_auto_save: bool)
 signal toast_requested(message: String, duration: float)
 
-const SAVE_FILE_PATH: String = "user://savegame.json"
+const DEFAULT_SAVE_FILE_PATH: String = "user://savegame.json"
+const SAVE_FILE_PATH: String = DEFAULT_SAVE_FILE_PATH
+var save_file_path: String = DEFAULT_SAVE_FILE_PATH
 const AUTO_SAVE_INTERVAL: float = 15.0 * 60.0 # 900 seconds (15 minutes)
 
 var auto_save_interval: float = AUTO_SAVE_INTERVAL
@@ -45,12 +47,12 @@ func _process(delta: float) -> void:
 			save_game(true, true)
 
 func has_save() -> bool:
-	return FileAccess.file_exists(SAVE_FILE_PATH)
+	return FileAccess.file_exists(save_file_path)
 
 func get_save_info() -> Dictionary:
 	if not has_save():
 		return {}
-	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
+	var file := FileAccess.open(save_file_path, FileAccess.READ)
 	if not file:
 		return {}
 	var text := file.get_as_text()
@@ -69,11 +71,12 @@ func get_save_info() -> Dictionary:
 func delete_save() -> bool:
 	if not has_save():
 		return true
-	var err := DirAccess.remove_absolute(SAVE_FILE_PATH)
+	var global_path := ProjectSettings.globalize_path(save_file_path)
+	var err := DirAccess.remove_absolute(global_path)
 	if err != OK:
-		var dir := DirAccess.open("user://")
+		var dir := DirAccess.open(save_file_path.get_base_dir())
 		if dir:
-			dir.remove("savegame.json")
+			dir.remove(save_file_path.get_file())
 	should_load_on_start = false
 	return not has_save()
 
@@ -114,9 +117,9 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		}
 	}
 
-	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.WRITE)
+	var file := FileAccess.open(save_file_path, FileAccess.WRITE)
 	if not file:
-		push_error("Failed to open save file for writing: %s" % SAVE_FILE_PATH)
+		push_error("Failed to open save file for writing: %s" % save_file_path)
 		save_completed.emit(false, is_auto_save)
 		return false
 
@@ -137,9 +140,9 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 	if not has_save():
 		return false
 
-	var file := FileAccess.open(SAVE_FILE_PATH, FileAccess.READ)
+	var file := FileAccess.open(save_file_path, FileAccess.READ)
 	if not file:
-		push_error("Failed to open save file for reading: %s" % SAVE_FILE_PATH)
+		push_error("Failed to open save file for reading: %s" % save_file_path)
 		return false
 
 	var text := file.get_as_text()

@@ -4,6 +4,9 @@ func _ready() -> void:
 	if is_instance_valid(OrientationManager):
 		OrientationManager.set_landscape(false, false)
 
+	SaveManager.save_file_path = "res://test_savegame.json"
+	SaveManager.delete_save()
+
 	print("=== RUNNING TEST: NEW MERGE GAME FEATURES ===")
 
 	# 1. Test InventoryManager
@@ -245,6 +248,7 @@ func _ready() -> void:
 
 	# 10. Test Persistence Save & Restore
 	print("\n--- Testing Persistence Save & Restore ---")
+	SaveManager.save_file_path = "res://test_savegame.json"
 	SaveManager.delete_save()
 	assert(SaveManager.has_save() == false, "Save file should be deleted")
 
@@ -308,6 +312,7 @@ func _ready() -> void:
 	assert(save_board.get_item_at(Vector2i(5, 8)).data.id == "leaf_3", "Item at (5, 8) should be leaf_3")
 	assert(save_board.get_item_at(Vector2i(2, 4)).data.id == "fridge_1", "Item at (2, 4) should be fridge_1")
 
+	SaveManager.delete_save()
 	save_board.queue_free()
 	SaveManager.board_ref = null
 	print("✔ Persistence Save & Restore verified!")
@@ -1361,6 +1366,7 @@ func _ready() -> void:
 	assert(load_res == true, "Load game must succeed")
 	assert(OrientationManager.is_landscape == true, "Saved landscape orientation must be restored on load")
 
+	SaveManager.delete_save()
 	# Restore default portrait
 	OrientationManager.set_landscape(false, true)
 	print("✔ SaveManager Orientation Persistence verified!")
@@ -2310,9 +2316,156 @@ func _ready() -> void:
 	splash_inst._apply_orientation_layout(true)
 	assert(splash_inst.splash_image.stretch_mode == TextureRect.STRETCH_KEEP_ASPECT_COVERED, "Landscape must use KEEP_ASPECT_COVERED to crop/zoom center text")
 	assert(splash_inst.splash_image.anchor_right == 1.0 and splash_inst.splash_image.anchor_bottom == 1.0, "Landscape must cover full rect")
-
 	splash_inst.queue_free()
-	print("✔ Boot Splash Pre-Scene, Audio & Adaptive Crop verified!")
+
+	# 46. Test New Features (v1.0.8 / Build 8)
+	print("\n--- Testing v1.0.8 Features & Adjustments ---")
+
+	# A. AppVersion verification
+	var app_ver = preload("res://scripts/core/app_version.gd")
+	assert(app_ver.MAJOR == 1 and app_ver.MINOR == 0 and app_ver.PATCH == 8, "Version should be 1.0.8")
+	assert(app_ver.BUILD == 8, "Build number should be 8")
+	assert(app_ver.get_version_string() == "v1.0.8 (Build 8)", "Version string mismatch")
+	assert(app_ver.get_full_display() == "Version 1.0.8 • Build 8", "Full display mismatch")
+	print("✔ AppVersion 1.0.8 (Build 8) verified!")
+
+	# B. Test Spawner Inventory Persistence
+	var t46_inv_board: Board = board_scene.instantiate()
+	t46_inv_board.board_theme = "farm"
+	add_child(t46_inv_board)
+	InventoryManager.clear_all()
+
+	# Spawn chest with 5 charges, consume 4 -> 1 charge remaining
+	var t46_chest: ItemView = t46_inv_board.spawn_item_at(Vector2i(0, 0), "chest_blue_1", ItemView.ItemState.NORMAL)
+	assert(t46_chest != null and t46_chest.data.is_spawner, "Chest should be spawner")
+	t46_chest.current_charges = 1
+	t46_chest.producer_status = ItemView.ProducerStatus.READY
+	assert(t46_chest.current_charges == 1, "Chest should have 1 charge left")
+
+	# Drop chest into inventory
+	t46_inv_board._drop_into_inventory_button(t46_chest)
+	assert(InventoryManager.get_used_count() == 1, "Inventory should have 1 item")
+	var t46_inv_data := InventoryManager.get_item_data_at(0)
+	assert(t46_inv_data.get("id") == "chest_blue_1", "Stored item should be chest_blue_1")
+	assert(t46_inv_data.get("spawner_charges") == 1, "Inventory data must persist remaining charges (1)")
+
+	# Retrieve chest back to board
+	var t46_empty_cells := t46_inv_board.get_empty_cells()
+	var t46_retrieved_chest := t46_inv_board.spawn_item_flight(Vector2.ZERO, t46_empty_cells[0], "chest_blue_1", t46_inv_data)
+	assert(t46_retrieved_chest.current_charges == 1, "Retrieved chest must retain 1 charge, got %d" % t46_retrieved_chest.current_charges)
+	t46_inv_board.queue_free()
+	print("✔ Spawner Inventory Persistence verified!")
+
+	# C. Test Farm Animals 1-Feed Requirement
+	var t46_farm_b: Board = board_scene.instantiate()
+	t46_farm_b.board_theme = "farm"
+	add_child(t46_farm_b)
+
+	var t46_bird := t46_farm_b.spawn_item_at(Vector2i(0, 0), "bird_1", ItemView.ItemState.NORMAL)
+	var t46_cow := t46_farm_b.spawn_item_at(Vector2i(1, 0), "cow_1", ItemView.ItemState.NORMAL)
+	var t46_sheep := t46_farm_b.spawn_item_at(Vector2i(2, 0), "sheep_1", ItemView.ItemState.NORMAL)
+	var t46_pig := t46_farm_b.spawn_item_at(Vector2i(3, 0), "pig_1", ItemView.ItemState.NORMAL)
+
+	assert(t46_bird.get_required_feed_count() == 1, "Bird 1 must require 1 feed")
+	assert(t46_cow.get_required_feed_count() == 1, "Cow 1 must require 1 feed")
+	assert(t46_sheep.get_required_feed_count() == 1, "Sheep 1 must require 1 feed")
+	assert(t46_pig.get_required_feed_count() == 1, "Pig 1 must require 1 feed")
+
+	assert(t46_bird.needs_feeding_to_upgrade() == true, "Unfed bird needs feeding")
+	t46_bird.fed_count = 1
+	assert(t46_bird.needs_feeding_to_upgrade() == false, "Fed once bird does not need feeding")
+	assert(t46_bird.is_fully_fed() == true, "Bird fed once is fully fed")
+	print("✔ Animal 1-Feed Requirement verified!")
+
+	# D. Test Tree Water Requirement & Fruit Drop Scaling
+	var t46_tree := t46_farm_b.spawn_item_at(Vector2i(4, 0), "tree_3", ItemView.ItemState.NORMAL)
+	assert(t46_tree != null and t46_tree.data.chain_id == "tree", "Must be tree")
+	assert(t46_tree.water_fed == 0, "Initial tree water_fed should be 0")
+	assert(t46_tree.is_spawner_ready() == false, "Tree with 0 water cannot be ready")
+
+	# Tapping tree with 0 water should fail
+	var t46_prev_energy := EconomyManager.energy
+	t46_farm_b._trigger_spawner(t46_tree)
+	assert(EconomyManager.energy == t46_prev_energy, "Tapping thirsty tree must not consume energy")
+
+	# Water tree with water_2 (Tier 2 -> +2 water yield)
+	var t46_water := t46_farm_b.spawn_item_at(Vector2i(5, 0), "water_2", ItemView.ItemState.NORMAL)
+	t46_farm_b._try_special_interaction(t46_water, t46_tree)
+	assert(t46_tree.water_fed == 2, "Watering tree with Tier 2 water must yield 2 water_fed, got %d" % t46_tree.water_fed)
+	assert(t46_tree.is_spawner_ready() == true, "Watered tree must now be ready to drop fruit")
+
+	# Water tree again with watering_3 (Tier 3 -> +3 water yield)
+	var t46_watering := t46_farm_b.spawn_item_at(Vector2i(5, 0), "watering_3", ItemView.ItemState.NORMAL)
+	t46_farm_b._try_special_interaction(t46_watering, t46_tree)
+	assert(t46_tree.water_fed == 5, "Tree water_fed should now be 2 + 3 = 5, got %d" % t46_tree.water_fed)
+
+	# Harvest fruit from tree
+	EconomyManager.energy = 10
+	t46_farm_b._trigger_spawner(t46_tree)
+	assert(t46_tree.water_fed == 0, "Tree fruit should be harvested, water_fed should be 0, got %d" % t46_tree.water_fed)
+	assert(EconomyManager.energy == 9, "Harvesting tree should consume 1 energy")
+	t46_farm_b.queue_free()
+	print("✔ Tree Water Requirement & Fruit Yield verified!")
+
+	# E. Test StartupLoadingScreen Scene & Splash Screen Next Scene
+	assert(SplashScreen.NEXT_SCENE_PATH == "res://scenes/startup_loading_screen.tscn", "SplashScreen NEXT_SCENE_PATH must point to startup_loading_screen.tscn")
+	var t46_loading_scene: PackedScene = load("res://scenes/startup_loading_screen.tscn")
+	assert(t46_loading_scene != null, "StartupLoadingScreen scene must load")
+	var t46_loading_inst := t46_loading_scene.instantiate()
+	add_child(t46_loading_inst)
+	assert(t46_loading_inst.progress_bar != null, "StartupLoadingScreen must have ProgressBar")
+	assert(t46_loading_inst.version_label != null, "StartupLoadingScreen must have VersionLabel")
+	assert(t46_loading_inst.version_label.text == "v1.0.8 (Build 8)", "StartupLoadingScreen version label mismatch")
+	t46_loading_inst.queue_free()
+	print("✔ StartupLoadingScreen Scene & Transition verified!")
+
+	# F. Test Minimalist OptionModal (StyleBoxFlat buttons)
+	var t46_opt_scene: PackedScene = load("res://scenes/option_modal.tscn")
+	assert(t46_opt_scene != null, "OptionModal scene must load")
+	var t46_opt_inst := t46_opt_scene.instantiate()
+	add_child(t46_opt_inst)
+	assert(t46_opt_inst.save_btn.get_theme_stylebox("normal") is StyleBoxFlat, "SaveBtn must use StyleBoxFlat")
+	assert(t46_opt_inst.bgm_btn.get_theme_stylebox("normal") is StyleBoxFlat, "BgmBtn must use StyleBoxFlat")
+	assert(t46_opt_inst.sfx_btn.get_theme_stylebox("normal") is StyleBoxFlat, "SfxBtn must use StyleBoxFlat")
+	assert(t46_opt_inst.resume_btn.get_theme_stylebox("normal") is StyleBoxFlat, "ResumeBtn must use StyleBoxFlat")
+	assert(t46_opt_inst.close_btn.get_theme_stylebox("normal") is StyleBoxFlat, "CloseBtn must use StyleBoxFlat")
+	assert(t46_opt_inst.version_label != null, "OptionModal must have version_label")
+	assert(t46_opt_inst.version_label.text == "Version 1.0.8 • Build 8", "OptionModal version display mismatch")
+	t46_opt_inst.queue_free()
+	print("✔ Minimalist OptionModal StyleBoxFlat verified!")
+
+	# G. Test Lowered Animal Drop Rates from Barn Spawners
+	var t46_barn4_pool := ItemDatabase._get_barn_pool(4)
+	var t46_b4_animals := 0
+	var t46_b4_hay := 0
+	for it_id in t46_barn4_pool:
+		if it_id.begins_with("bird") or it_id.begins_with("cow") or it_id.begins_with("sheep") or it_id.begins_with("pig"):
+			t46_b4_animals += 1
+		elif it_id.begins_with("hay"):
+			t46_b4_hay += 1
+	var t46_b4_animal_rate := float(t46_b4_animals) / float(t46_barn4_pool.size())
+	assert(t46_b4_animal_rate <= 0.15, "Barn 4 animal drop rate must be 15%% or lower, got %.2f" % t46_b4_animal_rate)
+	assert(t46_b4_hay >= t46_b4_animals * 5, "Barn 4 must drop significantly more hay than animals to allow easy feeding")
+
+	var t46_barn5_pool := ItemDatabase._get_barn_pool(5)
+	var t46_b5_animals := 0
+	var t46_b5_hay := 0
+	var t46_b5_trees := 0
+	for it_id in t46_barn5_pool:
+		if it_id.begins_with("bird") or it_id.begins_with("cow") or it_id.begins_with("sheep") or it_id.begins_with("pig"):
+			t46_b5_animals += 1
+		elif it_id.begins_with("hay"):
+			t46_b5_hay += 1
+		elif it_id.begins_with("tree"):
+			t46_b5_trees += 1
+	var t46_b5_animal_rate := float(t46_b5_animals) / float(t46_barn5_pool.size())
+	assert(t46_b5_animal_rate <= 0.15, "Barn 5 animal drop rate must be 15%% or lower (was 66.7%%), got %.2f" % t46_b5_animal_rate)
+	assert(t46_b5_hay >= t46_b5_animals * 5, "Barn 5 must drop at least 5x more hay than animals to sustain farm feeding")
+	assert(t46_barn5_pool.has("bird_1") and t46_barn5_pool.has("cow_1") and t46_barn5_pool.has("sheep_1") and t46_barn5_pool.has("pig_1"), "Barn 5 must still include all 4 livestock species")
+	print("✔ Lowered Animal Drop Rate (10% vs 70% Hay) verified!")
+
+	SaveManager.delete_save()
+	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)

@@ -201,6 +201,47 @@ func _create_slot_card(slot_idx: int, item_id: String) -> Control:
 		slot_btn.add_theme_font_size_override("font_size", 12)
 		slot_btn.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 
+	# Show spawner charges or water badge if item has charges
+	var slot_data := InventoryManager.get_item_data_at(slot_idx)
+	if slot_data.has("spawner_charges"):
+		var charges: int = int(slot_data.get("spawner_charges", 0))
+		var badge := Label.new()
+		badge.text = str(charges)
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		badge.custom_minimum_size = Vector2(22, 18)
+		badge.position = Vector2(slot_btn.custom_minimum_size.x - 26, 4)
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = Color(0.95, 0.52, 0.15, 0.95)
+		badge_style.corner_radius_top_left = 5
+		badge_style.corner_radius_top_right = 5
+		badge_style.corner_radius_bottom_right = 5
+		badge_style.corner_radius_bottom_left = 5
+		badge.add_theme_stylebox_override("panel", badge_style)
+		badge.add_theme_font_size_override("font_size", 11)
+		badge.add_theme_color_override("font_color", Color.WHITE)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_btn.add_child(badge)
+	elif slot_data.has("water_fed") and int(slot_data.get("water_fed", 0)) > 0:
+		var w_count: int = int(slot_data.get("water_fed", 0))
+		var badge := Label.new()
+		badge.text = "🍎%d" % w_count
+		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		badge.custom_minimum_size = Vector2(28, 18)
+		badge.position = Vector2(slot_btn.custom_minimum_size.x - 32, 4)
+		var badge_style := StyleBoxFlat.new()
+		badge_style.bg_color = Color(0.2, 0.65, 0.35, 0.95)
+		badge_style.corner_radius_top_left = 5
+		badge_style.corner_radius_top_right = 5
+		badge_style.corner_radius_bottom_right = 5
+		badge_style.corner_radius_bottom_left = 5
+		badge.add_theme_stylebox_override("panel", badge_style)
+		badge.add_theme_font_size_override("font_size", 10)
+		badge.add_theme_color_override("font_color", Color.WHITE)
+		badge.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		slot_btn.add_child(badge)
+
 	slot_btn.pressed.connect(func():
 		_retrieve_item_to_board(slot_idx, item_id, slot_btn.global_position + slot_btn.size * 0.5)
 	)
@@ -217,12 +258,15 @@ func _retrieve_item_to_board(slot_idx: int, item_id: String, from_pos: Vector2) 
 		GameEvents.show_floating_text.emit("Board is Full! ⚠️", global_position + Vector2(330, 400), Color(1.0, 0.4, 0.4))
 		return
 
+	# Retrieve stored metadata before removing
+	var slot_data := InventoryManager.get_item_data_at(slot_idx)
+
 	# Remove from inventory
 	InventoryManager.remove_item_at(slot_idx)
 
-	# Spawn onto board
+	# Spawn onto board with preserved charges / metadata
 	var target_coord := empty_cells[0]
-	board_ref.spawn_item_flight(from_pos, target_coord, item_id)
+	board_ref.spawn_item_flight(from_pos, target_coord, item_id, slot_data)
 	SoundManager.play_drop()
 
 	var item_data := ItemDatabase.get_item(item_id)

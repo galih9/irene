@@ -16,8 +16,9 @@ const ROW_EXPANSION_COSTS: Dictionary = {
 
 var unlocked_rows: int = INITIAL_ROWS
 
-# Array of item_ids ("" represents an empty slot)
-var _slots: Array[String] = []
+# Array of item_ids (String) or item dictionaries (Dictionary with "id" and metadata)
+# "" represents an empty slot
+var _slots: Array = []
 
 func _ready() -> void:
 	_slots.resize(get_max_slots())
@@ -32,47 +33,66 @@ func get_max_possible_slots() -> int:
 func has_free_slot() -> bool:
 	var max_s := get_max_slots()
 	for i in range(mini(_slots.size(), max_s)):
-		if _slots[i] == "":
+		if get_item_id_at(i) == "":
 			return true
 	return false
 
 func get_first_empty_slot() -> int:
 	var max_s := get_max_slots()
 	for i in range(mini(_slots.size(), max_s)):
-		if _slots[i] == "":
+		if get_item_id_at(i) == "":
 			return i
 	return -1
 
-func add_item(item_id: String) -> bool:
+func add_item(item_id: String, extra_data: Dictionary = {}) -> bool:
 	if item_id.is_empty():
 		return false
 	var idx := get_first_empty_slot()
 	if idx == -1:
 		return false
-	_slots[idx] = item_id
+	if extra_data.is_empty():
+		_slots[idx] = item_id
+	else:
+		var dict: Dictionary = extra_data.duplicate(true)
+		dict["id"] = item_id
+		_slots[idx] = dict
 	GameEvents.inventory_changed.emit()
 	return true
 
-func set_item_at(slot_idx: int, item_id: String) -> bool:
+func set_item_at(slot_idx: int, item_id: String, extra_data: Dictionary = {}) -> bool:
 	if slot_idx < 0 or slot_idx >= get_max_slots():
 		return false
-	_slots[slot_idx] = item_id
+	if extra_data.is_empty():
+		_slots[slot_idx] = item_id
+	else:
+		var dict: Dictionary = extra_data.duplicate(true)
+		dict["id"] = item_id
+		_slots[slot_idx] = dict
 	GameEvents.inventory_changed.emit()
 	return true
 
 func remove_item_at(slot_idx: int) -> String:
 	if slot_idx < 0 or slot_idx >= get_max_slots():
 		return ""
-	var item_id := _slots[slot_idx]
+	var item_id := get_item_id_at(slot_idx)
 	_slots[slot_idx] = ""
 	if not item_id.is_empty():
 		GameEvents.inventory_changed.emit()
 	return item_id
 
+func remove_item_data_at(slot_idx: int) -> Dictionary:
+	if slot_idx < 0 or slot_idx >= get_max_slots():
+		return {}
+	var data := get_item_data_at(slot_idx)
+	_slots[slot_idx] = ""
+	if not data.is_empty():
+		GameEvents.inventory_changed.emit()
+	return data
+
 func remove_item_by_id(item_id: String) -> bool:
 	var max_s := get_max_slots()
 	for i in range(mini(_slots.size(), max_s)):
-		if _slots[i] == item_id:
+		if get_item_id_at(i) == item_id:
 			_slots[i] = ""
 			GameEvents.inventory_changed.emit()
 			return true
@@ -81,13 +101,28 @@ func remove_item_by_id(item_id: String) -> bool:
 func get_item_id_at(slot_idx: int) -> String:
 	if slot_idx < 0 or slot_idx >= get_max_slots():
 		return ""
-	return _slots[slot_idx]
+	var s: Variant = _slots[slot_idx]
+	if s is String:
+		return s as String
+	elif s is Dictionary:
+		return str((s as Dictionary).get("id", ""))
+	return ""
+
+func get_item_data_at(slot_idx: int) -> Dictionary:
+	if slot_idx < 0 or slot_idx >= get_max_slots():
+		return {}
+	var s: Variant = _slots[slot_idx]
+	if s is Dictionary:
+		return (s as Dictionary).duplicate(true)
+	elif s is String and not (s as String).is_empty():
+		return {"id": s as String}
+	return {}
 
 func get_used_count() -> int:
 	var count := 0
 	var max_s := get_max_slots()
 	for i in range(mini(_slots.size(), max_s)):
-		if not _slots[i].is_empty():
+		if not get_item_id_at(i).is_empty():
 			count += 1
 	return count
 
@@ -95,8 +130,9 @@ func get_all_item_ids() -> Array[String]:
 	var result: Array[String] = []
 	var max_s := get_max_slots()
 	for i in range(mini(_slots.size(), max_s)):
-		if not _slots[i].is_empty():
-			result.append(_slots[i])
+		var id := get_item_id_at(i)
+		if not id.is_empty():
+			result.append(id)
 	return result
 
 func clear_all() -> void:
@@ -104,9 +140,9 @@ func clear_all() -> void:
 	_slots.fill("")
 	GameEvents.inventory_changed.emit()
 
-func get_slots() -> Array[String]:
+func get_slots() -> Array:
 	var max_s := get_max_slots()
-	var result: Array[String] = []
+	var result: Array = []
 	for i in range(mini(_slots.size(), max_s)):
 		result.append(_slots[i])
 	return result
@@ -166,5 +202,11 @@ func load_slots(slots_data: Array) -> void:
 	_slots.resize(max_s)
 	_slots.fill("")
 	for i in range(mini(slots_data.size(), max_s)):
-		_slots[i] = str(slots_data[i])
+		var s: Variant = slots_data[i]
+		if s is Dictionary:
+			_slots[i] = (s as Dictionary).duplicate(true)
+		elif s is String:
+			_slots[i] = s as String
+		else:
+			_slots[i] = ""
 	GameEvents.inventory_changed.emit()

@@ -1,6 +1,8 @@
 class_name MainMenu
 extends Control
 
+const AppVersion = preload("res://scripts/core/app_version.gd")
+
 @onready var menu_container: Control = $UI/MenuContainer
 @onready var title_badge: Control = $UI/MenuContainer/TitleArea/TitleContainer
 @onready var continue_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/ContinueBtn
@@ -9,6 +11,7 @@ extends Control
 @onready var options_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/OptionsBtn
 @onready var quit_btn: Button = $UI/MenuContainer/BottomArea/VBox/Buttons/QuitBtn
 @onready var background_rect: TextureRect = $Background
+@onready var version_label: Label = $UI/VersionLabel if has_node("UI/VersionLabel") else null
 
 @onready var option_modal: OptionModal = $Modals/OptionModal
 
@@ -16,6 +19,9 @@ const BG_PORTRAIT = preload("res://assets/background/kitchen.jpeg")
 const BG_LANDSCAPE = preload("res://assets/background/kitchen_landscape.jpg")
 
 func _ready() -> void:
+	if is_instance_valid(version_label):
+		version_label.text = AppVersion.get_version_string()
+
 	continue_btn.pressed.connect(_on_continue_pressed)
 	new_game_btn.pressed.connect(_on_new_game_pressed)
 	options_btn.pressed.connect(_on_options_pressed)

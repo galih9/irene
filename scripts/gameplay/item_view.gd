@@ -55,6 +55,7 @@ const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
 @export var is_boosted: bool = false
 @export var boost_charges: int = 0
 @export var is_milked_ready: bool = false
+@export var water_fed: int = 0
 
 @export_group("Locked Item Visuals")
 @export var locked_item_modulate: Color = LOCKED_ITEM_MODULATE:
@@ -218,12 +219,13 @@ func restore_spawner_state(charges: int, cooldown: float, status_val: int = -1) 
 		producer_status = ProducerStatus.READY if current_charges > 0 else ProducerStatus.EXHAUST
 	_update_visuals()
 
-func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false) -> void:
+func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false, w_fed: int = 0) -> void:
 	fed_count = fed
 	shear_cooldown = s_cd
 	is_boosted = boosted
 	boost_charges = b_charges
 	is_milked_ready = milk_ready
+	water_fed = w_fed
 	_update_visuals()
 
 func get_required_feed_item_id() -> String:
@@ -257,26 +259,16 @@ func get_required_feed_count() -> int:
 	if not data:
 		return 0
 	match data.id:
-		"bird_1", "bird_2":
-			return 5
-		"bird_3":
-			return 5
-		"bird_4":
-			return 10
-		"cow_1":
-			return 5
-		"cow_2":
-			return 5
+		"bird_1", "bird_2", "bird_3", "bird_4":
+			return 1
+		"cow_1", "cow_2":
+			return 1
 		"cow_3":
 			return 1 # hay_6 1 time to upgrade
-		"sheep_1":
-			return 5
-		"sheep_2":
-			return 5
-		"sheep_3":
-			return 5
+		"sheep_1", "sheep_2", "sheep_3":
+			return 1
 		"pig_1", "pig_2", "pig_3", "pig_4":
-			return 10
+			return 1
 		_:
 			return 0
 
@@ -312,9 +304,9 @@ func can_accept_feed(feed_item: ItemView) -> bool:
 		return false
 	var feed_id := feed_item.data.id
 
-	# Pig: any level of hay, up to 10 times
+	# Pig: any level of hay, up to required feed count (1)
 	if data.id in ["pig_1", "pig_2", "pig_3", "pig_4"]:
-		return feed_id.begins_with("hay_") and fed_count < 10
+		return feed_id.begins_with("hay_") and fed_count < get_required_feed_count()
 
 	# Cow Level 3 special:
 	# can be fed hay_5 to be milked (if not already milk ready)
@@ -361,7 +353,9 @@ func can_be_watered(watering_item: ItemView) -> bool:
 		return false
 	if not is_normal():
 		return false
-	return watering_item != null and watering_item.data != null and watering_item.data.chain_id == "watering"
+	if not watering_item or not watering_item.data:
+		return false
+	return watering_item.data.chain_id in ["watering", "water"]
 
 func is_normal() -> bool:
 	return item_state == ItemState.NORMAL
@@ -574,7 +568,18 @@ func _update_visuals() -> void:
 			glow.modulate = Color(1.0, 0.85, 0.2, 0.6)
 
 		if data.is_spawner:
-			if data.disappears_when_exhausted:
+			if data.chain_id == "tree":
+				spawner_badge.visible = true
+				if is_instance_valid(spawner_label):
+					spawner_label.text = ("🍎%d" % water_fed) if water_fed > 0 else "💧0"
+				if status_badge:
+					status_badge.visible = false
+				sprite.modulate = Color.WHITE if data.icon_texture else data.color
+				if water_fed > 0:
+					start_idle_animation()
+				else:
+					stop_idle_animation()
+			elif data.disappears_when_exhausted:
 				spawner_badge.visible = (current_charges > 0)
 				if is_instance_valid(spawner_label):
 					spawner_label.text = str(current_charges)
@@ -632,7 +637,11 @@ func consume_spawn_charge() -> bool:
 	return true
 
 func is_spawner_ready() -> bool:
-	return data != null and data.is_spawner and item_state == ItemState.NORMAL and producer_status == ProducerStatus.READY and current_charges > 0
+	if not data or not data.is_spawner or item_state != ItemState.NORMAL:
+		return false
+	if data.chain_id == "tree":
+		return water_fed > 0
+	return producer_status == ProducerStatus.READY and current_charges > 0
 
 func is_spawner_exhausted() -> bool:
 	return data != null and data.is_spawner and (producer_status == ProducerStatus.EXHAUST or current_charges <= 0)

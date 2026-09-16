@@ -10,14 +10,15 @@ config_version=5
 
 [application]
 
-config/name="Merge Prototype"
+config/name="All You Can Merge"
+config/description="A fun simple non hyper microtransaction play merging game"
+config/version="1.0.8"
 run/main_scene="res://scenes/splash_screen.tscn"
 config/features=PackedStringArray("4.7", "Forward Plus")
 boot_splash/bg_color=Color(0.94509804, 0.40784314, 0.08235294, 1)
 boot_splash/show_image=false
-boot_splash/image="uid://d03k2q3ae4iga"
 boot_splash/stretch_mode=2
-boot_splash/minimum_display_time=0
+boot_splash/image="uid://d03k2q3ae4iga"
 
 [autoload]
 
