@@ -452,10 +452,22 @@ func _get_interaction_info_text(item: ItemView) -> String:
 			return "💧 Boost with Water can/hose for extra drops!"
 
 	elif chain_id == "barn":
+		var boost_str := ""
 		if item.is_boosted:
-			return "⚡ Boosted Barn! Enhanced drop tiers active (%d uses left)" % item.boost_charges
-		else:
-			return "⚡ Boost with Tool (Lv.3+) for higher drop tiers & extra items!"
+			boost_str = "⚡ Boosted Barn! Enhanced drop tiers active (%d uses left)" % item.boost_charges
+		elif lvl >= 3:
+			boost_str = "⚡ Boost with Tool (Lv.3+) for higher drop tiers & extra items!"
+
+		var auto_str := ""
+		if item.data.has_auto_spawn:
+			if item.auto_spawn_current_stack >= item.data.auto_spawn_max_stack:
+				auto_str = " | 🐾 Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
+			else:
+				auto_str = " | 🐾 Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
+
+		if boost_str != "" or auto_str != "":
+			return (boost_str + auto_str).strip_edges().trim_prefix("| ")
+		return ""
 
 	elif chain_id == "pine" or chain_id == "hay":
 		if item.is_boosted:
@@ -471,6 +483,12 @@ func _get_interaction_info_text(item: ItemView) -> String:
 
 	elif chain_id == "watering":
 		return "💧 Water Tool: Drag onto Hay, Trees, or Pines to boost them!"
+
+	if item.data and item.data.has_auto_spawn:
+		if item.auto_spawn_current_stack >= item.data.auto_spawn_max_stack:
+			return "🐾 Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
+		else:
+			return "🐾 Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
 
 	return ""
 

@@ -2464,6 +2464,202 @@ func _ready() -> void:
 	assert(t46_barn5_pool.has("bird_1") and t46_barn5_pool.has("cow_1") and t46_barn5_pool.has("sheep_1") and t46_barn5_pool.has("pig_1"), "Barn 5 must still include all 4 livestock species")
 	print("✔ Lowered Animal Drop Rate (10% vs 70% Hay) verified!")
 
+	# =========================================================================
+	# 47. Test Auto Spawn Mechanic (Barn Tiers 3-5 & Generic Items)
+	# =========================================================================
+	print("\n--- Testing Auto Spawn Mechanic ---")
+
+	# A. Verify ItemData & ItemDatabase Auto Spawn Attributes
+	var b1_data := ItemDatabase.get_item("barn_1")
+	var b2_data := ItemDatabase.get_item("barn_2")
+	var b3_data := ItemDatabase.get_item("barn_3")
+	var b4_data := ItemDatabase.get_item("barn_4")
+	var b5_data := ItemDatabase.get_item("barn_5")
+
+	assert(b1_data != null and b1_data.has_auto_spawn == false, "Barn 1 must NOT have auto spawn")
+	assert(b2_data != null and b2_data.has_auto_spawn == false, "Barn 2 must NOT have auto spawn")
+	assert(b3_data != null and b3_data.has_auto_spawn == true, "Barn 3 must have auto spawn enabled")
+	assert(b3_data.is_spawner == true, "Barn 3 must still be a tap-spawner")
+	assert(b3_data.auto_spawn_max_stack == 1, "Barn 3 auto spawn max stack must be 1")
+	assert(b4_data != null and b4_data.has_auto_spawn == true, "Barn 4 must have auto spawn enabled")
+	assert(b4_data.auto_spawn_max_stack == 2, "Barn 4 auto spawn max stack must be 2")
+	assert(b5_data != null and b5_data.has_auto_spawn == true, "Barn 5 must have auto spawn enabled")
+	assert(b5_data.auto_spawn_max_stack == 3, "Barn 5 auto spawn max stack must be 3")
+
+	# Verify barn auto spawn pool contains all 4 farm animal types
+	for b_it in [b3_data, b4_data, b5_data]:
+		assert(not b_it.auto_spawn_pool.is_empty(), "%s auto spawn pool must not be empty" % b_it.id)
+		for a_id in b_it.auto_spawn_pool:
+			assert(a_id.begins_with("bird") or a_id.begins_with("cow") or a_id.begins_with("sheep") or a_id.begins_with("pig"), "%s auto spawn pool items must all be animal species, got %s" % [b_it.id, a_id])
+			assert(ItemDatabase.has_item(a_id), "%s auto spawn pool item %s must exist in ItemDatabase" % [b_it.id, a_id])
+	print("✔ Auto Spawn ItemData & Barn Tier 3-5 definitions verified!")
+
+	# B. Test Spatial Adjacency / Empty Neighbor Cells
+	var t47_board: Board = load("res://scenes/board.tscn").instantiate()
+	t47_board.board_theme = "farm"
+	add_child(t47_board)
+	t47_board.clear_board()
+
+	var center_pos := Vector2i(3, 3)
+	var t47_barn := t47_board.spawn_item_at(center_pos, "barn_3")
+	assert(t47_barn != null and t47_barn.data.id == "barn_3", "Spawned barn_3 must exist at (3, 3)")
+	assert(t47_barn.auto_spawn_current_stack == 0, "Barn 3 must start with 0 auto spawn stacks")
+
+	var empty_nb := t47_board.get_empty_neighbor_cells(center_pos)
+	assert(empty_nb.size() == 8, "Center cell (3, 3) on empty board must have 8 empty neighbor cells, got %d" % empty_nb.size())
+	assert(t47_board.has_empty_neighbor_cells(center_pos) == true, "Center cell must have empty neighbors")
+
+	# Corner check
+	var corner_nb := t47_board.get_empty_neighbor_cells(Vector2i(0, 0))
+	assert(corner_nb.size() == 3, "Corner (0, 0) on empty board must have 3 empty neighbors, got %d" % corner_nb.size())
+
+	# C. Test Blocked Nearby Cells (No Auto-Spawn when full)
+	# Surround (3, 3) with items in all 8 adjacent cells
+	for dx in range(-1, 2):
+		for dy in range(-1, 2):
+			if dx == 0 and dy == 0:
+				continue
+			t47_board.spawn_item_at(center_pos + Vector2i(dx, dy), "hay_1")
+
+	assert(t47_board.get_empty_neighbor_cells(center_pos).size() == 0, "Barn surrounded on all 8 neighbors must have 0 empty neighbor cells")
+	assert(t47_board.has_empty_neighbor_cells(center_pos) == false, "has_empty_neighbor_cells must return false when fully blocked")
+
+	# Give barn 1 stack and verify try_auto_spawn fails and keeps stack
+	t47_barn.auto_spawn_current_stack = 1
+	var spawn_blocked := t47_board.try_auto_spawn(t47_barn)
+	assert(spawn_blocked == false, "Auto spawn must fail when all nearby cells are blocked")
+	assert(t47_barn.auto_spawn_current_stack == 1, "Auto spawn stack must be preserved when nearby cells are blocked")
+	print("✔ Empty Neighbor Detection & Blocked Surroundings verified!")
+
+	# D. Test Auto Spawn Trigger When Neighbor Cell Opens
+	# Clear one adjacent cell (3, 2)
+	var opened_coord := Vector2i(3, 2)
+	var blocker := t47_board.get_item_at(opened_coord)
+	t47_board.remove_item(blocker)
+	blocker.queue_free()
+
+	assert(t47_board.get_item_at(opened_coord) == null, "Opened coord (3, 2) must now be empty")
+	assert(t47_board.has_empty_neighbor_cells(center_pos) == true, "Barn now has an empty neighbor cell")
+
+	var prev_energy := EconomyManager.energy
+	var spawn_success := t47_board.try_auto_spawn(t47_barn)
+	assert(spawn_success == true, "Auto spawn must succeed into the empty adjacent cell")
+	assert(t47_barn.auto_spawn_current_stack == 0, "Auto spawn stack must be consumed")
+	assert(EconomyManager.energy == prev_energy, "Auto spawn must NOT consume player energy (passive generation)")
+
+	var newly_spawned := t47_board.get_item_at(opened_coord)
+	assert(newly_spawned != null, "A new animal item must have spawned at (3, 2)")
+	assert(newly_spawned.data.chain_id in ["bird", "cow", "sheep", "pig"], "Spawned item must belong to an animal chain, got %s" % newly_spawned.data.chain_id)
+	print("✔ Auto Spawn Execution into Adjacent Space & Free Energy verified!")
+
+	# E. Test Manual Click Spawner Remains Fully Functional on Barn 3
+	# Free another neighbor (3, 4)
+	var opened_coord2 := Vector2i(3, 4)
+	var blocker2 := t47_board.get_item_at(opened_coord2)
+	t47_board.remove_item(blocker2)
+	blocker2.queue_free()
+
+	assert(t47_barn.is_spawner_ready() == true, "Barn 3 must still be ready for manual tap")
+	t47_board._try_spawn_from_item(t47_barn)
+	assert(EconomyManager.energy == prev_energy - 1, "Manual tap spawner must consume 1 energy")
+	var manual_drop := t47_board.get_item_at(opened_coord2)
+	assert(manual_drop != null and manual_drop.data.chain_id == "hay", "Manual tap from barn_3 must drop from hay pool")
+	print("✔ Manual Tap Spawner Coexistence verified!")
+
+	# F. Test Multi-Stack Auto-Spawning (Barn 4 with Stack of 2)
+	t47_board.clear_board()
+	var t47_barn4 := t47_board.spawn_item_at(Vector2i(2, 2), "barn_4")
+	assert(t47_barn4.data.auto_spawn_max_stack == 2, "Barn 4 must have max stack 2")
+	t47_barn4.auto_spawn_current_stack = 2
+
+	# Spawn first stack
+	var b4_s1 := t47_board.try_auto_spawn(t47_barn4)
+	assert(b4_s1 == true, "Barn 4 must auto spawn first stack")
+	assert(t47_barn4.auto_spawn_current_stack == 1, "Barn 4 stack must decrease to 1")
+
+	# Spawn second stack
+	var b4_s2 := t47_board.try_auto_spawn(t47_barn4)
+	assert(b4_s2 == true, "Barn 4 must auto spawn second stack")
+	assert(t47_barn4.auto_spawn_current_stack == 0, "Barn 4 stack must decrease to 0")
+
+	# Third attempt fails because stack is 0
+	var b4_s3 := t47_board.try_auto_spawn(t47_barn4)
+	assert(b4_s3 == false, "Auto spawn must fail when stack is 0")
+	print("✔ Multi-Stack Auto Spawning (Barn 4) verified!")
+
+	# G. Test Generic Normal Item with Auto Spawn (Non-Spawner)
+	var normal_item_data := ItemData.new()
+	normal_item_data.id = "custom_nest"
+	normal_item_data.chain_id = "bird"
+	normal_item_data.display_name = "Wild Nest"
+	normal_item_data.is_spawner = false # Normal item, NOT a click-spawner!
+	normal_item_data.has_auto_spawn = true
+	normal_item_data.auto_spawn_interval = 8.0
+	normal_item_data.auto_spawn_max_stack = 1
+	normal_item_data.auto_spawn_pool = ["bird_1"]
+
+	var custom_item: ItemView = load("res://scenes/item_view.tscn").instantiate()
+	t47_board.items_container.add_child(custom_item)
+	custom_item.setup(normal_item_data)
+	t47_board.set_item_at(Vector2i(5, 5), custom_item)
+
+	assert(custom_item.data.is_spawner == false, "Custom item is NOT a click-spawner")
+	assert(custom_item.data.has_auto_spawn == true, "Custom item has auto spawn enabled")
+
+	# Tick timer by 8 seconds
+	var ready_after_tick := custom_item.tick_auto_spawn(8.0)
+	assert(ready_after_tick == true, "After 8 seconds, custom item must have auto spawn stack ready")
+	assert(custom_item.auto_spawn_current_stack == 1, "Custom item stack must be 1")
+
+	# Auto spawn from normal item
+	var normal_auto_success := t47_board.try_auto_spawn(custom_item)
+	assert(normal_auto_success == true, "Normal item with auto spawn must successfully auto spawn")
+	assert(custom_item.auto_spawn_current_stack == 0, "Normal item stack must be consumed")
+	print("✔ Normal Item (Non-Spawner) Auto Spawn verified!")
+
+	# H. Test Timer Ticking & Stack Cap Logic
+	custom_item.auto_spawn_timer = 8.0
+	custom_item.auto_spawn_current_stack = 0
+	custom_item.data.auto_spawn_max_stack = 2
+
+	# Tick 4s -> stack still 0
+	custom_item.tick_auto_spawn(4.0)
+	assert(custom_item.auto_spawn_current_stack == 0, "Stack should remain 0 after 4s")
+	assert(is_equal_approx(custom_item.auto_spawn_timer, 4.0), "Timer should be at 4.0s")
+
+	# Tick 4s -> stack becomes 1, timer resets to 8.0s
+	custom_item.tick_auto_spawn(4.0)
+	assert(custom_item.auto_spawn_current_stack == 1, "Stack should become 1 after 8s total")
+	assert(is_equal_approx(custom_item.auto_spawn_timer, 8.0), "Timer should reset to 8.0s for next stack")
+
+	# Tick 8s -> stack becomes 2 (max stack), timer becomes 0.0
+	custom_item.tick_auto_spawn(8.0)
+	assert(custom_item.auto_spawn_current_stack == 2, "Stack should reach max stack 2")
+
+	# Tick another 20s -> stack must not exceed max stack 2
+	custom_item.tick_auto_spawn(20.0)
+	assert(custom_item.auto_spawn_current_stack == 2, "Stack must NOT exceed max stack 2")
+	print("✔ Timer Ticking & Stack Cap verified!")
+
+	# I. Test Persistence (Serialization & Load)
+	var serialized := t47_board.serialize_items()
+	var found_b4_serialized := false
+	for dict in serialized:
+		if dict.get("item_id") == "barn_4":
+			found_b4_serialized = true
+			assert(dict.has("auto_spawn_stack"), "Serialized barn_4 must include auto_spawn_stack")
+			assert(dict.has("auto_spawn_timer"), "Serialized barn_4 must include auto_spawn_timer")
+	assert(found_b4_serialized == true, "barn_4 must be present in serialized board")
+
+	# Clear and load back
+	t47_board.load_items(serialized)
+	var restored_b4 := t47_board.get_item_at(Vector2i(2, 2))
+	assert(restored_b4 != null and restored_b4.data.id == "barn_4", "barn_4 must be restored at (2, 2)")
+	assert(restored_b4.data.has_auto_spawn == true, "Restored barn_4 must have auto spawn enabled")
+	print("✔ Auto Spawn State Serialization & Restoration verified!")
+
+	t47_board.queue_free()
+
 	SaveManager.delete_save()
 	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH
 

@@ -544,9 +544,9 @@ func _register_farm_items() -> void:
 	var barn_descs := [
 		"A laid stone foundation for a future farm barn. Merge to build!",
 		"The walls and roof framing are up. Merge to complete!",
-		"A completed red barn! Tap to produce fresh farm hay. Uses 1 Energy. Can be boosted with Tools (Lv.3+)!",
-		"A spacious barn with animal stalls! Produces hay, trees, and birds. Uses 1 Energy. Can be boosted with Tools (Lv.3+)!",
-		"The grand master barn! Produces livestock (calves, sheep, piglets), trees, birds, and hay. Uses 1 Energy. Can be boosted with Tools (Lv.3+)!"
+		"A completed red barn! Tap to produce fresh farm hay (Uses 1 Energy). Automatically spawns farm animals nearby over time! Can be boosted with Tools (Lv.3+).",
+		"A spacious barn with animal stalls! Tap to produce hay, trees, and birds. Auto-spawns animals nearby (Holds up to 2 stacks). Can be boosted with Tools (Lv.3+).",
+		"The grand master barn! Tap to produce livestock, trees, birds, and hay. Auto-spawns animals nearby (Holds up to 3 stacks). Can be boosted with Tools (Lv.3+)."
 	]
 	for t in range(1, 6):
 		var id := "barn_%d" % t
@@ -561,6 +561,11 @@ func _register_farm_items() -> void:
 		it.cooldown_per_charge = 5.0
 		it.energy_cost = 1
 		it.spawn_pool = _get_barn_pool(t)
+		if t >= 3:
+			it.has_auto_spawn = true
+			it.auto_spawn_interval = 15.0
+			it.auto_spawn_max_stack = t - 2 # Tier 3: 1, Tier 4: 2, Tier 5: 3
+			it.auto_spawn_pool = _get_barn_auto_spawn_pool(t)
 
 	# 5.2 Hay Chain (Tiers 1-8)
 	var hay_textures := [
@@ -990,6 +995,22 @@ func _get_barn_pool(tier: int) -> Array[String]:
 			]
 		_:
 			pool = ["hay_1"]
+	return pool
+
+func _get_barn_auto_spawn_pool(tier: int) -> Array[String]:
+	var pool: Array[String] = []
+	match tier:
+		3:
+			# Tier 3 Finished Barn auto spawns farm animals
+			pool = ["bird_1", "cow_1", "sheep_1", "pig_1"]
+		4:
+			# Tier 4 Bigger Barn auto spawns farm animals
+			pool = ["bird_1", "cow_1", "sheep_1", "pig_1"]
+		5:
+			# Tier 5 Grand Farm Barn auto spawns farm animals
+			pool = ["bird_1", "cow_1", "sheep_1", "pig_1"]
+		_:
+			pool = ["bird_1", "cow_1", "sheep_1", "pig_1"]
 	return pool
 
 func _get_tree_pool(tier: int) -> Array[String]:

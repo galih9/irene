@@ -21,6 +21,12 @@ extends Resource
 @export var cooldown_per_charge: float = 5.0
 @export var disappears_when_exhausted: bool = false
 
+# Auto-spawn attributes (can be on spawner or applied to normal item)
+@export var has_auto_spawn: bool = false
+@export var auto_spawn_interval: float = 15.0
+@export var auto_spawn_max_stack: int = 1
+@export var auto_spawn_pool: Array[String] = []
+
 # Audio customization
 @export var merge_sound: AudioStream = null
 

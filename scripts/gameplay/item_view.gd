@@ -57,6 +57,10 @@ const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
 @export var is_milked_ready: bool = false
 @export var water_fed: int = 0
 
+# Auto-spawn state
+@export var auto_spawn_current_stack: int = 0
+@export var auto_spawn_timer: float = 0.0
+
 @export_group("Locked Item Visuals")
 @export var locked_item_modulate: Color = LOCKED_ITEM_MODULATE:
 	set(val):
@@ -120,6 +124,8 @@ var _idle_tween: Tween = null
 @onready var spawner_label: Label = $Visuals/SpawnerBadge/SpawnerLabel
 @onready var status_badge: PanelContainer = $Visuals/StatusBadge
 @onready var status_label: Label = $Visuals/StatusBadge/StatusLabel
+@onready var auto_spawn_badge: PanelContainer = $Visuals.get_node_or_null("AutoSpawnBadge")
+@onready var auto_spawn_label: Label = $Visuals.get_node_or_null("AutoSpawnBadge/AutoSpawnLabel")
 @onready var touch_area: Control = $TouchArea
 
 var _pulse_tween: Tween
@@ -127,9 +133,52 @@ var _scale_tween: Tween
 var _base_scale: float = 0.48
 
 func _ready() -> void:
+	_ensure_auto_spawn_badge()
 	if data:
 		_update_visuals()
 	glow.visible = false
+
+func _ensure_auto_spawn_badge() -> void:
+	if not visuals:
+		return
+	if not auto_spawn_badge:
+		auto_spawn_badge = visuals.get_node_or_null("AutoSpawnBadge")
+	if not auto_spawn_badge:
+		auto_spawn_badge = PanelContainer.new()
+		auto_spawn_badge.name = "AutoSpawnBadge"
+		auto_spawn_badge.offset_left = 10.0
+		auto_spawn_badge.offset_top = -34.0
+		auto_spawn_badge.offset_right = 34.0
+		auto_spawn_badge.offset_bottom = -10.0
+		var sb := StyleBoxFlat.new()
+		sb.bg_color = Color(0.2, 0.72, 0.45, 0.95)
+		sb.corner_radius_top_left = 6
+		sb.corner_radius_top_right = 6
+		sb.corner_radius_bottom_right = 6
+		sb.corner_radius_bottom_left = 6
+		auto_spawn_badge.add_theme_stylebox_override("panel", sb)
+		auto_spawn_label = Label.new()
+		auto_spawn_label.name = "AutoSpawnLabel"
+		auto_spawn_label.add_theme_color_override("font_color", Color.WHITE)
+		auto_spawn_label.add_theme_color_override("font_outline_color", Color(0.1, 0.3, 0.15, 0.9))
+		auto_spawn_label.add_theme_constant_override("outline_size", 2)
+		auto_spawn_label.add_theme_font_size_override("font_size", 13)
+		auto_spawn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		auto_spawn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		auto_spawn_label.text = "🐾"
+		auto_spawn_badge.add_child(auto_spawn_label)
+		visuals.add_child(auto_spawn_badge)
+	elif not auto_spawn_label:
+		auto_spawn_label = auto_spawn_badge.get_node_or_null("AutoSpawnLabel")
+
+func get_board() -> Board:
+	if get_parent() is Board:
+		return get_parent() as Board
+	if get_parent() and get_parent().get_parent() is Board:
+		return get_parent().get_parent() as Board
+	if is_instance_valid(SaveManager) and is_instance_valid(SaveManager.board_ref):
+		return SaveManager.board_ref
+	return null
 
 func _process(delta: float) -> void:
 	if shear_cooldown > 0.0:
@@ -137,24 +186,31 @@ func _process(delta: float) -> void:
 		if shear_cooldown <= 0.0:
 			_update_visuals()
 
-	if not data or not data.is_spawner or item_state != ItemState.NORMAL:
-		return
+	# 1. Tap Spawner cooldown processing
+	if data and data.is_spawner and item_state == ItemState.NORMAL:
+		if current_cooldown > 0.0:
+			current_cooldown = maxf(0.0, current_cooldown - delta)
+			var missing_charges: int = int(ceil(current_cooldown / cooldown_per_charge))
+			var target_charges: int = clampi(max_charges - missing_charges, 0, max_charges)
+			if current_cooldown <= 0.0:
+				target_charges = max_charges
 
-	if current_cooldown > 0.0:
-		current_cooldown = maxf(0.0, current_cooldown - delta)
-		var missing_charges: int = int(ceil(current_cooldown / cooldown_per_charge))
-		var target_charges: int = clampi(max_charges - missing_charges, 0, max_charges)
-		if current_cooldown <= 0.0:
-			target_charges = max_charges
+			if target_charges > current_charges:
+				current_charges = target_charges
+				if current_charges > 0 and producer_status == ProducerStatus.EXHAUST:
+					producer_status = ProducerStatus.READY
+					_update_visuals()
 
-		if target_charges > current_charges:
-			current_charges = target_charges
-			if current_charges > 0 and producer_status == ProducerStatus.EXHAUST:
-				producer_status = ProducerStatus.READY
-				_update_visuals()
+			if producer_status == ProducerStatus.EXHAUST and status_label and status_badge and status_badge.visible:
+				status_label.text = "%ds" % int(ceil(current_cooldown))
 
-		if producer_status == ProducerStatus.EXHAUST and status_label and status_badge and status_badge.visible:
-			status_label.text = "%ds" % int(ceil(current_cooldown))
+	# 2. Auto Spawn processing (can be on spawner or normal item)
+	if data and data.has_auto_spawn and item_state == ItemState.NORMAL and not is_in_inventory and not is_dragging:
+		var has_stack := tick_auto_spawn(delta)
+		if has_stack:
+			var b := get_board()
+			if is_instance_valid(b):
+				b.try_auto_spawn(self)
 
 func get_box_texture() -> Texture2D:
 	if BOX_TEXTURES.is_empty():
@@ -204,7 +260,43 @@ func setup(item_data: ItemData, state: ItemState = ItemState.NORMAL, req_level: 
 		producer_status = ProducerStatus.NONE
 		current_charges = 0
 		current_cooldown = 0.0
+
+	if data and data.has_auto_spawn:
+		auto_spawn_current_stack = 0
+		auto_spawn_timer = data.auto_spawn_interval
+	else:
+		auto_spawn_current_stack = 0
+		auto_spawn_timer = 0.0
+
 	_update_visuals()
+
+func restore_auto_spawn_state(stack: int, timer: float) -> void:
+	if not data or not data.has_auto_spawn:
+		return
+	auto_spawn_current_stack = clampi(stack, 0, data.auto_spawn_max_stack)
+	auto_spawn_timer = maxf(0.0, timer)
+	_update_visuals()
+
+func is_auto_spawn_ready() -> bool:
+	if not data or not data.has_auto_spawn or item_state != ItemState.NORMAL:
+		return false
+	if is_in_inventory or is_dragging:
+		return false
+	return auto_spawn_current_stack > 0
+
+func tick_auto_spawn(delta: float) -> bool:
+	if not data or not data.has_auto_spawn:
+		return false
+	if auto_spawn_current_stack < data.auto_spawn_max_stack:
+		auto_spawn_timer = maxf(0.0, auto_spawn_timer - delta)
+		if auto_spawn_timer <= 0.0:
+			auto_spawn_current_stack = mini(auto_spawn_current_stack + 1, data.auto_spawn_max_stack)
+			if auto_spawn_current_stack < data.auto_spawn_max_stack:
+				auto_spawn_timer = data.auto_spawn_interval
+			else:
+				auto_spawn_timer = 0.0
+			_update_visuals()
+	return auto_spawn_current_stack > 0
 
 func restore_spawner_state(charges: int, cooldown: float, status_val: int = -1) -> void:
 	if not data or not data.is_spawner:
@@ -435,6 +527,8 @@ func _update_visuals() -> void:
 			spawner_badge.visible = false
 		if status_badge:
 			status_badge.visible = false
+		if auto_spawn_badge:
+			auto_spawn_badge.visible = false
 		stop_idle_animation()
 		return
 	else:
@@ -499,6 +593,8 @@ func _update_visuals() -> void:
 
 		tier_badge.visible = false
 		spawner_badge.visible = false
+		if auto_spawn_badge:
+			auto_spawn_badge.visible = false
 		if status_badge and status_label:
 			status_badge.visible = true
 			status_label.text = "Lv.%d" % unlock_level
@@ -554,6 +650,8 @@ func _update_visuals() -> void:
 		spawner_badge.visible = false
 		if status_badge:
 			status_badge.visible = false
+		if auto_spawn_badge:
+			auto_spawn_badge.visible = false
 		stop_idle_animation()
 	else:
 		# Normal status: active coloring and badges, hide web/dirt
@@ -621,6 +719,21 @@ func _update_visuals() -> void:
 				status_badge.visible = false
 			sprite.modulate = Color.WHITE if data.icon_texture else data.color
 			stop_idle_animation()
+
+		if data.has_auto_spawn:
+			_ensure_auto_spawn_badge()
+			if auto_spawn_badge:
+				if auto_spawn_current_stack > 0:
+					auto_spawn_badge.visible = true
+					if is_instance_valid(auto_spawn_label):
+						if auto_spawn_current_stack > 1:
+							auto_spawn_label.text = "🐾%d" % auto_spawn_current_stack
+						else:
+							auto_spawn_label.text = "🐾"
+				else:
+					auto_spawn_badge.visible = false
+		elif auto_spawn_badge:
+			auto_spawn_badge.visible = false
 
 func consume_spawn_charge() -> bool:
 	if not data or not data.is_spawner or current_charges <= 0:

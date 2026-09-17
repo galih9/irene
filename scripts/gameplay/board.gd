@@ -426,6 +426,23 @@ func get_empty_cells() -> Array[Vector2i]:
 				empty.append(Vector2i(c, r))
 	return empty
 
+func get_empty_neighbor_cells(coord: Vector2i, ring_radius: int = 1) -> Array[Vector2i]:
+	var empty: Array[Vector2i] = []
+	for dx in range(-ring_radius, ring_radius + 1):
+		for dy in range(-ring_radius, ring_radius + 1):
+			if dx == 0 and dy == 0:
+				continue
+			var neighbor := coord + Vector2i(dx, dy)
+			if is_valid_coord(neighbor) and _grid[neighbor.x][neighbor.y] == null:
+				if _cells.size() > neighbor.x and _cells[neighbor.x].size() > neighbor.y:
+					if _cells[neighbor.x][neighbor.y].is_hidden_cell:
+						continue
+				empty.append(neighbor)
+	return empty
+
+func has_empty_neighbor_cells(coord: Vector2i, ring_radius: int = 1) -> bool:
+	return not get_empty_neighbor_cells(coord, ring_radius).is_empty()
+
 func spawn_item_at(coord: Vector2i, item_id: String, state: int = ItemView.ItemState.NORMAL, req_level: int = 1, b_var: int = -1, w_var: int = -1) -> ItemView:
 	if not is_valid_coord(coord):
 		return null
@@ -484,6 +501,11 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 	elif extra_data.has("water_fed"):
 		item.water_fed = int(extra_data.get("water_fed", 0))
 		item._update_visuals()
+	if extra_data.has("auto_spawn_stack") and item.data and item.data.has_auto_spawn:
+		item.restore_auto_spawn_state(
+			int(extra_data.get("auto_spawn_stack", 0)),
+			float(extra_data.get("auto_spawn_timer", item.data.auto_spawn_interval))
+		)
 
 	_grid[target_coord.x][target_coord.y] = item
 	item.grid_coord = target_coord
@@ -872,6 +894,63 @@ func _trigger_spawner(spawner: ItemView) -> void:
 		)
 		GameEvents.board_changed.emit()
 
+func try_auto_spawn(spawner: ItemView) -> bool:
+	if not spawner or not spawner.data or not spawner.data.has_auto_spawn:
+		return false
+	if not spawner.is_normal() or spawner.is_in_inventory or spawner.is_dragging:
+		return false
+	if spawner.auto_spawn_current_stack <= 0:
+		return false
+
+	var empty_neighbors := get_empty_neighbor_cells(spawner.grid_coord)
+	if empty_neighbors.is_empty():
+		return false
+
+	# Pick random empty neighbor cell
+	var target_coord: Vector2i = empty_neighbors[randi() % empty_neighbors.size()]
+
+	# Pick drop item from auto_spawn_pool
+	var pool := spawner.data.auto_spawn_pool
+	if pool.is_empty():
+		return false
+	var drop_id: String = pool[randi() % pool.size()]
+
+	# Spawn item flight to empty neighbor cell
+	var spawned := spawn_item_flight(spawner.global_position, target_coord, drop_id)
+	if not spawned:
+		return false
+
+	# Deduct 1 auto spawn stack
+	spawner.auto_spawn_current_stack -= 1
+	if spawner.auto_spawn_timer <= 0.0 and spawner.auto_spawn_current_stack < spawner.data.auto_spawn_max_stack:
+		spawner.auto_spawn_timer = spawner.data.auto_spawn_interval
+
+	# Audio & Visual FX
+	spawner.animate_spawner_tap()
+	SoundManager.play_spawn()
+	var animal_data := ItemDatabase.get_item(drop_id)
+	var animal_name := animal_data.display_name if animal_data else "Animal"
+	GameEvents.show_floating_text.emit(
+		"🐾 %s!" % animal_name,
+		spawner.global_position + Vector2(0, -45),
+		Color(0.3, 0.9, 0.5)
+	)
+
+	spawner._update_visuals()
+	GameEvents.board_changed.emit()
+	return true
+
+func check_pending_auto_spawns() -> int:
+	var total_spawned := 0
+	for it in get_all_items_on_board(true):
+		if it and it.data and it.data.has_auto_spawn and it.auto_spawn_current_stack > 0:
+			while it.auto_spawn_current_stack > 0 and has_empty_neighbor_cells(it.grid_coord):
+				if try_auto_spawn(it):
+					total_spawned += 1
+				else:
+					break
+	return total_spawned
+
 func _trigger_consumable(item: ItemView) -> void:
 	var amt := item.data.consume_amount
 	var curr := item.data.consume_currency
@@ -1176,6 +1255,9 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		extra_data["spawner_charges"] = item.current_charges
 		extra_data["spawner_cooldown"] = item.current_cooldown
 		extra_data["producer_status"] = int(item.producer_status)
+	if item.data.has_auto_spawn:
+		extra_data["auto_spawn_stack"] = item.auto_spawn_current_stack
+		extra_data["auto_spawn_timer"] = item.auto_spawn_timer
 
 	var success := InventoryManager.add_item(item_id, extra_data)
 	if success:
@@ -1232,6 +1314,7 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	GameEvents.item_merged.emit(source.data.id, target.data.id, next_id, target.global_position)
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()
+	check_pending_auto_spawns()
 
 func _execute_swap(item_a: ItemView, item_b: ItemView) -> void:
 	var a_coord := item_a.grid_coord
@@ -1408,6 +1491,9 @@ func serialize_items() -> Array[Dictionary]:
 					dict["spawner_charges"] = it.current_charges
 					dict["spawner_cooldown"] = it.current_cooldown
 					dict["producer_status"] = int(it.producer_status)
+				if it.data.has_auto_spawn:
+					dict["auto_spawn_stack"] = it.auto_spawn_current_stack
+					dict["auto_spawn_timer"] = it.auto_spawn_timer
 				result.append(dict)
 	return result
 
@@ -1430,6 +1516,11 @@ func load_items(items_data: Array) -> void:
 					var cooldown: float = float(entry.get("spawner_cooldown", 0.0))
 					var status_val: int = int(entry.get("producer_status", -1))
 					spawned.restore_spawner_state(charges, cooldown, status_val)
+				if entry.has("auto_spawn_stack") and spawned.data and spawned.data.has_auto_spawn:
+					spawned.restore_auto_spawn_state(
+						int(entry.get("auto_spawn_stack", 0)),
+						float(entry.get("auto_spawn_timer", spawned.data.auto_spawn_interval))
+					)
 				spawned.restore_interaction_state(
 					int(entry.get("fed_count", 0)),
 					float(entry.get("shear_cooldown", 0.0)),
