@@ -6,8 +6,8 @@ extends RefCounted
 
 const MAJOR: int = 1
 const MINOR: int = 0
-const PATCH: int = 8
-const BUILD: int = 8
+const PATCH: int = 9
+const BUILD: int = 19
 
 const APP_NAME: String = "All You Can Merge"
 const VERSION_NAME: String = "1.0.8"

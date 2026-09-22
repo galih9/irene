@@ -57,6 +57,10 @@ const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
 @export var is_milked_ready: bool = false
 @export var water_fed: int = 0
 
+# Cage storage & auto-feed state
+@export var cage_stored_items: Array[Dictionary] = []
+@export var cage_auto_feed_timer: float = 30.0
+
 # Auto-spawn state
 @export var auto_spawn_current_stack: int = 0
 @export var auto_spawn_timer: float = 0.0
@@ -212,6 +216,21 @@ func _process(delta: float) -> void:
 			if is_instance_valid(b):
 				b.try_auto_spawn(self)
 
+	# 3. Cage processing (shear cooldown of stored sheep & Lv.6 auto-feed)
+	if is_cage() and item_state == ItemState.NORMAL:
+		for dict in cage_stored_items:
+			if dict.has("shear_cooldown"):
+				var scd: float = float(dict.get("shear_cooldown", 0.0))
+				if scd > 0.0:
+					dict["shear_cooldown"] = maxf(0.0, scd - delta)
+		if data.tier == 6 and not cage_stored_items.is_empty() and not is_in_inventory and not is_dragging:
+			cage_auto_feed_timer = maxf(0.0, cage_auto_feed_timer - delta)
+			if cage_auto_feed_timer <= 0.0:
+				cage_auto_feed_timer = 30.0
+				var b := get_board()
+				if is_instance_valid(b):
+					b.try_cage_auto_feed(self)
+
 func get_box_texture() -> Texture2D:
 	if BOX_TEXTURES.is_empty():
 		return null
@@ -267,6 +286,9 @@ func setup(item_data: ItemData, state: ItemState = ItemState.NORMAL, req_level: 
 	else:
 		auto_spawn_current_stack = 0
 		auto_spawn_timer = 0.0
+
+	cage_stored_items.clear()
+	cage_auto_feed_timer = 30.0
 
 	_update_visuals()
 
@@ -383,6 +405,10 @@ func can_merge_with(other: ItemView) -> bool:
 		return false
 	if not is_normal() or not other.is_normal():
 		return false
+	if is_cage() and not cage_stored_items.is_empty():
+		return false
+	if other.is_cage() and not other.cage_stored_items.is_empty():
+		return false
 	if needs_feeding_to_upgrade() and not is_fully_fed():
 		return false
 	if other.needs_feeding_to_upgrade() and not other.is_fully_fed():
@@ -448,6 +474,111 @@ func can_be_watered(watering_item: ItemView) -> bool:
 	if not watering_item or not watering_item.data:
 		return false
 	return watering_item.data.chain_id in ["watering", "water"]
+
+func is_cage() -> bool:
+	return data != null and data.chain_id == "cage"
+
+func get_cage_capacity() -> int:
+	if not is_cage():
+		return 0
+	match data.tier:
+		3: return 2
+		4: return 4
+		5: return 10
+		6: return 15
+		_: return 0
+
+func get_cage_stored_count() -> int:
+	return cage_stored_items.size()
+
+func get_cage_stored_animal_id() -> String:
+	if cage_stored_items.is_empty():
+		return ""
+	return str(cage_stored_items[0].get("id", ""))
+
+func get_cage_stored_animal_name() -> String:
+	var a_id := get_cage_stored_animal_id()
+	if a_id.is_empty():
+		return ""
+	var item := ItemDatabase.get_item(a_id)
+	return item.display_name if item else a_id
+
+func can_accept_animal_into_cage(animal: ItemView) -> bool:
+	if not is_cage() or data.tier < 3:
+		return false
+	if not animal or not animal.data or not animal.is_normal():
+		return false
+	if not (animal.data.chain_id in ["bird", "cow", "sheep", "pig"]):
+		return false
+	if cage_stored_items.size() >= get_cage_capacity():
+		return false
+	if not cage_stored_items.is_empty():
+		if animal.data.id != get_cage_stored_animal_id():
+			return false
+	return true
+
+func add_animal_to_cage(animal: ItemView) -> bool:
+	if not can_accept_animal_into_cage(animal):
+		return false
+	var dict: Dictionary = {
+		"id": animal.data.id,
+		"fed_count": animal.fed_count,
+		"shear_cooldown": animal.shear_cooldown,
+		"is_milked_ready": animal.is_milked_ready
+	}
+	cage_stored_items.append(dict)
+	_update_visuals()
+	return true
+
+func remove_animal_from_cage(idx: int) -> Dictionary:
+	if idx < 0 or idx >= cage_stored_items.size():
+		return {}
+	var entry: Dictionary = cage_stored_items[idx].duplicate(true)
+	cage_stored_items.remove_at(idx)
+	_update_visuals()
+	return entry
+
+func can_cage_accept_feed(feed_item: ItemView) -> bool:
+	if not is_cage() or data.tier < 3:
+		return false
+	if cage_stored_items.is_empty():
+		return false
+	if not feed_item or not feed_item.data or not feed_item.is_normal():
+		return false
+	return feed_item.data.id in ["hay_3", "hay_4", "hay_5", "hay_6"]
+
+func can_cage_be_sheared(tool_item: ItemView = null) -> bool:
+	if not is_cage() or data.tier < 3:
+		return false
+	if cage_stored_items.is_empty():
+		return false
+	var stored_id := get_cage_stored_animal_id()
+	var stored_data := ItemDatabase.get_item(stored_id)
+	if not stored_data or stored_data.chain_id != "sheep":
+		return false
+	if tool_item != null:
+		if not tool_item.data or tool_item.data.id != "tool_4" or not tool_item.is_normal():
+			return false
+	for entry in cage_stored_items:
+		if float(entry.get("shear_cooldown", 0.0)) <= 0.0:
+			return true
+	return false
+
+func get_first_shearable_sheep_idx() -> int:
+	for i in range(cage_stored_items.size()):
+		if float(cage_stored_items[i].get("shear_cooldown", 0.0)) <= 0.0:
+			return i
+	return -1
+
+func restore_cage_state(stored: Array, timer: float = 30.0) -> void:
+	cage_stored_items.clear()
+	for s in stored:
+		if s is Dictionary:
+			cage_stored_items.append((s as Dictionary).duplicate(true))
+		elif s is String and not (s as String).is_empty():
+			cage_stored_items.append({"id": s as String, "fed_count": 0, "shear_cooldown": 0.0, "is_milked_ready": false})
+	cage_auto_feed_timer = timer
+	_update_visuals()
 
 func is_normal() -> bool:
 	return item_state == ItemState.NORMAL
@@ -707,7 +838,14 @@ func _update_visuals() -> void:
 				start_idle_animation()
 		else:
 			spawner_badge.visible = false
-			if shear_cooldown > 0.0:
+			if is_cage() and data.tier >= 3:
+				if status_badge and status_label:
+					status_badge.visible = true
+					if cage_stored_items.is_empty():
+						status_label.text = "0/%d" % get_cage_capacity()
+					else:
+						status_label.text = "🐾%d/%d" % [cage_stored_items.size(), get_cage_capacity()]
+			elif shear_cooldown > 0.0:
 				if status_badge and status_label:
 					status_badge.visible = true
 					status_label.text = "%ds" % int(ceil(shear_cooldown))

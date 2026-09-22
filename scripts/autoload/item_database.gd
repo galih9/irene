@@ -526,7 +526,7 @@ func _init_database() -> void:
 
 func _register_farm_items() -> void:
 	# =========================================================================
-	# 5. FARM CHAINS (14 Chains)
+	# 5. FARM CHAINS (15 Chains)
 	# =========================================================================
 
 	# 5.1 Barn Chain (Tiers 1-5, Spawner at Tier 3+)
@@ -545,8 +545,8 @@ func _register_farm_items() -> void:
 		"A laid stone foundation for a future farm barn. Merge to build!",
 		"The walls and roof framing are up. Merge to complete!",
 		"A completed red barn! Tap to produce fresh farm hay (Uses 1 Energy). Automatically spawns farm animals nearby over time! Can be boosted with Tools (Lv.3+).",
-		"A spacious barn with animal stalls! Tap to produce hay, trees, and birds. Auto-spawns animals nearby (Holds up to 2 stacks). Can be boosted with Tools (Lv.3+).",
-		"The grand master barn! Tap to produce livestock, trees, birds, and hay. Auto-spawns animals nearby (Holds up to 3 stacks). Can be boosted with Tools (Lv.3+)."
+		"A spacious barn with animal stalls! Tap to produce hay and birds. Auto-spawns animals nearby (Holds up to 2 stacks). Rare chance to drop Animal Cage Lv.1! Can be boosted with Tools (Lv.3+).",
+		"The grand master barn! Tap to produce livestock, birds, and hay. Auto-spawns animals nearby (Holds up to 3 stacks). Rare chance to drop Animal Cage Lv.1! Can be boosted with Tools (Lv.3+)."
 	]
 	for t in range(1, 6):
 		var id := "barn_%d" % t
@@ -676,9 +676,9 @@ func _register_farm_items() -> void:
 	var pine_descs := [
 		"A resinous pine cone gathered from the woodland.",
 		"A fragrant little pine seedling.",
-		"A young evergreen pine. Tap to produce farm tools! Uses 1 Energy.",
-		"A towering evergreen pine tree. Tap to produce tools and pine cones! Uses 1 Energy.",
-		"A dense evergreen woodland producing tools and pine cones. Uses 1 Energy."
+		"A young evergreen pine. Tap to produce farm tools and fruit tree seeds! Uses 1 Energy.",
+		"A towering evergreen pine tree. Tap to produce tools, pine cones, and tree seeds! Uses 1 Energy.",
+		"A dense evergreen woodland producing tools, pine cones, and tree seeds. Uses 1 Energy."
 	]
 	for t in range(1, 6):
 		var id := "pine_%d" % t
@@ -964,6 +964,34 @@ func _register_farm_items() -> void:
 			Color(0.92, 0.88, 0.94), wool_textures[t - 1]
 		)
 
+	# 5.15 Animal Cage Chain (Tiers 1-6)
+	var cage_textures := [
+		preload("res://assets/items/farm/cage/1.png"),
+		preload("res://assets/items/farm/cage/2.png"),
+		preload("res://assets/items/farm/cage/3.png"),
+		preload("res://assets/items/farm/cage/4.png"),
+		preload("res://assets/items/farm/cage/5.png"),
+		preload("res://assets/items/farm/cage/6.png")
+	]
+	var cage_names := [
+		"Small Cage", "Sturdy Cage", "Animal Pen",
+		"Spacious Cage", "Large Animal Enclosure", "Automated Animal Sanctuary"
+	]
+	var cage_descs := [
+		"A small wooden cage. Merge to build larger animal enclosures!",
+		"A sturdy reinforced cage. Merge to Lv.3 to unlock animal storage!",
+		"An animal pen with 2 storage slots. Stores matching farm animals of the same level! Feed Hay (Lv.3-6) to harvest.",
+		"A spacious animal cage with 4 storage slots. Feed Hay or Shearing Tool to harvest stored animals!",
+		"A large animal enclosure with 10 storage slots. Keeps your farm board clean and compact!",
+		"The ultimate automated animal sanctuary! Holds 15 matching animals and automatically feeds/harvests every 30 seconds!"
+	]
+	for t in range(1, 7):
+		_register_item(
+			"cage_%d" % t, "cage", "Animal Cage", t, 6,
+			cage_names[t - 1], cage_descs[t - 1],
+			Color(0.72, 0.52, 0.35), cage_textures[t - 1]
+		)
+
 func _get_barn_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
@@ -971,27 +999,28 @@ func _get_barn_pool(tier: int) -> Array[String]:
 			# Tier 3 Finished Barn: Pure Hay (100% Hay)
 			pool = ["hay_1", "hay_1", "hay_2"]
 		4:
-			# Tier 4 Bigger Barn: 70% Hay, 20% Tree, 10% Bird (Reduced animal rate from 25%)
+			# Tier 4 Bigger Barn: 75% Hay, 15% Bird, 10% Cage (Trees moved to forest; rare cage_1 drop)
 			pool = [
-				"hay_1", "hay_1", "hay_1", "hay_1",
-				"hay_2", "hay_2", "hay_2",
-				"tree_1", "tree_1",
-				"bird_1"
+				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
+				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
+				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
+				"bird_1", "bird_1", "bird_1",
+				"cage_1", "cage_1"
 			]
 		5:
-			# Tier 5 Grand Farm Barn: 70% Hay, 20% Trees, 10% Animals (Reduced from 66.7% Animals)
-			# Each animal (bird, cow, sheep, pig) has a 2.5% chance (1 in 40 drops)
+			# Tier 5 Grand Farm Barn: 85% Hay, 10% Animals, 5% Cage (Trees moved to forest; rare cage_1 drop)
+			# Animals (bird, cow, sheep, pig) 2.5% each (4/40 = 10% total); cage_1 has 5% (2/40)
 			pool = [
-				# Hay (28/40 = 70%)
+				# Hay (34/40 = 85%)
 				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
+				"hay_1", "hay_1", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
 				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
-				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
-				"hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3",
-				# Trees (8/40 = 20%)
-				"tree_1", "tree_1", "tree_1", "tree_1", "tree_1", "tree_1",
-				"tree_2", "tree_2",
+				"hay_2", "hay_2", "hay_2", "hay_2",
+				"hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3",
 				# Animals (4/40 = 10% total, 2.5% each)
-				"bird_1", "cow_1", "sheep_1", "pig_1"
+				"bird_1", "cow_1", "sheep_1", "pig_1",
+				# Rare Cage Lv.1 (2/40 = 5% rare chance)
+				"cage_1", "cage_1"
 			]
 		_:
 			pool = ["hay_1"]
@@ -1028,11 +1057,14 @@ func _get_pine_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		3:
-			pool = ["tool_1", "tool_1", "tool_2"]
+			# Forest Lv.3 produces Tools and Fruit Tree Seeds
+			pool = ["tool_1", "tool_1", "tool_2", "tree_1"]
 		4:
-			pool = ["tool_1", "tool_2", "tool_3", "pine_1"]
+			# Forest Lv.4 produces Tools, Pine Cones, and Fruit Tree Seeds
+			pool = ["tool_1", "tool_2", "tool_3", "pine_1", "tree_1"]
 		5:
-			pool = ["tool_2", "tool_3", "tool_4", "pine_1"]
+			# Dense Pine Forest Lv.5 produces Tools, Pine Cones, and Tree Seeds
+			pool = ["tool_2", "tool_3", "tool_4", "pine_1", "tree_1", "tree_1"]
 		_:
 			pool = ["tool_1"]
 	return pool

@@ -44,8 +44,18 @@ func get_first_empty_slot() -> int:
 			return i
 	return -1
 
-func add_item(item_id: String, extra_data: Dictionary = {}) -> bool:
+func is_item_backpack_allowed(item_id: String) -> bool:
 	if item_id.is_empty():
+		return false
+	# Exceptions: animal cage, barn, water tower, and forest cannot be stored in backpack
+	if item_id.begins_with("cage_") or item_id.begins_with("barn_"):
+		return false
+	if item_id == "water_6" or item_id == "pine_5":
+		return false
+	return true
+
+func add_item(item_id: String, extra_data: Dictionary = {}) -> bool:
+	if item_id.is_empty() or not is_item_backpack_allowed(item_id):
 		return false
 	var idx := get_first_empty_slot()
 	if idx == -1:

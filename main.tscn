@@ -17,6 +17,7 @@
 [ext_resource type="Texture2D" uid="uid://c3c6d0gnq6wtx" path="res://assets/ui/yellow.png" id="16_yellow"]
 [ext_resource type="PackedScene" uid="uid://c7m1x4lvlsel8" path="res://scenes/level_selection_modal.tscn" id="17_level_modal"]
 [ext_resource type="PackedScene" uid="uid://b8v4l0ad1nhas" path="res://scenes/loading_screen.tscn" id="18_loading_screen"]
+[ext_resource type="PackedScene" path="res://scenes/cage_modal.tscn" id="19_cage_modal"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infoarea"]
 bg_color = Color(0.97, 0.96, 0.93, 0.98)
@@ -241,6 +242,9 @@ layout_mode = 1
 layout_mode = 1
 
 [node name="LevelSelectionModal" parent="CanvasLayer/Modals" unique_id=1984729102 instance=ExtResource("17_level_modal")]
+layout_mode = 1
+
+[node name="CageModal" parent="CanvasLayer/Modals" instance=ExtResource("19_cage_modal")]
 layout_mode = 1
 
 [node name="SaveToast" parent="CanvasLayer" unique_id=1849204857 instance=ExtResource("12_toast")]

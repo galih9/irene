@@ -506,6 +506,11 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 			int(extra_data.get("auto_spawn_stack", 0)),
 			float(extra_data.get("auto_spawn_timer", item.data.auto_spawn_interval))
 		)
+	if extra_data.has("cage_stored_items") and item.is_cage():
+		item.restore_cage_state(
+			extra_data.get("cage_stored_items", []),
+			float(extra_data.get("cage_auto_feed_timer", 30.0))
+		)
 
 	_grid[target_coord.x][target_coord.y] = item
 	item.grid_coord = target_coord
@@ -734,6 +739,13 @@ func _handle_item_tap(item: ItemView) -> void:
 		GameEvents.board_changed.emit()
 		return
 
+	# 0.5 Animal Cage Tap (Lv.3+)
+	if item.is_cage() and item.data.tier >= 3:
+		item.animate_click()
+		SoundManager.play_pickup()
+		GameEvents.request_cage_open.emit(item)
+		return
+
 	# 1. Spawner tap
 	if item.data.is_spawner:
 		_trigger_spawner(item)
@@ -951,6 +963,71 @@ func check_pending_auto_spawns() -> int:
 					break
 	return total_spawned
 
+func get_nearby_or_empty_cell(coord: Vector2i) -> Vector2i:
+	var neighbors := get_empty_neighbor_cells(coord)
+	if not neighbors.is_empty():
+		return neighbors[randi() % neighbors.size()]
+	var empty := get_empty_cells()
+	if not empty.is_empty():
+		return empty[0]
+	return Vector2i(-1, -1)
+
+func _harvest_cage_animal(cage: ItemView, chain: String, tier: int) -> bool:
+	if chain == "cow":
+		var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
+		if is_valid_coord(target_cell):
+			spawn_item_flight(cage.global_position, target_cell, "milk_1")
+			GameEvents.show_floating_text.emit("Harvested Fresh Milk! 🥛", cage.global_position + Vector2(0, -45), Color(1.0, 1.0, 0.8))
+			return true
+	elif chain == "sheep":
+		var wool_count := 1
+		match tier:
+			1: wool_count = 1
+			2: wool_count = 3
+			3: wool_count = 6
+			4: wool_count = 8
+			_: wool_count = 1
+		for i in range(wool_count):
+			var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
+			if is_valid_coord(target_cell):
+				spawn_item_flight(cage.global_position, target_cell, "wool_1")
+		GameEvents.show_floating_text.emit("Harvested %d Wool! ✂️" % wool_count, cage.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
+		return true
+	elif chain == "bird":
+		var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
+		if is_valid_coord(target_cell):
+			spawn_item_flight(cage.global_position, target_cell, "egg_1")
+			GameEvents.show_floating_text.emit("Harvested Fresh Egg! 🥚", cage.global_position + Vector2(0, -45), Color(1.0, 0.95, 0.8))
+			return true
+	elif chain == "pig":
+		var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
+		if is_valid_coord(target_cell):
+			spawn_item_flight(cage.global_position, target_cell, "gold_1")
+			GameEvents.show_floating_text.emit("Harvested Gold Coins! 🪙", cage.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.2))
+			return true
+	return false
+
+func try_cage_auto_feed(cage: ItemView) -> bool:
+	if not cage or not cage.is_cage() or cage.data.tier != 6:
+		return false
+	if not cage.is_normal() or cage.is_in_inventory or cage.is_dragging:
+		return false
+	if cage.cage_stored_items.is_empty():
+		return false
+
+	var stored_id := cage.get_cage_stored_animal_id()
+	var animal_data := ItemDatabase.get_item(stored_id)
+	var chain := animal_data.chain_id if animal_data else ""
+	var tier := animal_data.tier if animal_data else 1
+
+	var did_harvest := _harvest_cage_animal(cage, chain, tier)
+	if did_harvest:
+		cage.animate_merge_pop()
+		SoundManager.play_spawn()
+		cage._update_visuals()
+		GameEvents.board_changed.emit()
+	return did_harvest
+
 func _trigger_consumable(item: ItemView) -> void:
 	var amt := item.data.consume_amount
 	var curr := item.data.consume_currency
@@ -1123,6 +1200,85 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		GameEvents.board_changed.emit()
 		return true
 
+	# 5. Cage Interaction: Store Animal into Cage (Lv.3+)
+	if target_item.is_cage() and target_item.data.tier >= 3 and dragged.data and dragged.data.chain_id in ["bird", "cow", "sheep", "pig"]:
+		if target_item.get_cage_stored_count() >= target_item.get_cage_capacity():
+			target_item.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Cage is Full! ⚠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+			return false
+		if not target_item.cage_stored_items.is_empty() and dragged.data.id != target_item.get_cage_stored_animal_id():
+			target_item.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Only same animal & level allowed! ⚠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+			return false
+
+		target_item.add_animal_to_cage(dragged)
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.animate_merge_pop()
+		SoundManager.play_drop()
+		var a_name := target_item.get_cage_stored_animal_name()
+		GameEvents.show_floating_text.emit("Stored %s! (%d/%d) 🐾" % [a_name, target_item.get_cage_stored_count(), target_item.get_cage_capacity()], target_item.global_position + Vector2(0, -45), Color(0.4, 0.85, 1.0))
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
+	# 6. Cage Interaction: Shear Sheep in Cage with Tool Lv.4
+	if target_item.is_cage() and target_item.data.tier >= 3 and target_item.get_cage_stored_animal_id().begins_with("sheep_") and dragged.data and dragged.data.id == "tool_4":
+		var s_idx := target_item.get_first_shearable_sheep_idx()
+		if s_idx < 0:
+			target_item.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Sheep are resting! (Cooldown) ✂️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.6, 0.4))
+			return false
+
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.cage_stored_items[s_idx]["shear_cooldown"] = 10.0
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+
+		var stored_sheep_id := target_item.get_cage_stored_animal_id()
+		var sheep_data := ItemDatabase.get_item(stored_sheep_id)
+		var sheep_tier := sheep_data.tier if sheep_data else 1
+		var wool_count := 1
+		match sheep_tier:
+			1: wool_count = 1
+			2: wool_count = 3
+			3: wool_count = 6
+			4: wool_count = 8
+			_: wool_count = 1
+
+		for i in range(wool_count):
+			var empty_cell := get_nearby_or_empty_cell(target_item.grid_coord)
+			if is_valid_coord(empty_cell):
+				spawn_item_flight(target_item.global_position, empty_cell, "wool_1")
+
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.show_floating_text.emit("Sheared +%d Wool! ✂️" % wool_count, target_item.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
+		GameEvents.board_changed.emit()
+		return true
+
+	# 7. Cage Interaction: Feed Animal in Cage with Hay Lv.3-6
+	if target_item.is_cage() and target_item.data.tier >= 3 and target_item.can_cage_accept_feed(dragged):
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+
+		var stored_id := target_item.get_cage_stored_animal_id()
+		var animal_data := ItemDatabase.get_item(stored_id)
+		var chain := animal_data.chain_id if animal_data else ""
+		var tier := animal_data.tier if animal_data else 1
+
+		_harvest_cage_animal(target_item, chain, tier)
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
 	return false
 
 func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
@@ -1191,6 +1347,14 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 
 	# Case 4: Dropped onto merge target
 	if target_item and _can_merge(dragged.data, target_item.data):
+		if (target_item.is_cage() and not target_item.cage_stored_items.is_empty()) or (dragged.is_cage() and not dragged.cage_stored_items.is_empty()):
+			target_item.animate_wobble()
+			dragged.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Empty cage before merging! ⚠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.45, 0.45))
+			_return_item_to_origin(dragged)
+			select_item(dragged)
+			return
 		if target_item.needs_feeding_to_upgrade() or dragged.needs_feeding_to_upgrade():
 			if not target_item.is_fully_fed() or not dragged.is_fully_fed():
 				target_item.animate_wobble()
@@ -1229,6 +1393,17 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		var inv_btn: Control = bottom_nav_bar.get_inventory_button()
 		var text_pos: Vector2 = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
 		GameEvents.show_floating_text.emit("Unlock Backpack First! (3 Quests)", text_pos, Color(1.0, 0.4, 0.4))
+		_return_item_to_origin(item)
+		return
+
+	# Exception: animal cage, barn, water tower, and forest cannot be put into backpack
+	if not InventoryManager.is_item_backpack_allowed(item.data.id):
+		SoundManager.play_error()
+		var text_pos: Vector2 = item.global_position
+		if bottom_nav_bar:
+			var inv_btn: Control = bottom_nav_bar.get_inventory_button()
+			text_pos = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
+		GameEvents.show_floating_text.emit("Too large for Backpack! 🎒", text_pos, Color(1.0, 0.4, 0.4))
 		_return_item_to_origin(item)
 		return
 
@@ -1494,6 +1669,9 @@ func serialize_items() -> Array[Dictionary]:
 				if it.data.has_auto_spawn:
 					dict["auto_spawn_stack"] = it.auto_spawn_current_stack
 					dict["auto_spawn_timer"] = it.auto_spawn_timer
+				if it.is_cage():
+					dict["cage_stored_items"] = it.cage_stored_items.duplicate(true)
+					dict["cage_auto_feed_timer"] = it.cage_auto_feed_timer
 				result.append(dict)
 	return result
 
@@ -1520,6 +1698,11 @@ func load_items(items_data: Array) -> void:
 					spawned.restore_auto_spawn_state(
 						int(entry.get("auto_spawn_stack", 0)),
 						float(entry.get("auto_spawn_timer", spawned.data.auto_spawn_interval))
+					)
+				if entry.has("cage_stored_items") and spawned.is_cage():
+					spawned.restore_cage_state(
+						entry.get("cage_stored_items", []),
+						float(entry.get("cage_auto_feed_timer", 30.0))
 					)
 				spawned.restore_interaction_state(
 					int(entry.get("fed_count", 0)),

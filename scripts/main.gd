@@ -15,6 +15,7 @@ extends Node2D
 @onready var info_sell_btn: Button = $CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox/SellBtn
 @onready var progression_modal: ProgressionModal = $CanvasLayer/Modals/ProgressionModal
 @onready var inventory_modal: InventoryModal = $CanvasLayer/Modals/InventoryModal
+@onready var cage_modal: CageModal = $CanvasLayer/Modals/CageModal
 @onready var shop_modal: ShopModal = $CanvasLayer/Modals/ShopModal
 @onready var debug_menu: DebugMenu = $CanvasLayer/Modals/DebugMenu
 @onready var option_modal: OptionModal = $CanvasLayer/Modals/OptionModal
@@ -38,6 +39,7 @@ func _ready() -> void:
 	# Set references
 	board.bottom_nav_bar = bottom_nav_bar
 	inventory_modal.board_ref = board
+	cage_modal.board_ref = board
 	shop_modal.board_ref = board
 	debug_menu.board_ref = board
 	debug_menu.quest_manager_ref = quest_manager
@@ -483,6 +485,21 @@ func _get_interaction_info_text(item: ItemView) -> String:
 
 	elif chain_id == "watering":
 		return "💧 Water Tool: Drag onto Hay, Trees, or Pines to boost them!"
+
+	elif chain_id == "cage":
+		if lvl >= 3:
+			var cap := item.get_cage_capacity()
+			var count := item.get_cage_stored_count()
+			var animal_name := item.get_cage_stored_animal_name()
+			var auto_str := ""
+			if lvl == 6:
+				auto_str = " | ⏱️ Auto-feed: %ds" % int(ceil(item.cage_auto_feed_timer))
+			if count == 0:
+				return "📦 Empty Cage (%d slots). Tap to open, drag animals here!%s" % [cap, auto_str]
+			else:
+				return "🐾 Holds %d/%d %s. Tap to open, feed Hay 3-6 to harvest!%s" % [count, cap, animal_name, auto_str]
+		else:
+			return "📦 Cage: Merge to Lv.3 to unlock animal storage!"
 
 	if item.data and item.data.has_auto_spawn:
 		if item.auto_spawn_current_stack >= item.data.auto_spawn_max_stack:

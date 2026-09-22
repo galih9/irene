@@ -2541,7 +2541,7 @@ func _ready() -> void:
 	assert(t47_board.get_item_at(opened_coord) == null, "Opened coord (3, 2) must now be empty")
 	assert(t47_board.has_empty_neighbor_cells(center_pos) == true, "Barn now has an empty neighbor cell")
 
-	var prev_energy := EconomyManager.energy
+	prev_energy = EconomyManager.energy
 	var spawn_success := t47_board.try_auto_spawn(t47_barn)
 	assert(spawn_success == true, "Auto spawn must succeed into the empty adjacent cell")
 	assert(t47_barn.auto_spawn_current_stack == 0, "Auto spawn stack must be consumed")
@@ -2642,9 +2642,9 @@ func _ready() -> void:
 	print("✔ Timer Ticking & Stack Cap verified!")
 
 	# I. Test Persistence (Serialization & Load)
-	var serialized := t47_board.serialize_items()
+	var t47_serialized := t47_board.serialize_items()
 	var found_b4_serialized := false
-	for dict in serialized:
+	for dict in t47_serialized:
 		if dict.get("item_id") == "barn_4":
 			found_b4_serialized = true
 			assert(dict.has("auto_spawn_stack"), "Serialized barn_4 must include auto_spawn_stack")
@@ -2652,13 +2652,216 @@ func _ready() -> void:
 	assert(found_b4_serialized == true, "barn_4 must be present in serialized board")
 
 	# Clear and load back
-	t47_board.load_items(serialized)
+	t47_board.load_items(t47_serialized)
 	var restored_b4 := t47_board.get_item_at(Vector2i(2, 2))
 	assert(restored_b4 != null and restored_b4.data.id == "barn_4", "barn_4 must be restored at (2, 2)")
 	assert(restored_b4.data.has_auto_spawn == true, "Restored barn_4 must have auto spawn enabled")
 	print("✔ Auto Spawn State Serialization & Restoration verified!")
 
 	t47_board.queue_free()
+
+	# =========================================================================
+	# 48. Test Farm Animal Cage & Drop Mechanics
+	# =========================================================================
+	print("\n--- Testing Farm Animal Cage & Drop Mechanics ---")
+
+	# A. Verify Tree Seed drops from Pine (not Barn)
+	var t48_b4_pool: Array[String] = ItemDatabase._get_barn_pool(4)
+	var t48_b5_pool: Array[String] = ItemDatabase._get_barn_pool(5)
+	assert(not t48_b4_pool.has("tree_1"), "Barn 4 must NOT drop tree_1")
+	assert(not t48_b4_pool.has("tree_2"), "Barn 4 must NOT drop tree_2")
+	assert(not t48_b5_pool.has("tree_1"), "Barn 5 must NOT drop tree_1")
+	assert(not t48_b5_pool.has("tree_2"), "Barn 5 must NOT drop tree_2")
+
+	var t48_pine3_pool: Array[String] = ItemDatabase._get_pine_pool(3)
+	var t48_pine4_pool: Array[String] = ItemDatabase._get_pine_pool(4)
+	var t48_pine5_pool: Array[String] = ItemDatabase._get_pine_pool(5)
+	assert(t48_pine3_pool.has("tree_1"), "Pine 3 must drop tree_1")
+	assert(t48_pine4_pool.has("tree_1"), "Pine 4 must drop tree_1")
+	assert(t48_pine5_pool.has("tree_1"), "Pine 5 must drop tree_1")
+	print("✔ Tree seed drop rebalance (Pine vs Barn) verified!")
+
+	# B. Verify Cage 1 drop from Barn 4++
+	assert(t48_b4_pool.has("cage_1"), "Barn 4 must have rare cage_1 drop")
+	assert(t48_b5_pool.has("cage_1"), "Barn 5 must have rare cage_1 drop")
+	print("✔ Rare Cage Lv.1 drop from Barn 4++ verified!")
+
+	# C. Verify Cage Item Data & Capacities
+	for t48_lvl in range(1, 7):
+		var t48_c_id := "cage_%d" % t48_lvl
+		var t48_c_data := ItemDatabase.get_item(t48_c_id)
+		assert(t48_c_data != null, "%s must exist in ItemDatabase" % t48_c_id)
+		assert(t48_c_data.chain_id == "cage", "%s chain_id must be 'cage'" % t48_c_id)
+		assert(t48_c_data.level == t48_lvl, "%s level must be %d" % [t48_c_id, t48_lvl])
+		assert(t48_c_data.max_level == 6, "%s max_level must be 6" % t48_c_id)
+		assert(ResourceLoader.exists(t48_c_data.icon_path), "%s texture must exist at %s" % [t48_c_id, t48_c_data.icon_path])
+
+	var t48_cage_scene = load("res://scenes/item_view.tscn")
+	var t48_c1_node = t48_cage_scene.instantiate()
+	t48_c1_node.setup(ItemDatabase.get_item("cage_1"))
+	assert(t48_c1_node.get_cage_capacity() == 0, "Cage 1 capacity should be 0")
+	t48_c1_node.queue_free()
+
+	var t48_c3_node = t48_cage_scene.instantiate()
+	t48_c3_node.setup(ItemDatabase.get_item("cage_3"))
+	assert(t48_c3_node.get_cage_capacity() == 2, "Cage 3 capacity should be 2")
+
+	var t48_c4_node = t48_cage_scene.instantiate()
+	t48_c4_node.setup(ItemDatabase.get_item("cage_4"))
+	assert(t48_c4_node.get_cage_capacity() == 4, "Cage 4 capacity should be 4")
+	t48_c4_node.queue_free()
+
+	var t48_c5_node = t48_cage_scene.instantiate()
+	t48_c5_node.setup(ItemDatabase.get_item("cage_5"))
+	assert(t48_c5_node.get_cage_capacity() == 10, "Cage 5 capacity should be 10")
+	t48_c5_node.queue_free()
+
+	var t48_c6_node = t48_cage_scene.instantiate()
+	t48_c6_node.setup(ItemDatabase.get_item("cage_6"))
+	assert(t48_c6_node.get_cage_capacity() == 15, "Cage 6 capacity should be 15")
+	t48_c6_node.queue_free()
+	print("✔ Cage Items 1-6 registration & capacities verified!")
+
+	# D. Animal Insertion Rules (Same species, same level)
+	var t48_cow1 = ItemDatabase.get_item("cow_1")
+	var t48_cow2 = ItemDatabase.get_item("cow_2")
+	var t48_bird1 = ItemDatabase.get_item("bird_1")
+	var t48_hay1 = ItemDatabase.get_item("hay_1")
+
+	# Cage 3 initially accepts any valid farm animal
+	assert(t48_c3_node.can_accept_animal_into_cage(t48_cow1), "Empty cage 3 should accept cow_1")
+	assert(t48_c3_node.can_accept_animal_into_cage(t48_bird1), "Empty cage 3 should accept bird_1")
+	assert(not t48_c3_node.can_accept_animal_into_cage(t48_hay1), "Cage 3 must NOT accept non-animal hay_1")
+
+	# Insert first cow_1
+	t48_c3_node.add_animal_to_cage("cow_1")
+	assert(t48_c3_node.get_cage_stored_count() == 1, "Cage 3 should have 1 item")
+	assert(t48_c3_node.get_cage_stored_animal_id() == "cow_1", "Stored animal ID should be cow_1")
+
+	# Now cage has cow_1: it must accept another cow_1, but reject cow_2 (different level) and bird_1 (different animal)
+	assert(t48_c3_node.can_accept_animal_into_cage(t48_cow1), "Cage with cow_1 should accept another cow_1")
+	assert(not t48_c3_node.can_accept_animal_into_cage(t48_cow2), "Cage with cow_1 must REJECT cow_2 (different level)")
+	assert(not t48_c3_node.can_accept_animal_into_cage(t48_bird1), "Cage with cow_1 must REJECT bird_1 (different species)")
+
+	# Insert second cow_1 (capacity is 2 for cage 3)
+	t48_c3_node.add_animal_to_cage("cow_1")
+	assert(t48_c3_node.get_cage_stored_count() == 2, "Cage 3 should have 2 items (full)")
+	assert(not t48_c3_node.can_accept_animal_into_cage(t48_cow1), "Full cage 3 must REJECT further animals")
+	print("✔ Cage animal insertion & validation rules verified!")
+
+	# E. Non-empty Cage Merge Prevention
+	var t48_c3_node_b = t48_cage_scene.instantiate()
+	t48_c3_node_b.setup(ItemDatabase.get_item("cage_3"))
+	var t48_c3_node_c = t48_cage_scene.instantiate()
+	t48_c3_node_c.setup(ItemDatabase.get_item("cage_3"))
+	assert(t48_c3_node_b.can_merge_with(t48_c3_node_c) == true, "Two empty cage_3 must be mergeable")
+
+	# Cage with animals cannot merge
+	assert(t48_c3_node.can_merge_with(t48_c3_node_b) == false, "Cage with animals cannot merge with empty cage")
+	assert(t48_c3_node_b.can_merge_with(t48_c3_node) == false, "Empty cage cannot merge with populated cage")
+	t48_c3_node.queue_free()
+	t48_c3_node_b.queue_free()
+	t48_c3_node_c.queue_free()
+	print("✔ Non-empty cage merge restriction verified!")
+
+	# F. Backpack Restriction
+	assert(InventoryManager.is_item_backpack_allowed("cage_1") == false, "cage_1 must NOT be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("cage_4") == false, "cage_4 must NOT be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("barn_1") == false, "barn_1 must NOT be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("barn_5") == false, "barn_5 must NOT be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("water_6") == false, "water_6 must NOT be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("pine_5") == false, "pine_5 must NOT be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("cow_1") == true, "cow_1 MUST be allowed in backpack")
+	assert(InventoryManager.is_item_backpack_allowed("hay_3") == true, "hay_3 MUST be allowed in backpack")
+	print("✔ Backpack inventory item restrictions verified!")
+
+	# G. Board Special Interactions (Feed & Shearing & Auto-Feed)
+	var t48_board_scene = load("res://scenes/board.tscn")
+	var t48_board = t48_board_scene.instantiate()
+	add_child(t48_board)
+
+	# Set up a cage 3 with a cow_1 at (0, 0)
+	var t48_cage_cow = t48_board.spawn_item_at(Vector2i(0, 0), "cage_3")
+	t48_cage_cow.add_animal_to_cage("cow_1")
+
+	# Hay 1/2 shouldn't feed cage (only hay 3-6)
+	var t48_hay2 = t48_board.spawn_item_at(Vector2i(0, 1), "hay_2")
+	var t48_fed_low = t48_board._try_special_interaction(t48_hay2, t48_cage_cow)
+	assert(t48_fed_low == false, "Hay Lv.2 should NOT feed cage")
+
+	# Hay 3 feeds cage -> cow produces milk_1 autospawned nearby
+	var t48_hay3 = t48_board.spawn_item_at(Vector2i(0, 1), "hay_3")
+	var t48_fed_high = t48_board._try_special_interaction(t48_hay3, t48_cage_cow)
+	assert(t48_fed_high == true, "Hay Lv.3 should successfully feed cage")
+	# Check for milk_1 around (0, 0)
+	var t48_found_milk := false
+	for t48_x in range(3):
+		for t48_y in range(3):
+			var t48_it = t48_board.get_item_at(Vector2i(t48_x, t48_y))
+			if t48_it != null and t48_it.data.id == "milk_1":
+				t48_found_milk = true
+	assert(t48_found_milk == true, "Feeding cow cage must autospawn milk_1 nearby")
+	print("✔ Cage feeding with Hay Lv.3-6 & autospawn harvest verified!")
+
+	# Test Shearing with Sheep
+	var t48_cage_sheep = t48_board.spawn_item_at(Vector2i(3, 3), "cage_3")
+	t48_cage_sheep.add_animal_to_cage("sheep_2")
+	var t48_tool4 = t48_board.spawn_item_at(Vector2i(3, 4), "tool_4")
+	assert(t48_cage_sheep.can_cage_be_sheared() == true, "Sheep in cage should be shearable")
+	var t48_sheared = t48_board._try_special_interaction(t48_tool4, t48_cage_sheep)
+	assert(t48_sheared == true, "Tool Lv.4 should shear sheep in cage")
+	assert(t48_cage_sheep.can_cage_be_sheared() == false, "Sheep should now be on shearing cooldown")
+	assert(t48_cage_sheep.cage_stored_items[0].shear_cooldown > 0.0, "Shear cooldown should be active (> 0)")
+
+	# Check for wool_1 around (3, 3)
+	var t48_found_wool := false
+	for t48_x in range(2, 6):
+		for t48_y in range(2, 6):
+			var t48_it = t48_board.get_item_at(Vector2i(t48_x, t48_y))
+			if t48_it != null and t48_it.data.id == "wool_1":
+				t48_found_wool = true
+	assert(t48_found_wool == true, "Shearing sheep in cage must autospawn wool_1 nearby")
+	print("✔ Cage sheep shearing with Tool Lv.4 & cooldown verified!")
+
+	# Test Lv.6 Cage Auto-Feed logic
+	var t48_cage6 = t48_board.spawn_item_at(Vector2i(5, 5), "cage_6")
+	t48_cage6.add_animal_to_cage("bird_1")
+	assert(t48_cage6.cage_auto_feed_timer == 30.0, "Cage 6 initial auto feed timer should be 30.0s")
+	# Force timer to expire and trigger auto feed
+	t48_cage6.cage_auto_feed_timer = 0.0
+	t48_board.try_cage_auto_feed(t48_cage6)
+	assert(t48_cage6.cage_auto_feed_timer == 30.0, "Auto feed timer should reset to 30.0s")
+	var t48_found_egg := false
+	for t48_x in range(4, 7):
+		for t48_y in range(4, 7):
+			var t48_it = t48_board.get_item_at(Vector2i(t48_x, t48_y))
+			if t48_it != null and t48_it.data.id == "egg_1":
+				t48_found_egg = true
+	assert(t48_found_egg == true, "Lv.6 Cage auto-feed must autospawn egg_1 nearby")
+	print("✔ Cage Lv.6 30s auto-feed mechanic verified!")
+
+	# H. Serialization & Restoration of Cage State
+	var t48_serialized_board = t48_board.serialize_items()
+	var t48_found_serialized_cage := false
+	for dict in t48_serialized_board:
+		if dict.get("item_id") == "cage_6":
+			t48_found_serialized_cage = true
+			assert(dict.has("cage_stored_items"), "Serialized cage_6 must contain cage_stored_items")
+			var t48_stored: Array = dict.get("cage_stored_items", [])
+			assert(t48_stored.size() == 1, "Serialized cage_6 must have 1 stored animal")
+			assert(t48_stored[0].id == "bird_1", "Stored animal in serialized cage_6 must be bird_1")
+			assert(dict.has("cage_auto_feed_timer"), "Serialized cage_6 must contain cage_auto_feed_timer")
+	assert(t48_found_serialized_cage == true, "cage_6 must be found in serialized items")
+
+	# Clear and reload board
+	t48_board.load_items(t48_serialized_board)
+	var t48_restored_cage6 = t48_board.get_item_at(Vector2i(5, 5))
+	assert(t48_restored_cage6 != null and t48_restored_cage6.data.id == "cage_6", "cage_6 must be restored at (5, 5)")
+	assert(t48_restored_cage6.get_cage_stored_count() == 1, "Restored cage_6 must retain stored animal count")
+	assert(t48_restored_cage6.get_cage_stored_animal_id() == "bird_1", "Restored animal must be bird_1")
+	print("✔ Board Serialization & Restoration of Cage state verified!")
+
+	t48_board.queue_free()
 
 	SaveManager.delete_save()
 	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH
