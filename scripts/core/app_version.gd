@@ -9,8 +9,8 @@ const MINOR: int = 0
 const PATCH: int = 9
 const BUILD: int = 19
 
-const APP_NAME: String = "All You Can Merge"
-const VERSION_NAME: String = "1.0.8"
+const APP_NAME: String = "Project Irene"
+const VERSION_NAME: String = "1.0.9"
 
 static func get_version_string() -> String:
 	return "v%s (Build %d)" % [VERSION_NAME, BUILD]

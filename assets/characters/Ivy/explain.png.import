@@ -3,15 +3,15 @@
 importer="texture"
 type="CompressedTexture2D"
 uid="uid://cecmsieeu6kg4"
-path="res://.godot/imported/explain.png-5f6489f29a2878fb96c63e366b778424.ctex"
+path="res://.godot/imported/explain.png-ad904100d459a07cdb2211d879e94a97.ctex"
 metadata={
 "vram_texture": false
 }
 
 [deps]
 
-source_file="res://assets/characters/Ivy/explain.png"
-dest_files=["res://.godot/imported/explain.png-5f6489f29a2878fb96c63e366b778424.ctex"]
+source_file="res://assets/characters/ivy/explain.png"
+dest_files=["res://.godot/imported/explain.png-ad904100d459a07cdb2211d879e94a97.ctex"]
 
 [params]
 

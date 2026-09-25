@@ -3,6 +3,7 @@
 [ext_resource type="Script" path="res://scripts/ui/level_selection_modal.gd" id="1_lvl"]
 [ext_resource type="Texture2D" path="res://assets/characters/irene/greeting.png" id="2_irene"]
 [ext_resource type="Texture2D" path="res://assets/characters/ivan/greeting.png" id="3_ivan"]
+[ext_resource type="Texture2D" path="res://assets/characters/ivy/greeting.png" id="4_ivy"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
 bg_color = Color(0.97, 0.96, 0.94, 0.98)
@@ -97,7 +98,7 @@ grow_vertical = 2
 color = Color(0, 0, 0, 0.6)
 
 [node name="Panel" type="Panel" parent="."]
-custom_minimum_size = Vector2(580, 520)
+custom_minimum_size = Vector2(580, 680)
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -105,9 +106,9 @@ anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
 offset_left = -290.0
-offset_top = -260.0
+offset_top = -340.0
 offset_right = 290.0
-offset_bottom = 260.0
+offset_bottom = 340.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
@@ -123,7 +124,7 @@ offset_right = -24.0
 offset_bottom = -20.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 18
+theme_override_constants/separation = 16
 
 [node name="Header" type="HBoxContainer" parent="Panel/VBox"]
 layout_mode = 2
@@ -145,17 +146,23 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
 text = "✕"
 
-[node name="CardsContainer" type="VBoxContainer" parent="Panel/VBox"]
+[node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
 layout_mode = 2
 size_flags_vertical = 3
-theme_override_constants/separation = 16
+horizontal_scroll_mode = 0
 
-[node name="KitchenCard" type="Panel" parent="Panel/VBox/CardsContainer"]
-custom_minimum_size = Vector2(0, 180)
+[node name="CardsContainer" type="VBoxContainer" parent="Panel/VBox/ScrollContainer"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 14
+
+[node name="KitchenCard" type="Panel" parent="Panel/VBox/ScrollContainer/CardsContainer"]
+custom_minimum_size = Vector2(0, 170)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="Panel/VBox/CardsContainer/KitchenCard"]
+[node name="Margin" type="MarginContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -167,38 +174,38 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="HBox" type="HBoxContainer" parent="Panel/VBox/CardsContainer/KitchenCard/Margin"]
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="Portrait" type="TextureRect" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox"]
-custom_minimum_size = Vector2(100, 140)
+[node name="Portrait" type="TextureRect" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard/Margin/HBox"]
+custom_minimum_size = Vector2(100, 130)
 layout_mode = 2
 texture = ExtResource("2_irene")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox"]
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
 
-[node name="Name" type="Label" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox/InfoVBox"]
+[node name="Name" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard/Margin/HBox/InfoVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
 theme_override_font_sizes/font_size = 20
 text = "Irene's Kitchen"
 
-[node name="Desc" type="Label" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox/InfoVBox"]
+[node name="Desc" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard/Margin/HBox/InfoVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.48, 0.44, 0.4, 1)
 theme_override_font_sizes/font_size = 13
 text = "Bake pastries, prepare dishes, and run the cozy village kitchen!"
 autowrap_mode = 2
 
-[node name="ActionBtn" type="Button" parent="Panel/VBox/CardsContainer/KitchenCard/Margin/HBox"]
-custom_minimum_size = Vector2(110, 48)
+[node name="ActionBtn" type="Button" parent="Panel/VBox/ScrollContainer/CardsContainer/KitchenCard/Margin/HBox"]
+custom_minimum_size = Vector2(120, 48)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -208,12 +215,12 @@ theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Current"
 
-[node name="FarmCard" type="Panel" parent="Panel/VBox/CardsContainer"]
-custom_minimum_size = Vector2(0, 180)
+[node name="FarmCard" type="Panel" parent="Panel/VBox/ScrollContainer/CardsContainer"]
+custom_minimum_size = Vector2(0, 170)
 layout_mode = 2
 theme_override_styles/panel = SubResource("StyleBoxFlat_card")
 
-[node name="Margin" type="MarginContainer" parent="Panel/VBox/CardsContainer/FarmCard"]
+[node name="Margin" type="MarginContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -225,38 +232,38 @@ theme_override_constants/margin_top = 16
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 16
 
-[node name="HBox" type="HBoxContainer" parent="Panel/VBox/CardsContainer/FarmCard/Margin"]
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard/Margin"]
 layout_mode = 2
 theme_override_constants/separation = 16
 alignment = 1
 
-[node name="Portrait" type="TextureRect" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox"]
-custom_minimum_size = Vector2(100, 140)
+[node name="Portrait" type="TextureRect" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard/Margin/HBox"]
+custom_minimum_size = Vector2(100, 130)
 layout_mode = 2
 texture = ExtResource("3_ivan")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox"]
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard/Margin/HBox"]
 layout_mode = 2
 size_flags_horizontal = 3
 alignment = 1
 
-[node name="Name" type="Label" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox/InfoVBox"]
+[node name="Name" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard/Margin/HBox/InfoVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
 theme_override_font_sizes/font_size = 20
 text = "Ivan's Farm"
 
-[node name="Desc" type="Label" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox/InfoVBox"]
+[node name="Desc" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard/Margin/HBox/InfoVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.48, 0.44, 0.4, 1)
 theme_override_font_sizes/font_size = 13
 text = "Raise livestock, boost orchards, shear sheep, and harvest fresh produce!"
 autowrap_mode = 2
 
-[node name="ActionBtn" type="Button" parent="Panel/VBox/CardsContainer/FarmCard/Margin/HBox"]
-custom_minimum_size = Vector2(110, 48)
+[node name="ActionBtn" type="Button" parent="Panel/VBox/ScrollContainer/CardsContainer/FarmCard/Margin/HBox"]
+custom_minimum_size = Vector2(120, 48)
 layout_mode = 2
 size_flags_vertical = 4
 theme_override_colors/font_color = Color(1, 1, 1, 1)
@@ -265,3 +272,61 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Travel"
+
+[node name="WitchCard" type="Panel" parent="Panel/VBox/ScrollContainer/CardsContainer"]
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Portrait" type="TextureRect" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin/HBox"]
+custom_minimum_size = Vector2(100, 130)
+layout_mode = 2
+texture = ExtResource("4_ivy")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Witch's Haven"
+
+[node name="Desc" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.44, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Brew magical potions in cauldrons, harvest mystical trees, and summon familiars!"
+autowrap_mode = 2
+
+[node name="ActionBtn" type="Button" parent="Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin/HBox"]
+custom_minimum_size = Vector2(120, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Unlock (5,000 G)"

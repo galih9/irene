@@ -11,6 +11,8 @@ var player_exp: int = 0
 # Map & Multi-level state
 var is_map_unlocked: bool = false
 var farm_visited_first_time: bool = false
+var is_witch_unlocked: bool = false
+var witch_visited_first_time: bool = false
 
 # Temporary Reward Queue (infinitely stackable FIFO)
 var _reward_queue: Array[String] = []
@@ -245,16 +247,20 @@ func serialize_data() -> Dictionary:
 		"player_exp": player_exp,
 		"reward_queue": _reward_queue.duplicate(),
 		"is_map_unlocked": is_map_unlocked,
-		"farm_visited_first_time": farm_visited_first_time
+		"farm_visited_first_time": farm_visited_first_time,
+		"is_witch_unlocked": is_witch_unlocked,
+		"witch_visited_first_time": witch_visited_first_time
 	}
 
-func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false) -> void:
+func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false) -> void:
 	_unlocked_items = unlocked.duplicate()
 	_claimed_rewards = claimed.duplicate()
 	player_level = maxi(1, level)
 	player_exp = maxi(0, exp_val)
 	is_map_unlocked = map_unlocked
 	farm_visited_first_time = farm_visited
+	is_witch_unlocked = witch_unlocked
+	witch_visited_first_time = witch_visited
 	load_reward_queue(queue_data)
 	if is_map_unlocked:
 		GameEvents.map_unlocked.emit()
@@ -269,6 +275,8 @@ func reset_all() -> void:
 	player_exp = 0
 	is_map_unlocked = false
 	farm_visited_first_time = false
+	is_witch_unlocked = false
+	witch_visited_first_time = false
 	GameEvents.progression_changed.emit()
 	GameEvents.reward_queue_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())

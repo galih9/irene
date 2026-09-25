@@ -1144,11 +1144,12 @@ func _ready() -> void:
 	var prog_inst: ProgressionModal = prog_scene.instantiate()
 	add_child(prog_inst)
 
-	assert(prog_inst.TABS.size() == 4, "Progression modal must have exactly 4 tabs")
+	assert(prog_inst.TABS.size() == 5, "Progression modal must have exactly 5 tabs")
 	assert(prog_inst.TABS[0].id == "kitchen", "Tab 0 must be kitchen")
 	assert(prog_inst.TABS[1].id == "farm", "Tab 1 must be farm")
-	assert(prog_inst.TABS[2].id == "chests", "Tab 2 must be chests")
-	assert(prog_inst.TABS[3].id == "achievements", "Tab 3 must be achievements")
+	assert(prog_inst.TABS[2].id == "witch", "Tab 2 must be witch")
+	assert(prog_inst.TABS[3].id == "chests", "Tab 3 must be chests")
+	assert(prog_inst.TABS[4].id == "achievements", "Tab 4 must be achievements")
 
 	# Test focus_chain
 	prog_inst.focus_chain("chest_yellow")
@@ -2038,11 +2039,12 @@ func _ready() -> void:
 	var t43_prog_inst: ProgressionModal = t43_prog_scene.instantiate()
 	add_child(t43_prog_inst)
 
-	assert(t43_prog_inst.TABS.size() == 4, "Progression modal must have exactly 4 tabs")
+	assert(t43_prog_inst.TABS.size() == 5, "Progression modal must have exactly 5 tabs")
 	assert(t43_prog_inst.TABS[0]["id"] == "kitchen", "Tab 0 must be kitchen")
 	assert(t43_prog_inst.TABS[1]["id"] == "farm", "Tab 1 must be farm")
-	assert(t43_prog_inst.TABS[2]["id"] == "chests", "Tab 2 must be chests")
-	assert(t43_prog_inst.TABS[3]["id"] == "achievements", "Tab 3 must be achievements")
+	assert(t43_prog_inst.TABS[2]["id"] == "witch", "Tab 2 must be witch")
+	assert(t43_prog_inst.TABS[3]["id"] == "chests", "Tab 3 must be chests")
+	assert(t43_prog_inst.TABS[4]["id"] == "achievements", "Tab 4 must be achievements")
 
 	# Verify KITCHEN_CHAINS does NOT have consumables (exp, gold, energy, diamond)
 	var t43_kitchen_ids: Array[String] = []
@@ -2323,11 +2325,11 @@ func _ready() -> void:
 
 	# A. AppVersion verification
 	var app_ver = preload("res://scripts/core/app_version.gd")
-	assert(app_ver.MAJOR == 1 and app_ver.MINOR == 0 and app_ver.PATCH == 8, "Version should be 1.0.8")
-	assert(app_ver.BUILD == 8, "Build number should be 8")
-	assert(app_ver.get_version_string() == "v1.0.8 (Build 8)", "Version string mismatch")
-	assert(app_ver.get_full_display() == "Version 1.0.8 • Build 8", "Full display mismatch")
-	print("✔ AppVersion 1.0.8 (Build 8) verified!")
+	assert(app_ver.MAJOR == 1 and app_ver.MINOR == 0 and app_ver.PATCH == 9, "Version should be 1.0.9")
+	assert(app_ver.BUILD == 19, "Build number should be 19")
+	assert(app_ver.get_version_string() == "v1.0.9 (Build 19)", "Version string mismatch")
+	assert(app_ver.get_full_display() == "Version 1.0.9 • Build 19", "Full display mismatch")
+	print("✔ AppVersion 1.0.9 (Build 19) verified!")
 
 	# B. Test Spawner Inventory Persistence
 	var t46_inv_board: Board = board_scene.instantiate()
@@ -2415,7 +2417,7 @@ func _ready() -> void:
 	add_child(t46_loading_inst)
 	assert(t46_loading_inst.progress_bar != null, "StartupLoadingScreen must have ProgressBar")
 	assert(t46_loading_inst.version_label != null, "StartupLoadingScreen must have VersionLabel")
-	assert(t46_loading_inst.version_label.text == "v1.0.8 (Build 8)", "StartupLoadingScreen version label mismatch")
+	assert(t46_loading_inst.version_label.text == app_ver.get_version_string(), "StartupLoadingScreen version label mismatch")
 	t46_loading_inst.queue_free()
 	print("✔ StartupLoadingScreen Scene & Transition verified!")
 
@@ -2430,7 +2432,7 @@ func _ready() -> void:
 	assert(t46_opt_inst.resume_btn.get_theme_stylebox("normal") is StyleBoxFlat, "ResumeBtn must use StyleBoxFlat")
 	assert(t46_opt_inst.close_btn.get_theme_stylebox("normal") is StyleBoxFlat, "CloseBtn must use StyleBoxFlat")
 	assert(t46_opt_inst.version_label != null, "OptionModal must have version_label")
-	assert(t46_opt_inst.version_label.text == "Version 1.0.8 • Build 8", "OptionModal version display mismatch")
+	assert(t46_opt_inst.version_label.text == app_ver.get_full_display(), "OptionModal version display mismatch")
 	t46_opt_inst.queue_free()
 	print("✔ Minimalist OptionModal StyleBoxFlat verified!")
 
@@ -2692,9 +2694,9 @@ func _ready() -> void:
 		var t48_c_data := ItemDatabase.get_item(t48_c_id)
 		assert(t48_c_data != null, "%s must exist in ItemDatabase" % t48_c_id)
 		assert(t48_c_data.chain_id == "cage", "%s chain_id must be 'cage'" % t48_c_id)
-		assert(t48_c_data.level == t48_lvl, "%s level must be %d" % [t48_c_id, t48_lvl])
-		assert(t48_c_data.max_level == 6, "%s max_level must be 6" % t48_c_id)
-		assert(ResourceLoader.exists(t48_c_data.icon_path), "%s texture must exist at %s" % [t48_c_id, t48_c_data.icon_path])
+		assert(t48_c_data.tier == t48_lvl, "%s tier must be %d" % [t48_c_id, t48_lvl])
+		assert(t48_c_data.max_tier == 6, "%s max_tier must be 6" % t48_c_id)
+		assert(t48_c_data.icon_texture != null, "%s icon_texture must exist" % t48_c_id)
 
 	var t48_cage_scene = load("res://scenes/item_view.tscn")
 	var t48_c1_node = t48_cage_scene.instantiate()
@@ -2861,7 +2863,257 @@ func _ready() -> void:
 	assert(t48_restored_cage6.get_cage_stored_animal_id() == "bird_1", "Restored animal must be bird_1")
 	print("✔ Board Serialization & Restoration of Cage state verified!")
 
-	t48_board.queue_free()
+	# 49. Test Witch Level Mechanics (Spawners, Cauldrons, Recipes, Potions, Familiars, Map Unlock, Multi-Board & Serialization)
+	print("\n--- Testing Witch Level Mechanics ---")
+
+	# A. ItemDatabase Registration & Properties
+	assert(ItemDatabase.get_item("mystic_tree_1") != null, "mystic_tree_1 should exist")
+	assert(ItemDatabase.get_item("shroom_1") != null, "shroom_1 should exist")
+	assert(ItemDatabase.get_item("candle_1") != null, "candle_1 should exist")
+	assert(ItemDatabase.get_item("spellbook_1") != null, "spellbook_1 should exist")
+	assert(ItemDatabase.get_item("wand_1") != null, "wand_1 should exist")
+	assert(ItemDatabase.get_item("staff_1") != null, "staff_1 should exist")
+	assert(ItemDatabase.get_item("broom_1") != null, "broom_1 should exist")
+	assert(ItemDatabase.get_item("cauldron_1") != null, "cauldron_1 should exist")
+	assert(ItemDatabase.get_item("potion_health") != null, "potion_health should exist")
+	assert(ItemDatabase.get_item("familiar_cat") != null, "familiar_cat should exist")
+
+	# Spawner verifications
+	assert(ItemDatabase.get_item("mystic_tree_3").is_spawner == true, "mystic_tree_3 must be a spawner")
+	assert(ItemDatabase.get_item("shroom_3").is_spawner == true, "shroom_3 must be a spawner")
+	assert(ItemDatabase.get_item("candle_5").is_spawner == false, "candle_5 must NOT be a spawner")
+	assert(ItemDatabase.get_item("candle_6").is_spawner == true, "candle_6 (max) must be a spawner")
+	assert(ItemDatabase.get_item("spellbook_5").is_spawner == false, "spellbook_5 must NOT be a spawner")
+	assert(ItemDatabase.get_item("spellbook_6").is_spawner == true, "spellbook_6 (max) must be a spawner")
+
+	# Combiner & special flags
+	assert(ItemDatabase.get_item("cauldron_4").is_combiner == true, "cauldron_4 must be a combiner")
+	assert(ItemDatabase.get_item("potion_fire").is_potion == true, "potion_fire must be a potion")
+	assert(ItemDatabase.get_item("familiar_owl").is_familiar == true, "familiar_owl must be a familiar")
+	print("✔ ItemDatabase Witch chains & item metadata verified!")
+
+	# B. Board Theming & Chessboard Colors
+	var t49_board: Board = board_scene.instantiate()
+	t49_board.board_theme = "witch"
+	add_child(t49_board)
+	assert(t49_board.tile_bg_color == Color(0.38, 0.26, 0.48, 0.92), "Witch tile bg should be light dark purple")
+	assert(t49_board.tile_bg_alt_color == Color(0.68, 0.56, 0.28, 0.92), "Witch tile alt bg should be light dark yellow")
+	print("✔ Board Witch styling & tile colors verified!")
+
+	# C. Cauldron Combining & Brewing Recipes
+	# Lv.4 Cauldron (Cap: 1) -> Recipe (a): fruit_1 -> potion_health
+	var t49_c4 = t49_board.spawn_item_at(Vector2i(1, 1), "cauldron_4", ItemView.ItemState.NORMAL)
+	assert(t49_c4.get_cauldron_capacity() == 1, "Cauldron 4 capacity must be 1")
+	var t49_fruit1 = t49_board.spawn_item_at(Vector2i(1, 2), "fruit_1", ItemView.ItemState.NORMAL)
+	var t49_handled1 = t49_board._try_special_interaction(t49_fruit1, t49_c4)
+	assert(t49_handled1 == true, "Feeding fruit_1 to cauldron_4 should be handled")
+	assert(t49_c4.data.id == "potion_health", "Cauldron 4 with fruit_1 should brew potion_health")
+
+	# Lv.6 Cauldron (Cap: 2) -> Recipe (d): oven_4 + tree_1 -> potion_fire
+	var t49_c6 = t49_board.spawn_item_at(Vector2i(2, 1), "cauldron_6", ItemView.ItemState.NORMAL)
+	assert(t49_c6.get_cauldron_capacity() == 2, "Cauldron 6 capacity must be 2")
+	var t49_oven4 = t49_board.spawn_item_at(Vector2i(2, 2), "oven_4", ItemView.ItemState.NORMAL)
+	var t49_handled2 = t49_board._try_special_interaction(t49_oven4, t49_c6)
+	assert(t49_handled2 == true, "Feeding first ingredient to cauldron_6 should succeed")
+	assert(t49_c6.cauldron_stored_items.size() == 1, "Cauldron 6 should store 1 ingredient")
+	var t49_tree1 = t49_board.spawn_item_at(Vector2i(2, 3), "tree_1", ItemView.ItemState.NORMAL)
+	var t49_handled3 = t49_board._try_special_interaction(t49_tree1, t49_c6)
+	assert(t49_handled3 == true, "Feeding second ingredient to cauldron_6 should succeed")
+	assert(t49_c6.data.id == "potion_fire", "Cauldron 6 with oven_4 + tree_1 should brew potion_fire")
+
+	# Lv.8 Cauldron (Cap: 3) -> Recipe (q): sheep_6 + cow_6 + pig_6 -> familiar_cat
+	var t49_c8 = t49_board.spawn_item_at(Vector2i(3, 1), "cauldron_8", ItemView.ItemState.NORMAL)
+	assert(t49_c8.get_cauldron_capacity() == 3, "Cauldron 8 capacity must be 3")
+	var t49_ing1 = t49_board.spawn_item_at(Vector2i(3, 2), "sheep_6", ItemView.ItemState.NORMAL)
+	var t49_ing2 = t49_board.spawn_item_at(Vector2i(3, 3), "cow_6", ItemView.ItemState.NORMAL)
+	var t49_ing3 = t49_board.spawn_item_at(Vector2i(3, 4), "pig_6", ItemView.ItemState.NORMAL)
+	t49_board._try_special_interaction(t49_ing1, t49_c8)
+	t49_board._try_special_interaction(t49_ing2, t49_c8)
+	t49_board._try_special_interaction(t49_ing3, t49_c8)
+	assert(t49_c8.data.id == "familiar_cat", "Cauldron 8 with sheep_6 + cow_6 + pig_6 should brew familiar_cat")
+
+	# Fallback recipe test
+	var t49_c4_fb = t49_board.spawn_item_at(Vector2i(0, 1), "cauldron_4", ItemView.ItemState.NORMAL)
+	var t49_egg = t49_board.spawn_item_at(Vector2i(0, 2), "egg_1", ItemView.ItemState.NORMAL)
+	t49_board._try_special_interaction(t49_egg, t49_c4_fb)
+	assert(t49_c4_fb.data.id in ["familiar_rat", "hay_7", "potion_health"], "Unmatched recipe should fallback")
+	print("✔ Cauldron capacity, recipes (1-3 items), and fallback brewing verified!")
+
+	# D. Familiars (Cannot merge, cannot sell, sacrifice for Gold & EXP)
+	var t49_cat1 = t49_board.spawn_item_at(Vector2i(4, 1), "familiar_cat", ItemView.ItemState.NORMAL)
+	var t49_cat2 = t49_board.spawn_item_at(Vector2i(4, 2), "familiar_cat", ItemView.ItemState.NORMAL)
+	assert(t49_board._can_merge(t49_cat1, t49_cat2) == false, "Familiars cannot be merged")
+
+	t49_board.select_item(t49_cat1)
+	t49_board.sell_selected_item()
+	assert(t49_board.get_item_at(Vector2i(4, 1)) == t49_cat1, "Familiars cannot be sold")
+
+	# Sacrifice to Candle -> Gold
+	var t49_candle6 = t49_board.spawn_item_at(Vector2i(4, 3), "candle_6", ItemView.ItemState.NORMAL)
+	var t49_coins_before = EconomyManager.coins
+	var t49_sac1 = t49_board._try_special_interaction(t49_cat1, t49_candle6)
+	assert(t49_sac1 == true, "Sacrificing familiar to candle_6 should succeed")
+	assert(EconomyManager.coins == t49_coins_before + 100, "Sacrificing to candle must grant 100 Gold")
+	assert(t49_board.get_item_at(Vector2i(4, 1)) == null, "Sacrificed familiar must be removed")
+
+	# Sacrifice to Mystic Tree -> EXP
+	var t49_tree3 = t49_board.spawn_item_at(Vector2i(4, 4), "mystic_tree_3", ItemView.ItemState.NORMAL)
+	var t49_exp_before = ProgressionManager.player_exp
+	var t49_sac2 = t49_board._try_special_interaction(t49_cat2, t49_tree3)
+	assert(t49_sac2 == true, "Sacrificing familiar to mystic_tree_3 should succeed")
+	assert(ProgressionManager.player_exp == t49_exp_before + 50, "Sacrificing to mystic tree must grant 50 EXP")
+	assert(t49_board.get_item_at(Vector2i(4, 2)) == null, "Sacrificed familiar must be removed")
+	print("✔ Familiar merge/sell restrictions and Candle/Tree sacrifice mechanics verified!")
+
+	# E. Potions (Cannot merge, drag and tap effects)
+	var t49_p1 = t49_board.spawn_item_at(Vector2i(5, 1), "potion_nature", ItemView.ItemState.NORMAL)
+	var t49_p2 = t49_board.spawn_item_at(Vector2i(5, 2), "potion_nature", ItemView.ItemState.NORMAL)
+	assert(t49_board._can_merge(t49_p1, t49_p2) == false, "Potions cannot be merged")
+
+	# Wind potion on Mystic Tree -> Cooldown removed, instant charges
+	var t49_pwind = t49_board.spawn_item_at(Vector2i(5, 3), "potion_wind", ItemView.ItemState.NORMAL)
+	t49_tree3.current_cooldown = 10.0
+	t49_tree3.producer_status = ItemView.ProducerStatus.EXHAUST
+	t49_board._try_special_interaction(t49_pwind, t49_tree3)
+	assert(t49_tree3.cooldown_removed == true, "Wind potion removes cooldown")
+	assert(t49_tree3.current_cooldown == 0.0, "Cooldown becomes 0")
+	assert(t49_tree3.current_charges == t49_tree3.max_charges, "Charges fully restored")
+	assert(t49_tree3.producer_status == ItemView.ProducerStatus.READY, "Producer becomes READY")
+
+	# Tap Gold Potion -> Coins
+	var t49_pgold = t49_board.spawn_item_at(Vector2i(5, 4), "potion_gold", ItemView.ItemState.NORMAL)
+	var t49_coins_before_p = EconomyManager.coins
+	t49_board._on_item_clicked(t49_pgold)
+	assert(EconomyManager.coins == t49_coins_before_p + 150, "Gold potion grants 150 coins")
+	assert(t49_board.get_item_at(Vector2i(5, 4)) == null, "Consumed potion removed from board")
+	print("✔ Potion unmergeable constraint and active effects verified!")
+
+	# F. Board Item Serialization & Restoration of Witch Data
+	var t49_c6_store = t49_board.spawn_item_at(Vector2i(6, 1), "cauldron_6", ItemView.ItemState.NORMAL)
+	t49_c6_store.cauldron_stored_items = ["wand_1"]
+	var t49_serialized = t49_board.serialize_items()
+
+	var t49_found_c6 := false
+	var t49_found_tree3 := false
+	for dict in t49_serialized:
+		if dict.get("item_id") == "cauldron_6" and dict.get("col") == 6:
+			t49_found_c6 = true
+			assert(dict.get("cauldron_stored_items") == ["wand_1"], "Serialized cauldron_6 must preserve stored items")
+		if dict.get("item_id") == "mystic_tree_3":
+			t49_found_tree3 = true
+			assert(dict.get("cooldown_removed") == true, "Serialized mystic_tree_3 must preserve cooldown_removed")
+	assert(t49_found_c6 == true, "cauldron_6 found in serialized data")
+	assert(t49_found_tree3 == true, "mystic_tree_3 found in serialized data")
+
+	# Reload items onto board
+	t49_board.load_items(t49_serialized)
+	var t49_restored_c6 = t49_board.get_item_at(Vector2i(6, 1))
+	assert(t49_restored_c6 != null and t49_restored_c6.cauldron_stored_items == ["wand_1"], "Restored cauldron_6 has preserved stored items")
+	var t49_restored_tree3 = t49_board.get_item_at(Vector2i(4, 4))
+	assert(t49_restored_tree3 != null and t49_restored_tree3.cooldown_removed == true, "Restored mystic_tree_3 has preserved cooldown_removed")
+	print("✔ Board Serialization & Deserialization of Witch state verified!")
+
+	t49_board.queue_free()
+
+	# G. LevelSelectionModal & 5,000 Gold Unlock
+	var t49_lvl_modal_scene = preload("res://scenes/level_selection_modal.tscn")
+	var t49_lvl_modal: LevelSelectionModal = t49_lvl_modal_scene.instantiate()
+	add_child(t49_lvl_modal)
+
+	var t49_witch_portrait: TextureRect = t49_lvl_modal.get_node("Panel/VBox/ScrollContainer/CardsContainer/WitchCard/Margin/HBox/Portrait")
+	assert(t49_witch_portrait != null and t49_witch_portrait.texture.resource_path.ends_with("assets/characters/ivy/greeting.png"), "WitchCard preview portrait must be Ivy")
+
+	ProgressionManager.is_witch_unlocked = false
+	EconomyManager.coins = 2000
+	t49_lvl_modal.update_view()
+	assert(t49_lvl_modal.witch_btn.text == "Unlock (5,000 G)", "Witch button displays unlock price")
+
+	# Click when insufficient coins
+	t49_lvl_modal._on_witch_selected()
+	assert(ProgressionManager.is_witch_unlocked == false, "Unlock fails when coins < 5000")
+	assert(EconomyManager.coins == 2000, "Coins untouched on failed unlock")
+
+	# Add enough coins and unlock
+	EconomyManager.coins = 6000
+	t49_lvl_modal._on_witch_selected()
+	assert(ProgressionManager.is_witch_unlocked == true, "Witch level unlocked")
+	assert(EconomyManager.coins == 1000, "5,000 coins deducted")
+	assert(t49_lvl_modal.witch_btn.text == "Travel", "Witch button now displays Travel")
+
+	t49_lvl_modal.queue_free()
+	print("✔ LevelSelectionModal Ivy preview, 5,000 Gold unlock & Travel verified!")
+
+	# Ivy Dialogue & Toast Verification
+	var t49_popup_scene = preload("res://scenes/irene_popup_modal.tscn")
+	var t49_popup: IrenePopupModal = t49_popup_scene.instantiate()
+	add_child(t49_popup)
+	t49_popup.show_dialogue("Hello from Ivy!", "greeting", Callable(), "ivy")
+	assert(t49_popup.name_label.text == "Ivy", "Popup name label must be Ivy")
+	assert(t49_popup.portrait_rect.texture == IrenePopupModal.IVY_EMOTION_TEXTURES["greeting"], "Popup portrait must be Ivy greeting")
+	t49_popup.queue_free()
+
+	var t49_toast_scene = preload("res://scenes/irene_toast.tscn")
+	var t49_toast: IreneToast = t49_toast_scene.instantiate()
+	add_child(t49_toast)
+	SaveManager.current_board_id = "witch"
+	t49_toast.show_toast("Ivy toast message", "greeting")
+	assert(t49_toast.tag_label.text == "✦ IVY'S TIP", "Toast tag label in witch board must be Ivy's Tip")
+	assert(t49_toast.avatar_rect.texture == IreneToast.IVY_EMOTIONS["greeting"], "Toast avatar in witch board must be Ivy")
+	t49_toast.queue_free()
+	SaveManager.current_board_id = "kitchen"
+	print("✔ Ivy Dialogue Modal and Toast character rendering verified!")
+
+	# H. ProgressionModal Witch Tab & Chains
+	var t49_prog_modal_scene = preload("res://scenes/progression_modal.tscn")
+	var t49_prog_modal: ProgressionModal = t49_prog_modal_scene.instantiate()
+	add_child(t49_prog_modal)
+	t49_prog_modal._setup_tabs()
+
+	var t49_found_witch_tab := false
+	for tab in ProgressionModal.TABS:
+		if tab.id == "witch":
+			t49_found_witch_tab = true
+	assert(t49_found_witch_tab == true, "Witch tab must be present in ProgressionModal")
+	assert(ProgressionModal.WITCH_CHAINS.size() == 10, "ProgressionModal must contain all 10 Witch chains")
+
+	t49_prog_modal.focus_chain("cauldron")
+	assert(t49_prog_modal._current_tab_id == "witch", "Focusing cauldron chain opens Witch tab")
+	t49_prog_modal.queue_free()
+	print("✔ ProgressionModal Witch Tab & 10 chains verified!")
+
+	# I. Starter Board Setup & Hardcoded 3x3 Progression
+	var t49_main_scene = preload("res://main.tscn")
+	var t49_main_game: MainGame = t49_main_scene.instantiate()
+	add_child(t49_main_game)
+
+	t49_main_game._setup_initial_witch_board()
+	var t49_mt_normal = t49_main_game.board.get_item_at(Vector2i(3, 4))
+	var t49_mt_locked1 = t49_main_game.board.get_item_at(Vector2i(2, 4))
+	var t49_mt_locked2 = t49_main_game.board.get_item_at(Vector2i(4, 4))
+
+	assert(t49_mt_normal != null and t49_mt_normal.data.id == "mystic_tree_1" and t49_mt_normal.is_normal(), "(3,4) must be normal mystic_tree_1")
+	assert(t49_mt_locked1 != null and t49_mt_locked1.data.id == "mystic_tree_1" and t49_mt_locked1.is_locked(), "(2,4) must be locked mystic_tree_1")
+	assert(t49_mt_locked2 != null and t49_mt_locked2.data.id == "mystic_tree_2" and t49_mt_locked2.is_locked(), "(4,4) must be locked mystic_tree_2")
+
+	# Surrounding locked items
+	assert(t49_main_game.board.get_item_at(Vector2i(3, 3)).data.id == "shroom_1", "(3,3) must be locked shroom_1")
+	assert(t49_main_game.board.get_item_at(Vector2i(3, 5)).data.id == "wand_1", "(3,5) must be locked wand_1")
+
+	# Merge (3,4) into (2,4) -> unlocked mystic_tree_2
+	var t49_merge1 = t49_main_game.board.try_merge(Vector2i(3, 4), Vector2i(2, 4))
+	assert(t49_merge1 == true, "Merge normal tree_1 into locked tree_1 must succeed")
+	var t49_tree2_res = t49_main_game.board.get_item_at(Vector2i(2, 4))
+	assert(t49_tree2_res != null and t49_tree2_res.data.id == "mystic_tree_2" and t49_tree2_res.is_normal(), "(2,4) becomes normal mystic_tree_2")
+
+	# Merge (2,4) into (4,4) -> unlocked mystic_tree_3 (Spawner!)
+	var t49_merge2 = t49_main_game.board.try_merge(Vector2i(2, 4), Vector2i(4, 4))
+	assert(t49_merge2 == true, "Merge tree_2 into locked tree_2 must succeed")
+	var t49_tree3_res = t49_main_game.board.get_item_at(Vector2i(4, 4))
+	assert(t49_tree3_res != null and t49_tree3_res.data.id == "mystic_tree_3" and t49_tree3_res.is_normal(), "(4,4) becomes normal mystic_tree_3")
+	assert(t49_tree3_res.data.is_spawner == true, "Mystic Tree Lv.3 is a spawner")
+
+	t49_main_game.queue_free()
+	print("✔ Witch Initial Board hardcoded 3x3 starter merge sequence to Spawner verified!")
 
 	SaveManager.delete_save()
 	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH

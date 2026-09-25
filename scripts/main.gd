@@ -32,6 +32,8 @@ const BG_PORTRAIT = preload("res://assets/background/kitchen.jpeg")
 const BG_LANDSCAPE = preload("res://assets/background/kitchen_landscape.jpg")
 const BG_FARM_PORTRAIT = preload("res://assets/background/farm.jpg")
 const BG_FARM_LANDSCAPE = preload("res://assets/background/farm_landscape.jpg")
+const BG_WITCH_PORTRAIT = preload("res://assets/background/witch.jpeg")
+const BG_WITCH_LANDSCAPE = preload("res://assets/background/witch_landscape.jpeg")
 
 var tutorial_manager: TutorialManager = null
 
@@ -96,6 +98,8 @@ func _ready() -> void:
 		if not load_success:
 			InventoryManager.clear_all()
 			_setup_initial_board()
+		elif SaveManager.current_board_id == "witch" and (SaveManager.witch_board_items.is_empty() or _is_stuck_witch_board(SaveManager.witch_board_items)):
+			_setup_initial_witch_board()
 		elif SaveManager.current_board_id == "farm" and (SaveManager.farm_board_items.is_empty() or _is_stuck_farm_board(SaveManager.farm_board_items)):
 			_setup_initial_farm_board()
 	else:
@@ -106,7 +110,11 @@ func _ready() -> void:
 
 	# Play board-specific BGM
 	if is_instance_valid(SoundManager):
-		var target_bgm := SoundManager.BGM_FARM if SaveManager.current_board_id == "farm" else SoundManager.BGM_KITCHEN
+		var target_bgm: String = SoundManager.BGM_KITCHEN
+		if SaveManager.current_board_id == "witch":
+			target_bgm = SoundManager.BGM_WITCH
+		elif SaveManager.current_board_id == "farm":
+			target_bgm = SoundManager.BGM_FARM
 		SoundManager.play_bgm(target_bgm)
 
 	tutorial_manager.start_tutorial_if_needed()
@@ -122,7 +130,9 @@ func apply_orientation(landscape: bool) -> void:
 
 	# 1. Background
 	if is_instance_valid(background_rect):
-		if board and board.board_theme == "farm":
+		if board and board.board_theme == "witch":
+			background_rect.texture = BG_WITCH_LANDSCAPE if landscape else BG_WITCH_PORTRAIT
+		elif board and board.board_theme == "farm":
 			background_rect.texture = BG_FARM_LANDSCAPE if landscape else BG_FARM_PORTRAIT
 		else:
 			background_rect.texture = BG_LANDSCAPE if landscape else BG_PORTRAIT
@@ -374,11 +384,15 @@ func _update_info_area(item_view: Node) -> void:
 		info_title_label.text = item.data.display_name
 		info_desc_label.text = item.data.description
 		info_sell_btn.visible = true
-		info_sell_btn.disabled = false
-		if item.data.chain_id == "pig" and item.data.tier == 5:
-			info_sell_btn.text = "💎 50"
+		if item.is_familiar():
+			info_sell_btn.disabled = true
+			info_sell_btn.text = "Unsellable"
 		else:
-			info_sell_btn.text = "$ %d" % item.data.sell_value
+			info_sell_btn.disabled = false
+			if item.data.chain_id == "pig" and item.data.tier == 5:
+				info_sell_btn.text = "💎 50"
+			else:
+				info_sell_btn.text = "$ %d" % item.data.sell_value
 
 		if is_instance_valid(extra_info_label):
 			var extra_text := _get_interaction_info_text(item)
@@ -395,7 +409,44 @@ func _get_interaction_info_text(item: ItemView) -> String:
 	var chain_id: String = item.data.chain_id
 	var lvl: int = item.data.tier
 
-	if chain_id == "cow":
+	if item.cooldown_removed:
+		return "⚡ Instant Spawner! Cooldown removed & unlimited instant charges."
+
+	if chain_id == "cauldron":
+		if lvl in [4, 5]:
+			return "🧪 Cauldron (Cap: 1). Drag item here or tap to brew!"
+		elif lvl in [6, 7]:
+			return "🧪 Cauldron (Cap: 2). Stored: %d/2. Drag items or tap to brew!" % item.cauldron_stored_items.size()
+		elif lvl >= 8:
+			return "🧪 Grand Cauldron (Cap: 3). Stored: %d/3. Drag items or tap to brew!" % item.cauldron_stored_items.size()
+		else:
+			return "🧪 Cauldron: Merge to Lv.4 to unlock brewing!"
+
+	elif chain_id == "potions":
+		return "✨ Potion: Cannot be merged. Drag onto board items or tap to use!"
+
+	elif chain_id == "familiars":
+		return "🐾 Familiar: Cannot merge or sell. Drag onto Candle (Gold) or Mystic Tree (EXP)!"
+
+	elif chain_id == "candle":
+		if lvl == 6:
+			return "🕯️ Candle (Max): Tap to spawn Broom/Spellbook! Sacrifice Familiars here for Gold!"
+		else:
+			return "🕯️ Candle: Merge to Lv.6 to unlock spawning & sacrifice!"
+
+	elif chain_id == "spellbook":
+		if lvl == 6:
+			return "📖 Spellbook (Max): Tap to spawn EXP Stars!"
+		else:
+			return "📖 Spellbook: Merge to Lv.6 to unlock EXP spawning!"
+
+	elif chain_id == "mystic_tree":
+		if lvl >= 3:
+			return "🌳 Mystic Tree: Tap to spawn Shrooms & Wands! Drag Familiars here for EXP!"
+		else:
+			return "🌳 Mystic Tree: Merge to Lv.3 to unlock spawner!"
+
+	elif chain_id == "cow":
 		if lvl == 3:
 			if item.is_milked_ready:
 				return "🥛 Ready to milk! (Spawns Milk Lv.1)"
@@ -515,11 +566,17 @@ func _on_level_change_requested(target_board_id: String) -> void:
 	switch_board(target_board_id)
 
 func switch_board(target_board_id: String) -> void:
-	var target_display_name := "Ivan's Farm" if target_board_id == "farm" else "Irene's Kitchen"
+	var target_display_name := "Irene's Kitchen"
+	if target_board_id == "witch":
+		target_display_name = "Witch's Haven"
+	elif target_board_id == "farm":
+		target_display_name = "Ivan's Farm"
 
 	loading_screen.play_transition(target_display_name, func():
 		# 1. Save current board items
-		if SaveManager.current_board_id == "farm":
+		if SaveManager.current_board_id == "witch":
+			SaveManager.witch_board_items = board.serialize_items()
+		elif SaveManager.current_board_id == "farm":
 			SaveManager.farm_board_items = board.serialize_items()
 		else:
 			SaveManager.kitchen_board_items = board.serialize_items()
@@ -533,11 +590,20 @@ func switch_board(target_board_id: String) -> void:
 		# 3. Update background & BGM
 		apply_orientation(OrientationManager.is_landscape if is_instance_valid(OrientationManager) else false)
 		if is_instance_valid(SoundManager):
-			var target_bgm := SoundManager.BGM_FARM if target_board_id == "farm" else SoundManager.BGM_KITCHEN
+			var target_bgm: String = SoundManager.BGM_KITCHEN
+			if target_board_id == "witch":
+				target_bgm = SoundManager.BGM_WITCH
+			elif target_board_id == "farm":
+				target_bgm = SoundManager.BGM_FARM
 			SoundManager.play_bgm(target_bgm)
 
 		# 4. Load or initialize board items
-		if target_board_id == "farm":
+		if target_board_id == "witch":
+			if SaveManager.witch_board_items.is_empty() or _is_stuck_witch_board(SaveManager.witch_board_items):
+				_setup_initial_witch_board()
+			else:
+				board.load_items(SaveManager.witch_board_items)
+		elif target_board_id == "farm":
 			if SaveManager.farm_board_items.is_empty() or _is_stuck_farm_board(SaveManager.farm_board_items):
 				_setup_initial_farm_board()
 			else:
@@ -566,7 +632,38 @@ func switch_board(target_board_id: String) -> void:
 func _trigger_board_welcome(target_board_id: String) -> void:
 	if not is_instance_valid(irene_modal):
 		return
-	if target_board_id == "farm":
+	if target_board_id == "witch":
+		if not ProgressionManager.witch_visited_first_time:
+			ProgressionManager.witch_visited_first_time = true
+			SaveManager.save_game(false, false)
+			var dialogue: Array[Dictionary] = [
+				{
+					"character": "ivy",
+					"emotion": "greeting",
+					"text": "Greetings, traveler! Welcome to my sanctuary, the Witch's Haven! 🔮 I'm Ivy!"
+				},
+				{
+					"character": "ivy",
+					"emotion": "explain",
+					"text": "Merge Mystic Trees to gather Shrooms and Wands. Brew items inside Cauldrons to craft potent potions and summon Familiars!"
+				},
+				{
+					"character": "ivy",
+					"emotion": "congratulate",
+					"text": "Merge your Mystic Trees to Lv.3 to awaken the tree spawner and begin our magical brewing!"
+				}
+			]
+			irene_modal.show_dialogue_sequence(dialogue)
+		else:
+			var dialogue: Array[Dictionary] = [
+				{
+					"character": "ivy",
+					"emotion": "greeting",
+					"text": "Welcome back to the Witch's Haven! The cauldrons are bubbling and magic is in the air!"
+				}
+			]
+			irene_modal.show_dialogue_sequence(dialogue)
+	elif target_board_id == "farm":
 		if not ProgressionManager.farm_visited_first_time:
 			ProgressionManager.farm_visited_first_time = true
 			SaveManager.save_game(false, false)
@@ -607,6 +704,25 @@ func _trigger_board_welcome(target_board_id: String) -> void:
 		]
 		irene_modal.show_dialogue_sequence(dialogue)
 
+func _is_stuck_witch_board(items: Array) -> bool:
+	if items.is_empty():
+		return false
+
+	var witch_producer_chains := ["mystic_tree", "shroom", "candle", "spellbook", "cauldron", "chest"]
+
+	for it in items:
+		var item_id: String = it.get("item_id", "")
+		var item_data := ItemDatabase.get_item(item_id)
+		if (item_data and (item_data.is_spawner or item_data.chain_id in witch_producer_chains)) or item_id.begins_with("mystic_tree") or item_id.begins_with("chest"):
+			return false
+
+	for inv_id in InventoryManager.get_all_item_ids():
+		var inv_data := ItemDatabase.get_item(inv_id)
+		if (inv_data and (inv_data.is_spawner or inv_data.chain_id in witch_producer_chains)) or inv_id.begins_with("mystic_tree") or inv_id.begins_with("chest"):
+			return false
+
+	return true
+
 func _is_stuck_farm_board(items: Array) -> bool:
 	if items.is_empty():
 		return false
@@ -626,6 +742,103 @@ func _is_stuck_farm_board(items: Array) -> bool:
 			return false
 
 	return true
+
+func _setup_initial_witch_board() -> void:
+	board.clear_board(false)
+	board.board_theme = "witch"
+
+	var boxed_pool := [
+		"mystic_tree_1", "mystic_tree_1", "mystic_tree_2",
+		"shroom_1", "shroom_1", "shroom_2",
+		"wand_1", "wand_1", "wand_2",
+		"staff_1", "staff_2",
+		"broom_1", "broom_2",
+		"cauldron_1", "cauldron_1", "cauldron_2",
+		"candle_1", "candle_1", "candle_2",
+		"spellbook_1", "spellbook_2"
+	]
+
+	var is_ls := (board.cols == 9 and board.rows == 7)
+	var center_coord := Vector2i(4, 3) if is_ls else Vector2i(3, 4)
+
+	var portrait_previews := {
+		Vector2i(1, 2): "cauldron_1",
+		Vector2i(5, 2): "candle_1",
+		Vector2i(3, 6): "spellbook_1"
+	}
+	var previews: Dictionary = {}
+	for p_coord in portrait_previews:
+		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
+		previews[target_coord] = portrait_previews[p_coord]
+
+	# Starter 3x3 Active Zone for Witch (Hardcoded initial merge sequence to reach Lv.3 Mystic Tree Spawner)
+	# Merge (3, 4) normal mystic_tree_1 into (2, 4) locked mystic_tree_1 -> mystic_tree_2
+	# Merge (2, 4) mystic_tree_2 into (4, 4) locked mystic_tree_2 -> mystic_tree_3 (Mystic Tree Spawner!)
+	# Mystic Tree produces shrooms & wands to unlock surrounding locked tiles
+	var portrait_starter_cells := {
+		Vector2i(3, 4): {"id": "mystic_tree_1", "state": ItemView.ItemState.NORMAL},
+		Vector2i(2, 4): {"id": "mystic_tree_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 4): {"id": "mystic_tree_2", "state": ItemView.ItemState.LOCKED},
+		Vector2i(3, 3): {"id": "shroom_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(3, 5): {"id": "wand_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(2, 3): {"id": "shroom_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 3): {"id": "wand_1", "state": ItemView.ItemState.LOCKED},
+		Vector2i(2, 5): {"id": "shroom_2", "state": ItemView.ItemState.LOCKED},
+		Vector2i(4, 5): {"id": "wand_2", "state": ItemView.ItemState.LOCKED},
+	}
+	var mapped_starter_cells: Dictionary = {}
+	for p_coord in portrait_starter_cells:
+		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
+		mapped_starter_cells[target_coord] = portrait_starter_cells[p_coord]
+
+	# Populate Witch Board
+	for c in range(board.cols):
+		for r in range(board.rows):
+			var cur_coord := Vector2i(c, r)
+			var is_perimeter: bool = false
+			var req_level := 2
+
+			if is_ls:
+				is_perimeter = (r == 0 or r == 6 or c == 0 or c == 1 or c == 7 or c == 8)
+				if r == 0 or r == 6:
+					req_level = 4 if (c >= 3 and c <= 5) else 5
+				elif c == 0 or c == 8:
+					req_level = 3
+				elif c == 1 or c == 7:
+					req_level = 2 if (r >= 2 and r <= 4) else 3
+			else:
+				is_perimeter = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
+				if r == 0 or r == 8:
+					req_level = 4 if (c == 2 or c == 3 or c == 4) else 5
+				elif r == 1 or r == 7:
+					req_level = 3
+				elif c == 0 or c == 6:
+					req_level = 2 if (r >= 3 and r <= 5) else 3
+
+			if mapped_starter_cells.has(cur_coord):
+				var cell_info: Dictionary = mapped_starter_cells[cur_coord]
+				board.spawn_item_at(cur_coord, cell_info["id"], cell_info["state"])
+			elif is_perimeter:
+				var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
+				board.spawn_item_at(cur_coord, rand_item, ItemView.ItemState.HIDDEN, req_level)
+			else:
+				if previews.has(cur_coord):
+					board.spawn_item_at(cur_coord, previews[cur_coord], ItemView.ItemState.HIDDEN, 1)
+				else:
+					var dist: float = Vector2(c, r).distance_to(Vector2(center_coord))
+					var prefix := "mystic_tree" if randf() < 0.5 else "shroom"
+					var tier := 1
+					if dist > 1.5:
+						tier = 2 if randf() < 0.85 else 1
+					var drop_item := "%s_%d" % [prefix, tier]
+					board.spawn_item_at(cur_coord, drop_item, ItemView.ItemState.HIDDEN, 1)
+
+	board.update_all_cells_lock_visuals()
+
+	# Register initial discovery
+	ProgressionManager.unlock_item("mystic_tree_1", true)
+
+	GameEvents.board_changed.emit()
 
 func _setup_initial_farm_board() -> void:
 	board.clear_board(false)

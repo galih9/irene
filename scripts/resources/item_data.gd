@@ -38,6 +38,11 @@ extends Resource
 # Economy
 @export var sell_value: int = 1
 
+# Special categories
+@export var is_combiner: bool = false
+@export var is_familiar: bool = false
+@export var is_potion: bool = false
+
 func get_next_tier_id() -> String:
 	if tier >= max_tier:
 		return ""

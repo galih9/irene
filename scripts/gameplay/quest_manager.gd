@@ -41,13 +41,31 @@ const FARM_CUSTOMER_COLORS: Array[Color] = [
 	Color(0.3, 0.65, 0.8), Color(0.65, 0.4, 0.25), Color(0.8, 0.75, 0.2)
 ]
 
+const WITCH_CUSTOMERS: Array[String] = [
+	"Morgana the Sorceress", "Circe the Alchemist", "Merlin the Elder", "Hecate the Witch",
+	"Rasputin the Mystic", "Luna the Stargazer", "Elvira the Enchanter", "Sylvia the Herbalist"
+]
+
+const WITCH_CUSTOMER_COLORS: Array[Color] = [
+	Color(0.65, 0.35, 0.85), Color(0.85, 0.4, 0.75), Color(0.35, 0.55, 0.85),
+	Color(0.8, 0.65, 0.25), Color(0.4, 0.75, 0.65), Color(0.75, 0.3, 0.5)
+]
+
 var _customer_names: Array[String]:
 	get:
-		return FARM_CUSTOMERS if current_board_theme == "farm" else KITCHEN_CUSTOMERS
+		if current_board_theme == "witch":
+			return WITCH_CUSTOMERS
+		elif current_board_theme == "farm":
+			return FARM_CUSTOMERS
+		return KITCHEN_CUSTOMERS
 
 var _customer_colors: Array[Color]:
 	get:
-		return FARM_CUSTOMER_COLORS if current_board_theme == "farm" else KITCHEN_CUSTOMER_COLORS
+		if current_board_theme == "witch":
+			return WITCH_CUSTOMER_COLORS
+		elif current_board_theme == "farm":
+			return FARM_CUSTOMER_COLORS
+		return KITCHEN_CUSTOMER_COLORS
 
 const MILESTONE_BACKPACK: int = 5
 const MILESTONE_SHOP: int = 5
@@ -176,7 +194,9 @@ func get_first_card() -> QuestCard:
 	return null
 
 func _init_starter_quests() -> void:
-	if current_board_theme == "farm":
+	if current_board_theme == "witch":
+		_init_witch_starter_quests()
+	elif current_board_theme == "farm":
 		_init_farm_starter_quests()
 	else:
 		_init_kitchen_starter_quests()
@@ -259,6 +279,47 @@ func _init_farm_starter_quests() -> void:
 	q3.customer_color = Color(0.9, 0.45, 0.25)
 	q3.required_item_ids = ["hay_2", "hay_1"]
 	q3.reward_coins = 60
+	q3.reward_gems = 2
+	q3.reward_exp = 25
+	_pending_starter_quests.append(q3)
+
+func _init_witch_starter_quests() -> void:
+	active_quests.clear()
+	active_quests.resize(MAX_QUESTS)
+	active_quests.fill(null)
+	_slot_cooldowns = [0.0, 6.0, 14.0]
+	_slot_total_cooldowns = [0.0, 6.0, 14.0]
+	_pending_starter_quests.clear()
+
+	# Witch Quest 1: Apprentice Gathering
+	var q1 := QuestData.new()
+	q1.id = "witch_quest_1"
+	q1.customer_name = "Morgana the Sorceress"
+	q1.customer_color = Color(0.65, 0.35, 0.85)
+	q1.required_item_ids = ["shroom_1"]
+	q1.reward_coins = 40
+	q1.reward_gems = 1
+	q1.reward_exp = 15
+	active_quests[0] = q1
+
+	# Witch Quest 2: Magic Wand
+	var q2 := QuestData.new()
+	q2.id = "witch_quest_2"
+	q2.customer_name = "Circe the Alchemist"
+	q2.customer_color = Color(0.85, 0.4, 0.75)
+	q2.required_item_ids = ["wand_1"]
+	q2.reward_coins = 50
+	q2.reward_gems = 1
+	q2.reward_exp = 20
+	_pending_starter_quests.append(q2)
+
+	# Witch Quest 3: Forest Spores
+	var q3 := QuestData.new()
+	q3.id = "witch_quest_3"
+	q3.customer_name = "Merlin the Elder"
+	q3.customer_color = Color(0.35, 0.55, 0.85)
+	q3.required_item_ids = ["shroom_2", "wand_1"]
+	q3.reward_coins = 65
 	q3.reward_gems = 2
 	q3.reward_exp = 25
 	_pending_starter_quests.append(q3)
@@ -362,7 +423,11 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	if quest.id.begins_with("ultimate_quest"):
 		ultimate_quest_active = false
 		ultimate_quest_completed = true
-		var completion_text := "🏆 FARM MASTERED! GRAND HARVEST COMPLETE! 🏆" if current_board_theme == "farm" else "🏆 KITCHEN MASTERED! ULTIMATE FEAST COMPLETE! 🏆"
+		var completion_text := "🏆 KITCHEN MASTERED! ULTIMATE FEAST COMPLETE! 🏆"
+		if current_board_theme == "witch":
+			completion_text = "🏆 WITCH'S HAVEN MASTERED! GRAND COVEN COMPLETE! 🏆"
+		elif current_board_theme == "farm":
+			completion_text = "🏆 FARM MASTERED! GRAND HARVEST COMPLETE! 🏆"
 		GameEvents.show_floating_text.emit(completion_text, global_position + Vector2(332, 50), Color(1.0, 0.85, 0.2))
 
 	# Replace with cooldown timer before next customer arrives
@@ -409,7 +474,20 @@ func check_ultimate_quest_trigger() -> void:
 	ultimate_quest_active = true
 	var uq := QuestData.new()
 	var arrival_msg := ""
-	if current_board_theme == "farm":
+	if current_board_theme == "witch":
+		uq.id = "ultimate_quest_witch"
+		uq.customer_name = "👑 Archmage Morgana"
+		uq.customer_color = Color(0.9, 0.5, 1.0)
+		uq.required_item_ids = [
+			"mystic_tree_6",
+			"shroom_6",
+			"candle_6",
+			"spellbook_6",
+			"wand_6",
+			"staff_6"
+		]
+		arrival_msg = "👑 GRAND COVEN QUEST ARRIVED! 👑"
+	elif current_board_theme == "farm":
 		uq.id = "ultimate_quest_farm"
 		uq.customer_name = "👑 County Fair Judge Ivan"
 		uq.customer_color = Color(1.0, 0.84, 0.0)
@@ -455,9 +533,10 @@ func check_ultimate_quest_trigger() -> void:
 func _generate_new_quest() -> QuestData:
 	var q := QuestData.new()
 	q.id = "quest_%d" % randi()
+	var is_witch := (current_board_theme == "witch")
 	var is_farm := (current_board_theme == "farm")
-	var names_pool: Array[String] = FARM_CUSTOMERS if is_farm else KITCHEN_CUSTOMERS
-	var colors_pool: Array[Color] = FARM_CUSTOMER_COLORS if is_farm else KITCHEN_CUSTOMER_COLORS
+	var names_pool: Array[String] = WITCH_CUSTOMERS if is_witch else (FARM_CUSTOMERS if is_farm else KITCHEN_CUSTOMERS)
+	var colors_pool: Array[Color] = WITCH_CUSTOMER_COLORS if is_witch else (FARM_CUSTOMER_COLORS if is_farm else KITCHEN_CUSTOMER_COLORS)
 	q.customer_name = names_pool[randi() % names_pool.size()]
 	q.customer_color = colors_pool[randi() % colors_pool.size()]
 
@@ -467,7 +546,18 @@ func _generate_new_quest() -> QuestData:
 	var total_tier := 0
 
 	var possible_pools: Array[Array] = []
-	if is_farm:
+	if is_witch:
+		possible_pools = [
+			["shroom_1", "shroom_2", "shroom_3", "shroom_4"],
+			["wand_1", "wand_2", "wand_3", "wand_4"],
+			["mystic_tree_1", "mystic_tree_2", "mystic_tree_3"],
+			["staff_1", "staff_2", "staff_3"],
+			["broom_1", "broom_2", "broom_3"],
+			["candle_1", "candle_2", "candle_3", "candle_4"],
+			["spellbook_1", "spellbook_2", "spellbook_3", "spellbook_4"],
+			["cauldron_1", "cauldron_2", "cauldron_3"]
+		]
+	elif is_farm:
 		possible_pools = [
 			["hay_1", "hay_2", "hay_3", "hay_4"],
 			["fruit_1", "fruit_2", "fruit_3", "fruit_4"],
@@ -499,7 +589,12 @@ func _generate_new_quest() -> QuestData:
 			unlocked_pools.append(pool)
 
 	if unlocked_pools.is_empty():
-		if is_farm:
+		if is_witch:
+			unlocked_pools = [
+				["shroom_1", "shroom_2"],
+				["wand_1", "wand_2"]
+			]
+		elif is_farm:
 			unlocked_pools = [
 				["hay_1", "hay_2", "hay_3"],
 				["fruit_1", "fruit_2"]
@@ -521,7 +616,12 @@ func _generate_new_quest() -> QuestData:
 			if not low_pool.is_empty():
 				low_tier_unlocked.append(low_pool)
 		if low_tier_unlocked.is_empty():
-			low_tier_unlocked = [["hay_1", "hay_2"]] if is_farm else [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
+			if is_witch:
+				low_tier_unlocked = [["shroom_1", "shroom_2"], ["wand_1", "wand_2"]]
+			elif is_farm:
+				low_tier_unlocked = [["hay_1", "hay_2"]]
+			else:
+				low_tier_unlocked = [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
 
 		var chosen_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
 		var starter_reqs: Array[String] = [chosen_pool[randi() % chosen_pool.size()]]

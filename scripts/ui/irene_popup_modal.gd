@@ -30,6 +30,17 @@ const IVAN_EMOTION_TEXTURES: Dictionary = {
 	"happy": preload("res://assets/characters/ivan/excited.png")
 }
 
+const IVY_EMOTION_TEXTURES: Dictionary = {
+	"greeting": preload("res://assets/characters/ivy/greeting.png"),
+	"explain": preload("res://assets/characters/ivy/explain.png"),
+	"admire": preload("res://assets/characters/ivy/admire.png"),
+	"congratulate": preload("res://assets/characters/ivy/congratulate.png"),
+	"happy": preload("res://assets/characters/ivy/congratulate.png"),
+	"excited": preload("res://assets/characters/ivy/congratulate.png"),
+	"shocked": preload("res://assets/characters/ivy/shocked.png"),
+	"thinking": preload("res://assets/characters/ivy/explain.png")
+}
+
 var _dialogue_queue: Array[Dictionary] = []
 var _current_dialogue: Dictionary = {}
 var _on_complete_callback: Callable = Callable()
@@ -101,13 +112,26 @@ func _start_next_line() -> void:
 	var character: String = _current_dialogue.get("character", "irene")
 
 	if name_label:
-		name_label.text = "Ivan" if character.to_lower() == "ivan" else "Irene"
+		match character.to_lower():
+			"ivan":
+				name_label.text = "Ivan"
+			"ivy":
+				name_label.text = "Ivy"
+			_:
+				name_label.text = "Irene"
 
 	_set_emotion(emotion, character)
 	_start_typewriter(text)
 
 func _set_emotion(emotion: String, character: String = "irene") -> void:
-	var tex_dict := IVAN_EMOTION_TEXTURES if character.to_lower() == "ivan" else EMOTION_TEXTURES
+	var tex_dict := EMOTION_TEXTURES
+	match character.to_lower():
+		"ivan":
+			tex_dict = IVAN_EMOTION_TEXTURES
+		"ivy":
+			tex_dict = IVY_EMOTION_TEXTURES
+		_:
+			tex_dict = EMOTION_TEXTURES
 	var default_tex: Texture2D = tex_dict.get("explain", tex_dict.get("greeting"))
 	var tex: Texture2D = tex_dict.get(emotion, default_tex)
 	portrait_rect.texture = tex

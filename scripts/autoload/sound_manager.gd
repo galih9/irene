@@ -17,6 +17,7 @@ var _sfx_index: int = 0
 const BGM_MENU: String = "res://assets/background/ambient.mp3"
 const BGM_KITCHEN: String = "res://assets/background/kitchen.mp3"
 const BGM_FARM: String = "res://assets/background/farm.mp3"
+const BGM_WITCH: String = "res://assets/background/witch.mp3"
 
 var current_bgm_track: String = ""
 var _cached_bgm_streams: Dictionary = {}
@@ -55,6 +56,14 @@ const CHAIN_MERGE_SOUNDS: Dictionary = {
 	"chest_green": preload("res://assets/bgm/maximize_006.ogg"),
 	"chest_yellow": preload("res://assets/bgm/maximize_006.ogg"),
 	"chest_blue": preload("res://assets/bgm/maximize_006.ogg"),
+	"mystic_tree": preload("res://assets/bgm/maximize_004.ogg"),
+	"shroom": preload("res://assets/bgm/drop_003.ogg"),
+	"candle": preload("res://assets/bgm/glass_003.ogg"),
+	"spellbook": preload("res://assets/bgm/open_001.ogg"),
+	"wand": preload("res://assets/bgm/glass_005.ogg"),
+	"staff": preload("res://assets/bgm/glass_004.ogg"),
+	"broom": preload("res://assets/bgm/switch_007.ogg"),
+	"cauldron": preload("res://assets/bgm/maximize_006.ogg"),
 }
 
 func _ready() -> void:
@@ -103,6 +112,8 @@ func resolve_bgm_track(track_identifier: String) -> String:
 			return BGM_KITCHEN
 		"farm", "farm_board":
 			return BGM_FARM
+		"witch", "witch_board":
+			return BGM_WITCH
 		"":
 			return current_bgm_track if not current_bgm_track.is_empty() else BGM_MENU
 		_:
@@ -202,6 +213,9 @@ func play_merge(item_data: ItemData = null) -> void:
 func play_merge_tier(tier: int = 1) -> void:
 	var pitch: float = 1.0 + float(tier - 1) * 0.06
 	play_sfx(STREAM_MERGE, 1.5, 0.03, pitch)
+
+func play_merge_high() -> void:
+	play_merge_tier(6)
 
 func play_spawn() -> void:
 	play_sfx(STREAM_SPAWN, 0.0, 0.03)

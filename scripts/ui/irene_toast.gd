@@ -15,6 +15,24 @@ const EMOTIONS: Dictionary = {
 	"admire": preload("res://assets/characters/irene/admire.png")
 }
 
+const IVAN_EMOTIONS: Dictionary = {
+	"greeting": preload("res://assets/characters/ivan/greeting.png"),
+	"explain": preload("res://assets/characters/ivan/explain.png"),
+	"happy": preload("res://assets/characters/ivan/excited.png"),
+	"thinking": preload("res://assets/characters/ivan/confused.png"),
+	"shocked": preload("res://assets/characters/ivan/shocked.png"),
+	"admire": preload("res://assets/characters/ivan/excited.png")
+}
+
+const IVY_EMOTIONS: Dictionary = {
+	"greeting": preload("res://assets/characters/ivy/greeting.png"),
+	"explain": preload("res://assets/characters/ivy/explain.png"),
+	"happy": preload("res://assets/characters/ivy/congratulate.png"),
+	"thinking": preload("res://assets/characters/ivy/explain.png"),
+	"shocked": preload("res://assets/characters/ivy/shocked.png"),
+	"admire": preload("res://assets/characters/ivy/admire.png")
+}
+
 var _anim_tween: Tween = null
 var _original_y: float = 0.0
 
@@ -47,6 +65,48 @@ const AMBIENT_TIPS: Array[Dictionary] = [
 	{
 		"text": "Drag unwanted items to the Sell Bin at the bottom right to earn quick gold!",
 		"emotion": "happy"
+	}
+]
+
+const FARM_AMBIENT_TIPS: Array[Dictionary] = [
+	{
+		"text": "Merge barn foundations to build a functioning Barn spawner!",
+		"emotion": "explain"
+	},
+	{
+		"text": "Animals need full feed before they can be merged or tapped for goods!",
+		"emotion": "thinking"
+	},
+	{
+		"text": "Collect fresh milk from cows, wool from sheep, and eggs from chickens!",
+		"emotion": "happy"
+	},
+	{
+		"text": "Boost apple and orange trees to harvest delicious orchard produce!",
+		"emotion": "admire"
+	}
+]
+
+const WITCH_AMBIENT_TIPS: Array[Dictionary] = [
+	{
+		"text": "Feed ingredients into Cauldrons to brew magical potions and summon familiars!",
+		"emotion": "explain"
+	},
+	{
+		"text": "Familiars cannot be merged or sold, but you can sacrifice them to Candles or Mystic Trees!",
+		"emotion": "admire"
+	},
+	{
+		"text": "Drag Nature, Water, or Wind potions onto spawner trees or cauldrons to remove their cooldowns!",
+		"emotion": "happy"
+	},
+	{
+		"text": "Tap Candle Lv.6 to summon Brooms and uncover ancient Spellbooks!",
+		"emotion": "greeting"
+	},
+	{
+		"text": "Mystic Trees level 3 and above awaken magical essence to produce Shrooms and Wands!",
+		"emotion": "explain"
 	}
 ]
 
@@ -88,16 +148,37 @@ func _process(delta: float) -> void:
 		show_random_tip()
 
 func show_random_tip() -> void:
-	if AMBIENT_TIPS.is_empty():
+	var tips := AMBIENT_TIPS
+	var current_board := SaveManager.current_board_id
+	if current_board == "witch":
+		tips = WITCH_AMBIENT_TIPS
+	elif current_board == "farm":
+		tips = FARM_AMBIENT_TIPS
+
+	if tips.is_empty():
 		return
-	var tip: Dictionary = AMBIENT_TIPS[randi() % AMBIENT_TIPS.size()]
+	var tip: Dictionary = tips[randi() % tips.size()]
 	show_toast(tip.text, tip.get("emotion", "greeting"), 5.5)
 
 func show_toast(text: String, emotion: String = "greeting", duration: float = 5.0) -> void:
 	if not is_inside_tree():
 		return
 
-	var tex: Texture2D = EMOTIONS.get(emotion, EMOTIONS["greeting"])
+	var current_board := SaveManager.current_board_id
+	var tex_dict := EMOTIONS
+	if tag_label:
+		if current_board == "witch":
+			tag_label.text = "✦ IVY'S TIP"
+			tex_dict = IVY_EMOTIONS
+		elif current_board == "farm":
+			tag_label.text = "✦ IVAN'S TIP"
+			tex_dict = IVAN_EMOTIONS
+		else:
+			tag_label.text = "✦ IRENE'S TIP"
+			tex_dict = EMOTIONS
+
+	var default_tex: Texture2D = tex_dict.get("explain", tex_dict.get("greeting", EMOTIONS["greeting"]))
+	var tex: Texture2D = tex_dict.get(emotion, default_tex)
 	if avatar_rect:
 		avatar_rect.texture = tex
 

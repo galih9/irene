@@ -61,6 +61,10 @@ const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
 @export var cage_stored_items: Array[Dictionary] = []
 @export var cage_auto_feed_timer: float = 30.0
 
+# Witch Cauldron & Potion state
+@export var cauldron_stored_items: Array[String] = []
+@export var cooldown_removed: bool = false
+
 # Auto-spawn state
 @export var auto_spawn_current_stack: int = 0
 @export var auto_spawn_timer: float = 0.0
@@ -192,7 +196,13 @@ func _process(delta: float) -> void:
 
 	# 1. Tap Spawner cooldown processing
 	if data and data.is_spawner and item_state == ItemState.NORMAL:
-		if current_cooldown > 0.0:
+		if cooldown_removed:
+			current_cooldown = 0.0
+			current_charges = max_charges
+			if producer_status == ProducerStatus.EXHAUST:
+				producer_status = ProducerStatus.READY
+				_update_visuals()
+		elif current_cooldown > 0.0:
 			current_cooldown = maxf(0.0, current_cooldown - delta)
 			var missing_charges: int = int(ceil(current_cooldown / cooldown_per_charge))
 			var target_charges: int = clampi(max_charges - missing_charges, 0, max_charges)
@@ -333,13 +343,18 @@ func restore_spawner_state(charges: int, cooldown: float, status_val: int = -1) 
 		producer_status = ProducerStatus.READY if current_charges > 0 else ProducerStatus.EXHAUST
 	_update_visuals()
 
-func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false, w_fed: int = 0) -> void:
+func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false, w_fed: int = 0, cd_removed: bool = false) -> void:
 	fed_count = fed
 	shear_cooldown = s_cd
 	is_boosted = boosted
 	boost_charges = b_charges
 	is_milked_ready = milk_ready
 	water_fed = w_fed
+	cooldown_removed = cd_removed
+	if cooldown_removed and data and data.is_spawner:
+		current_cooldown = 0.0
+		current_charges = max_charges
+		producer_status = ProducerStatus.READY
 	_update_visuals()
 
 func get_required_feed_item_id() -> String:
@@ -503,29 +518,54 @@ func get_cage_stored_animal_name() -> String:
 	var item := ItemDatabase.get_item(a_id)
 	return item.display_name if item else a_id
 
-func can_accept_animal_into_cage(animal: ItemView) -> bool:
+func can_accept_animal_into_cage(animal_or_data: Variant) -> bool:
 	if not is_cage() or data.tier < 3:
 		return false
-	if not animal or not animal.data or not animal.is_normal():
+	var a_data: ItemData = null
+	if animal_or_data is ItemView:
+		if not animal_or_data.is_normal():
+			return false
+		a_data = animal_or_data.data
+	elif animal_or_data is ItemData:
+		a_data = animal_or_data
+	elif animal_or_data is String:
+		a_data = ItemDatabase.get_item(animal_or_data)
+	if not a_data:
 		return false
-	if not (animal.data.chain_id in ["bird", "cow", "sheep", "pig"]):
+	if not (a_data.chain_id in ["bird", "cow", "sheep", "pig"]):
 		return false
 	if cage_stored_items.size() >= get_cage_capacity():
 		return false
 	if not cage_stored_items.is_empty():
-		if animal.data.id != get_cage_stored_animal_id():
+		if a_data.id != get_cage_stored_animal_id():
 			return false
 	return true
 
-func add_animal_to_cage(animal: ItemView) -> bool:
-	if not can_accept_animal_into_cage(animal):
+func add_animal_to_cage(animal_or_data: Variant) -> bool:
+	if not can_accept_animal_into_cage(animal_or_data):
 		return false
-	var dict: Dictionary = {
-		"id": animal.data.id,
-		"fed_count": animal.fed_count,
-		"shear_cooldown": animal.shear_cooldown,
-		"is_milked_ready": animal.is_milked_ready
-	}
+	var dict: Dictionary = {}
+	if animal_or_data is ItemView:
+		dict = {
+			"id": animal_or_data.data.id,
+			"fed_count": animal_or_data.fed_count,
+			"shear_cooldown": animal_or_data.shear_cooldown,
+			"is_milked_ready": animal_or_data.is_milked_ready
+		}
+	elif animal_or_data is ItemData:
+		dict = {
+			"id": animal_or_data.id,
+			"fed_count": 0,
+			"shear_cooldown": 0.0,
+			"is_milked_ready": false
+		}
+	elif animal_or_data is String:
+		dict = {
+			"id": animal_or_data,
+			"fed_count": 0,
+			"shear_cooldown": 0.0,
+			"is_milked_ready": false
+		}
 	cage_stored_items.append(dict)
 	_update_visuals()
 	return true
@@ -578,6 +618,36 @@ func restore_cage_state(stored: Array, timer: float = 30.0) -> void:
 		elif s is String and not (s as String).is_empty():
 			cage_stored_items.append({"id": s as String, "fed_count": 0, "shear_cooldown": 0.0, "is_milked_ready": false})
 	cage_auto_feed_timer = timer
+	_update_visuals()
+
+func is_cauldron() -> bool:
+	return data != null and data.chain_id == "cauldron"
+
+func get_cauldron_capacity() -> int:
+	if not is_cauldron():
+		return 0
+	match data.tier:
+		4, 5:
+			return 1
+		6, 7:
+			return 2
+		8:
+			return 3
+		_:
+			return 0
+
+func is_potion() -> bool:
+	return data != null and (data.chain_id == "potions" or data.is_potion)
+
+func is_familiar() -> bool:
+	return data != null and (data.chain_id == "familiars" or data.is_familiar)
+
+func restore_cauldron_state(stored: Array) -> void:
+	cauldron_stored_items.clear()
+	for it in stored:
+		var s := str(it).strip_edges()
+		if not s.is_empty():
+			cauldron_stored_items.append(s)
 	_update_visuals()
 
 func is_normal() -> bool:
@@ -639,7 +709,7 @@ func animate_reveal() -> void:
 	SoundManager.play_spawn()
 
 func _update_visuals() -> void:
-	if not data:
+	if not data or not is_inside_tree() or not sprite:
 		return
 
 	if item_state == ItemState.HIDDEN:
@@ -874,7 +944,15 @@ func _update_visuals() -> void:
 			auto_spawn_badge.visible = false
 
 func consume_spawn_charge() -> bool:
-	if not data or not data.is_spawner or current_charges <= 0:
+	if not data or not data.is_spawner:
+		return false
+	if cooldown_removed:
+		current_charges = max_charges
+		current_cooldown = 0.0
+		producer_status = ProducerStatus.READY
+		_update_visuals()
+		return true
+	if current_charges <= 0:
 		return false
 	current_charges -= 1
 	current_cooldown = minf(current_cooldown + cooldown_per_charge, float(max_charges) * cooldown_per_charge)

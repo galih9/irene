@@ -23,6 +23,7 @@ const INERTIA_FRICTION: float = 7.0
 const TABS: Array[Dictionary] = [
 	{"id": "kitchen", "name": "🍳 Kitchen"},
 	{"id": "farm", "name": "🌾 Farm"},
+	{"id": "witch", "name": "🔮 Witch"},
 	{"id": "chests", "name": "🎁 Chests"},
 	{"id": "achievements", "name": "🏆 Achievements"}
 ]
@@ -56,6 +57,19 @@ const FARM_CHAINS: Array[Dictionary] = [
 	{"id": "tool", "name": "Farm Tools"},
 	{"id": "milk", "name": "Milk & Dairy"},
 	{"id": "wool", "name": "Wool & Textiles"}
+]
+
+const WITCH_CHAINS: Array[Dictionary] = [
+	{"id": "mystic_tree", "name": "Mystic Trees"},
+	{"id": "shroom", "name": "Magical Shrooms"},
+	{"id": "candle", "name": "Ritual Candles"},
+	{"id": "spellbook", "name": "Ancient Spellbooks"},
+	{"id": "wand", "name": "Wands"},
+	{"id": "staff", "name": "Arcane Staffs"},
+	{"id": "broom", "name": "Flying Brooms"},
+	{"id": "cauldron", "name": "Brewing Cauldrons"},
+	{"id": "potions", "name": "Potent Potions"},
+	{"id": "familiars", "name": "Mystic Familiars"}
 ]
 
 const CHEST_CHAINS: Array[Dictionary] = [
@@ -183,6 +197,10 @@ func focus_chain(chain_id: String) -> void:
 		if chain.id == chain_id:
 			target_tab = "farm"
 			break
+	for chain in WITCH_CHAINS:
+		if chain.id == chain_id:
+			target_tab = "witch"
+			break
 	for chain in CHEST_CHAINS:
 		if chain.id == chain_id:
 			target_tab = "chests"
@@ -267,6 +285,9 @@ func _load_tab(tab_id: String) -> void:
 			_render_chain_segment(chain)
 	elif tab_id == "farm":
 		for chain in FARM_CHAINS:
+			_render_chain_segment(chain)
+	elif tab_id == "witch":
+		for chain in WITCH_CHAINS:
 			_render_chain_segment(chain)
 	elif tab_id == "chests":
 		for chain in CHEST_CHAINS:

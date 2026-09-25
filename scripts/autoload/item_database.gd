@@ -523,6 +523,7 @@ func _init_database() -> void:
 
 	_register_color_chests()
 	_register_farm_items()
+	_register_witch_items()
 
 func _register_farm_items() -> void:
 	# =========================================================================
@@ -1084,6 +1085,340 @@ func _get_water_pool(tier: int) -> Array[String]:
 			pool = ["watering_1"]
 	return pool
 
+func _register_witch_items() -> void:
+	# =========================================================================
+	# 6. WITCH CHAINS (10 Chains)
+	# =========================================================================
+
+	# 6.1 Mystic Tree Chain (Tiers 1-6, Spawner at Tier 3+)
+	var mystic_tree_textures := [
+		preload("res://assets/items/witch/mystic_tree/1.png"),
+		preload("res://assets/items/witch/mystic_tree/2.png"),
+		preload("res://assets/items/witch/mystic_tree/3.png"),
+		preload("res://assets/items/witch/mystic_tree/4.png"),
+		preload("res://assets/items/witch/mystic_tree/5.png"),
+		preload("res://assets/items/witch/mystic_tree/6.png")
+	]
+	var mystic_tree_names := [
+		"Mystic Sprout", "Mystic Sapling", "Enchanted Mystic Tree",
+		"Arcane Elder Tree", "Ancient Runetree", "Celestial Worldtree"
+	]
+	var mystic_tree_descs := [
+		"A mysterious magical sprout glowing with faint ether. Merge to grow!",
+		"A tender magical sapling pulsing with mana. Merge to cultivate!",
+		"An enchanted mystic tree! Tap to produce magical shrooms and wands (Uses 1 Energy).",
+		"An arcane elder tree bearing glowing shrooms and sturdy wands. Uses 1 Energy.",
+		"An ancient runetree. Produces shrooms, wands, and ancient magic staves! Uses 1 Energy.",
+		"The supreme celestial worldtree! Produces shrooms, wands, staves, and flying brooms! Uses 1 Energy."
+	]
+	for t in range(1, 7):
+		var id := "mystic_tree_%d" % t
+		var it := _register_item(
+			id, "mystic_tree", "Mystic Tree", t, 6,
+			mystic_tree_names[t - 1], mystic_tree_descs[t - 1],
+			Color(0.55, 0.35, 0.85), mystic_tree_textures[t - 1]
+		)
+		it.min_spawner_tier = 3
+		it.is_spawner = (t >= 3)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		it.spawn_pool = _get_mystic_tree_pool(t)
+
+	# 6.2 Shrooms Chain (Tiers 1-6, Spawner at Tier 3+)
+	var shroom_textures := [
+		preload("res://assets/items/witch/shroom/1.png"),
+		preload("res://assets/items/witch/shroom/2.png"),
+		preload("res://assets/items/witch/shroom/3.png"),
+		preload("res://assets/items/witch/shroom/4.png"),
+		preload("res://assets/items/witch/shroom/5.png"),
+		preload("res://assets/items/witch/shroom/6.png")
+	]
+	var shroom_names := [
+		"Tiny Truffle", "Glowing Cap", "Spore Spawner",
+		"Moonlit Toadstool", "Arcane Fungus", "Elder Spirit Shroom"
+	]
+	var shroom_descs := [
+		"A small wild mushroom found in the damp enchanted woods.",
+		"A luminous cap flickering with magical spores in the dark.",
+		"A magical spore cluster! Tap to produce ritual candles (Uses 1 Energy).",
+		"A moonlit toadstool! Produces candles with a chance of ancient spellbooks. Uses 1 Energy.",
+		"A potent arcane fungus producing ritual candles and spellbooks. Uses 1 Energy.",
+		"An elder spirit mushroom radiating mystical spores! Uses 1 Energy."
+	]
+	for t in range(1, 7):
+		var id := "shroom_%d" % t
+		var it := _register_item(
+			id, "shroom", "Shroom", t, 6,
+			shroom_names[t - 1], shroom_descs[t - 1],
+			Color(0.85, 0.40, 0.65), shroom_textures[t - 1]
+		)
+		it.min_spawner_tier = 3
+		it.is_spawner = (t >= 3)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		it.spawn_pool = _get_shroom_pool(t)
+
+	# 6.3 Candle Chain (Tiers 1-6, Spawner ONLY at Tier 6)
+	var candle_textures := [
+		preload("res://assets/items/witch/candle/1.png"),
+		preload("res://assets/items/witch/candle/2.png"),
+		preload("res://assets/items/witch/candle/3.png"),
+		preload("res://assets/items/witch/candle/4.png"),
+		preload("res://assets/items/witch/candle/5.png"),
+		preload("res://assets/items/witch/candle/6.png")
+	]
+	var candle_names := [
+		"Wax Stub", "Tallow Candle", "Scented Taper",
+		"Altar Candle", "Coven Candelabra", "Eternal Witch's Flame"
+	]
+	var candle_descs := [
+		"A small wax stub with a fresh wick.",
+		"A steady-burning tallow candle. Merge to elevate!",
+		"A fragrant taper imbued with soothing magical herbs.",
+		"A tall ceremonial candle for secret coven rites.",
+		"An ornate multi-candle candelabra glowing brightly.",
+		"An eternal flame of pure witchcraft! Tap to produce flying brooms with a rare chance of spellbooks! (Uses 1 Energy). Familiars can be sacrificed here."
+	]
+	for t in range(1, 7):
+		var id := "candle_%d" % t
+		var it := _register_item(
+			id, "candle", "Candle", t, 6,
+			candle_names[t - 1], candle_descs[t - 1],
+			Color(0.95, 0.75, 0.30), candle_textures[t - 1]
+		)
+		it.min_spawner_tier = 6
+		it.is_spawner = (t == 6)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		if t == 6:
+			it.spawn_pool = ["broom_1", "broom_1", "broom_1", "broom_1", "spellbook_1"]
+
+	# 6.4 Spellbook Chain (Tiers 1-6, Spawner ONLY at Tier 6)
+	var spellbook_textures := [
+		preload("res://assets/items/witch/spellbook/1.png"),
+		preload("res://assets/items/witch/spellbook/2.png"),
+		preload("res://assets/items/witch/spellbook/3.png"),
+		preload("res://assets/items/witch/spellbook/4.png"),
+		preload("res://assets/items/witch/spellbook/5.png"),
+		preload("res://assets/items/witch/spellbook/6.png")
+	]
+	var spellbook_names := [
+		"Apprentice Notes", "Parchment Scroll", "Leatherbound Tome",
+		"Enchanted Grimoire", "Shadow Codex", "Archmage's Book of Spells"
+	]
+	var spellbook_descs := [
+		"Scattered parchment notes scribbled with beginner runes.",
+		"An unrolled spell scroll sealed with purple wax.",
+		"A sturdy leather tome filled with hex formulas.",
+		"A glowing grimoire whispering forbidden arcane words.",
+		"A dark codex bound with enchanted astral threads.",
+		"The supreme Book of Spells! Tap to produce pure Player EXP! (Uses 1 Energy)."
+	]
+	for t in range(1, 7):
+		var id := "spellbook_%d" % t
+		var it := _register_item(
+			id, "spellbook", "Spellbook", t, 6,
+			spellbook_names[t - 1], spellbook_descs[t - 1],
+			Color(0.40, 0.50, 0.90), spellbook_textures[t - 1]
+		)
+		it.min_spawner_tier = 6
+		it.is_spawner = (t == 6)
+		it.max_charges = 10
+		it.cooldown_per_charge = 5.0
+		it.energy_cost = 1
+		if t == 6:
+			it.spawn_pool = ["exp_1", "exp_1", "exp_2", "exp_3"]
+
+	# 6.5 Wand Chain (Tiers 1-6)
+	var wand_textures := [
+		preload("res://assets/items/witch/wand/1.png"),
+		preload("res://assets/items/witch/wand/2.png"),
+		preload("res://assets/items/witch/wand/3.png"),
+		preload("res://assets/items/witch/wand/4.png"),
+		preload("res://assets/items/witch/wand/5.png"),
+		preload("res://assets/items/witch/wand/6.png")
+	]
+	var wand_names := [
+		"Twig Wand", "Carved Hazel Wand", "Runed Oak Wand",
+		"Crystal Tipped Wand", "Starlight Wand", "Grand Master Wand"
+	]
+	var wand_descs := [
+		"A supple wooden twig with raw magic energy.",
+		"Carefully carved hazel wood polished smooth.",
+		"Inscribed with protective glyphs and runes.",
+		"Crowned with a sparkling quartz focus crystal.",
+		"Channeling astral light through its radiant tip.",
+		"The supreme wand of master spellweavers! Max tier wand."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"wand_%d" % t, "wand", "Wand", t, 6,
+			wand_names[t - 1], wand_descs[t - 1],
+			Color(0.70, 0.55, 0.85), wand_textures[t - 1]
+		)
+
+	# 6.6 Staff Chain (Tiers 1-6)
+	var staff_textures := [
+		preload("res://assets/items/witch/staff/1.png"),
+		preload("res://assets/items/witch/staff/2.png"),
+		preload("res://assets/items/witch/staff/3.png"),
+		preload("res://assets/items/witch/staff/4.png"),
+		preload("res://assets/items/witch/staff/5.png"),
+		preload("res://assets/items/witch/staff/6.png")
+	]
+	var staff_names := [
+		"Walking Staff", "Druid's Crook", "Ironbound Rod",
+		"Sorcerer's Stave", "Astral Scepter", "Archmage Worldstaff"
+	]
+	var staff_descs := [
+		"A tall walking stick resonant with forest magic.",
+		"A curved pastoral crook infused with nature spirits.",
+		"Reinforced with iron rings to channel heavy spells.",
+		"A gleaming stave crackling with arcane electricity.",
+		"A majestic scepter adorned with orbiting cosmic orbs.",
+		"The legendary Archmage Worldstaff! Max tier magic staff."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"staff_%d" % t, "staff", "Staff", t, 6,
+			staff_names[t - 1], staff_descs[t - 1],
+			Color(0.35, 0.75, 0.80), staff_textures[t - 1]
+		)
+
+	# 6.7 Broom Chain (Tiers 1-6)
+	var broom_textures := [
+		preload("res://assets/items/witch/broom/1.png"),
+		preload("res://assets/items/witch/broom/2.png"),
+		preload("res://assets/items/witch/broom/3.png"),
+		preload("res://assets/items/witch/broom/4.png"),
+		preload("res://assets/items/witch/broom/5.png"),
+		preload("res://assets/items/witch/broom/6.png")
+	]
+	var broom_names := [
+		"Straw Whisk", "Kitchen Sweeper", "Flying Broomstick",
+		"Nimble Sweeper", "Silverwind Glider", "Celestial Comet Broom"
+	]
+	var broom_descs := [
+		"A bundled straw whisk for simple hearth chores.",
+		"A practical broomstick made of tied twigs and ash wood.",
+		"Enchanted to hover slightly above the floor!",
+		"Aerodynamic and swift, perfect for low-altitude night rides.",
+		"Silver-threaded bristles that ride on the nocturnal breeze.",
+		"The fastest broom in the skies, trailing shimmering stardust! Max tier broom."
+	]
+	for t in range(1, 7):
+		_register_item(
+			"broom_%d" % t, "broom", "Broom", t, 6,
+			broom_names[t - 1], broom_descs[t - 1],
+			Color(0.85, 0.65, 0.40), broom_textures[t - 1]
+		)
+
+	# 6.8 Cauldron Chain (Tiers 1-8, Combiner)
+	var cauldron_textures := [
+		preload("res://assets/items/witch/cauldron/1.png"),
+		preload("res://assets/items/witch/cauldron/2.png"),
+		preload("res://assets/items/witch/cauldron/3.png"),
+		preload("res://assets/items/witch/cauldron/4.png"),
+		preload("res://assets/items/witch/cauldron/5.png"),
+		preload("res://assets/items/witch/cauldron/6.png"),
+		preload("res://assets/items/witch/cauldron/7.png"),
+		preload("res://assets/items/witch/cauldron/8.png")
+	]
+	var cauldron_names := [
+		"Clay Pot", "Copper Kettle", "Cast Iron Pot",
+		"Apprentice Cauldron", "Bubbling Cauldron", "Alchemist Cauldron",
+		"Witch's Great Cauldron", "Grandmaster Astral Cauldron"
+	]
+	var cauldron_descs := [
+		"A simple clay mixing pot. Merge to Lv.4 to unlock brewing!",
+		"A burnished copper kettle for heating extracts. Merge to Lv.4 to unlock brewing!",
+		"A heavy iron pot retaining magical heat. Merge to Lv.4 to unlock brewing!",
+		"An apprentice cauldron! Can combine 1 ingredient to brew potions or familiars.",
+		"A steadily bubbling cauldron brewing aromatic concoctions. Can combine 1 ingredient.",
+		"A dual-chamber alchemist cauldron! Can combine up to 2 ingredients.",
+		"A grand coven cauldron glowing with eldritch fires. Can combine up to 2 ingredients.",
+		"The supreme astral cauldron! Can combine up to 3 ingredients for legendary brews."
+	]
+	for t in range(1, 9):
+		var id := "cauldron_%d" % t
+		var it := _register_item(
+			id, "cauldron", "Cauldron", t, 8,
+			cauldron_names[t - 1], cauldron_descs[t - 1],
+			Color(0.30, 0.25, 0.45), cauldron_textures[t - 1]
+		)
+		it.is_combiner = true
+
+	# 6.9 Potions (12 Special Consumables, Non-mergeable)
+	var potion_defs := [
+		{"id": "potion_health", "name": "Heal Potion", "desc": "A restorative draft brewed from fresh fruit. Can only be sold for Gold ($100)!", "tex": preload("res://assets/items/witch/potions/health.png"), "sell": 100},
+		{"id": "potion_angelic", "name": "Angelic Potion", "desc": "A divine elixir of celestial light. Drag onto any item to elevate it to maximum level!", "tex": preload("res://assets/items/witch/potions/angelic.png"), "sell": 50},
+		{"id": "potion_exp", "name": "EXP Potion", "desc": "Concentrated knowledge. Tap to spawn 5 max-level EXP stars!", "tex": preload("res://assets/items/witch/potions/exp.png"), "sell": 50},
+		{"id": "potion_fire", "name": "Fire Potion", "desc": "Blazing volatile flames. Drag onto any item (Lv.2+) to split it into two items of tier minus 1!", "tex": preload("res://assets/items/witch/potions/fire.png"), "sell": 50},
+		{"id": "potion_freeze", "name": "Freeze Potion", "desc": "Cryogenic stasis draft. Drag onto any item to create an exact duplicate of it!", "tex": preload("res://assets/items/witch/potions/freeze.png"), "sell": 50},
+		{"id": "potion_gold", "name": "Gold Potion", "desc": "Liquid aurum. Tap to spawn 5 max-level Royal Treasure Chests of Gold!", "tex": preload("res://assets/items/witch/potions/gold.png"), "sell": 50},
+		{"id": "potion_love", "name": "Love Potion", "desc": "Sweet heart elixir. Tap to spawn 5 max-level Hearts of Eternity Diamonds!", "tex": preload("res://assets/items/witch/potions/love.png"), "sell": 50},
+		{"id": "potion_nature", "name": "Nature Potion", "desc": "Primal spirit extract. Drag onto Pine or Fruit Tree to remove its cooldown entirely!", "tex": preload("res://assets/items/witch/potions/nature.png"), "sell": 50},
+		{"id": "potion_omni", "name": "Omni Potion", "desc": "Supreme catalyst. Tap to purify the entire current board and gain 20,000 Diamonds!", "tex": preload("res://assets/items/witch/potions/omni.png"), "sell": 500},
+		{"id": "potion_void", "name": "Void Potion", "desc": "Essence of the abyss. Drag onto any unwanted item to banish and remove it from the board!", "tex": preload("res://assets/items/witch/potions/void.png"), "sell": 50},
+		{"id": "potion_water", "name": "Water Potion", "desc": "Endless flow droplet. Drag onto any Water item to remove its cooldown entirely!", "tex": preload("res://assets/items/witch/potions/water.png"), "sell": 50},
+		{"id": "potion_wind", "name": "Wind Potion", "desc": "Gale-force zephyr draft. Drag onto Mystic Tree to remove its cooldown entirely!", "tex": preload("res://assets/items/witch/potions/wind.png"), "sell": 50}
+	]
+	for p in potion_defs:
+		var it := _register_item(
+			p.id, "potions", "Potions", 1, 1,
+			p.name, p.desc,
+			Color(0.80, 0.30, 0.80), p.tex
+		)
+		it.is_potion = true
+		it.sell_value = p.sell
+
+	# 6.10 Familiars (6 Magical Companions, Non-mergeable, Non-sellable)
+	var familiar_defs := [
+		{"id": "familiar_rat", "name": "Sewer Rat", "desc": "A sneaky nocturnal rat. Cannot be merged or sold. Sacrifice at Candle or Mystic Tree for Gold or EXP!", "tex": preload("res://assets/items/witch/familiars/rat.png")},
+		{"id": "familiar_owl", "name": "Barn Owl", "desc": "A wise nocturnal avian familiar. Cannot be merged or sold. Sacrifice at Candle or Mystic Tree for Gold or EXP!", "tex": preload("res://assets/items/witch/familiars/owl.png")},
+		{"id": "familiar_raven", "name": "Shadow Raven", "desc": "An omen of cunning magic. Cannot be merged or sold. Sacrifice at Candle or Mystic Tree for Gold or EXP!", "tex": preload("res://assets/items/witch/familiars/raven.png")},
+		{"id": "familiar_frog", "name": "Poison Dart Frog", "desc": "A vibrant amphibious familiar. Cannot be merged or sold. Sacrifice at Candle or Mystic Tree for Gold or EXP!", "tex": preload("res://assets/items/witch/familiars/frog.png")},
+		{"id": "familiar_kitten", "name": "Witch's Kitten", "desc": "A playful magical kitten. Cannot be merged or sold. Sacrifice at Candle or Mystic Tree for Gold or EXP!", "tex": preload("res://assets/items/witch/familiars/kitten.png")},
+		{"id": "familiar_cat", "name": "Mystic Black Cat", "desc": "A legendary familiar brimming with luck and mystery. Cannot be merged or sold. Sacrifice at Candle or Mystic Tree for Gold or EXP!", "tex": preload("res://assets/items/witch/familiars/cat.png")}
+	]
+	for f in familiar_defs:
+		var it := _register_item(
+			f.id, "familiars", "Familiars", 1, 1,
+			f.name, f.desc,
+			Color(0.45, 0.35, 0.60), f.tex
+		)
+		it.is_familiar = true
+		it.sell_value = 0
+
+func _get_mystic_tree_pool(tier: int) -> Array[String]:
+	match tier:
+		3:
+			return ["shroom_1", "shroom_1", "wand_1", "wand_1"]
+		4:
+			return ["shroom_1", "shroom_2", "wand_1", "wand_2"]
+		5:
+			return ["shroom_1", "shroom_2", "wand_1", "wand_2", "staff_1"]
+		6:
+			return ["shroom_2", "shroom_3", "wand_2", "wand_3", "staff_1", "broom_1"]
+		_:
+			return ["shroom_1", "wand_1"]
+
+func _get_shroom_pool(tier: int) -> Array[String]:
+	match tier:
+		3:
+			return ["candle_1", "candle_1"]
+		4:
+			return ["candle_1", "candle_2", "spellbook_1"]
+		5:
+			return ["candle_2", "candle_3", "spellbook_1"]
+		6:
+			return ["candle_3", "candle_4", "spellbook_1", "spellbook_2"]
+		_:
+			return ["candle_1"]
+
 func _register_color_chests() -> void:
 	var chest_charges := [5, 8, 12, 18]
 
@@ -1460,13 +1795,18 @@ func get_chest_pool(chest_id: String, board_context: String = "") -> Array[Strin
 		context = "kitchen"
 
 	var is_farm := (context == "farm")
+	var is_witch := (context == "witch")
 
 	if chest_id == "chest_1":
-		if is_farm:
+		if is_witch:
+			return ["mystic_tree_1", "cauldron_1"]
+		elif is_farm:
 			return ["barn_1", "water_1"]
 		return ["oven_1", "fridge_1"]
 	elif chest_id == "chest_2":
-		if is_farm:
+		if is_witch:
+			return ["mystic_tree_1", "shroom_1", "wand_1", "cauldron_1"]
+		elif is_farm:
 			return ["barn_1", "water_1", "tree_1", "pine_1"]
 		return ["oven_1", "fridge_1", "rack_1", "foodbox_1"]
 

@@ -47,7 +47,19 @@ extends Node2D
 		_apply_theme_to_all_items()
 
 func _apply_theme_styling() -> void:
-	if board_theme == "farm":
+	if board_theme == "witch":
+		# Witch Board Styling: dark mystical purple background, alternating light dark purple and light dark yellow tiles
+		board_bg_color = Color(0.12, 0.08, 0.18, 0.90)
+		board_border_color = Color(0.42, 0.25, 0.58, 0.85)
+		tile_bg_color = Color(0.38, 0.26, 0.48, 0.92)       # Light dark purple
+		tile_bg_alt_color = Color(0.68, 0.56, 0.28, 0.92)   # Light dark yellow
+		tile_border_color = Color(0.50, 0.38, 0.58, 0.65)
+		tile_locked_bg_color = Color(0.20, 0.14, 0.26, 0.92)
+		tile_locked_bg_alt_color = Color(0.35, 0.29, 0.16, 0.92)
+		tile_locked_border_color = Color(0.28, 0.20, 0.35, 0.7)
+		tile_hover_empty_color = Color(0.52, 0.38, 0.70, 0.95)
+		tile_hover_merge_color = Color(0.35, 0.82, 0.55, 0.95)
+	elif board_theme == "farm":
 		# Farm Board Styling: transparent dark green background, alternating light yellow and light brown tiles
 		board_bg_color = Color(0.08, 0.22, 0.12, 0.78)
 		board_border_color = Color(0.24, 0.44, 0.28, 0.85)
@@ -309,7 +321,7 @@ func clear_selection() -> void:
 func sell_selected_item() -> void:
 	if not selected_item or not is_instance_valid(selected_item):
 		return
-	if not selected_item.is_normal():
+	if not selected_item.is_normal() or selected_item.is_familiar():
 		return
 	var it := selected_item
 	clear_selection()
@@ -746,6 +758,34 @@ func _handle_item_tap(item: ItemView) -> void:
 		GameEvents.request_cage_open.emit(item)
 		return
 
+	# 0.6 Cauldron Tap (Brew if items inside)
+	if item.is_cauldron() and not item.cauldron_stored_items.is_empty():
+		_brew_cauldron(item)
+		return
+
+	# 0.7 Potions Tap (Instant spawn/purify potions)
+	if item.is_potion():
+		if item.data.id in ["potion_exp", "potion_gold", "potion_love", "potion_omni"]:
+			_trigger_potion_tap(item)
+			return
+		elif item.data.id == "potion_health":
+			item.animate_click()
+			SoundManager.play_pickup()
+			GameEvents.show_floating_text.emit("Heal Potion: Can only be sold! 💰", item.global_position + Vector2(0, -50), Color(0.9, 0.9, 0.4))
+			return
+		else:
+			item.animate_click()
+			SoundManager.play_pickup()
+			GameEvents.show_floating_text.emit("Drag onto target item to use!", item.global_position + Vector2(0, -50), Color(0.9, 0.6, 1.0))
+			return
+
+	# 0.8 Familiar Tap (Hint)
+	if item.is_familiar():
+		item.animate_click()
+		SoundManager.play_pickup()
+		GameEvents.show_floating_text.emit("Drag onto Candle or Mystic Tree to sacrifice! ✨", item.global_position + Vector2(0, -50), Color(0.9, 0.7, 1.0))
+		return
+
 	# 1. Spawner tap
 	if item.data.is_spawner:
 		_trigger_spawner(item)
@@ -1022,6 +1062,7 @@ func try_cage_auto_feed(cage: ItemView) -> bool:
 
 	var did_harvest := _harvest_cage_animal(cage, chain, tier)
 	if did_harvest:
+		cage.cage_auto_feed_timer = 30.0
 		cage.animate_merge_pop()
 		SoundManager.play_spawn()
 		cage._update_visuals()
@@ -1054,6 +1095,10 @@ func _trigger_consumable(item: ItemView) -> void:
 
 func _can_merge(data_a: ItemData, data_b: ItemData) -> bool:
 	if not data_a or not data_b:
+		return false
+	if data_a.chain_id == "potions" or data_b.chain_id == "potions" or data_a.is_potion or data_b.is_potion:
+		return false
+	if data_a.chain_id == "familiars" or data_b.chain_id == "familiars" or data_a.is_familiar or data_b.is_familiar:
 		return false
 	if data_a.chain_id != data_b.chain_id:
 		return false
@@ -1279,7 +1324,468 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		GameEvents.board_changed.emit()
 		return true
 
+	# 8. Cauldron Combiner: Add ingredient into Cauldron (Lv.4, Lv.6, Lv.8)
+	if target_item.is_cauldron():
+		# If both are same tier cauldrons, allow normal merge!
+		if dragged.is_cauldron() and dragged.data.tier == target_item.data.tier:
+			pass
+		else:
+			var cap := target_item.get_cauldron_capacity()
+			if cap <= 0:
+				target_item.animate_wobble()
+				SoundManager.play_error()
+				GameEvents.show_floating_text.emit("Merge to Lv.4 to unlock brewing! 🧪", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+				return false
+			if target_item.cauldron_stored_items.size() >= cap:
+				target_item.animate_wobble()
+				SoundManager.play_error()
+				GameEvents.show_floating_text.emit("Cauldron is full! Tap to brew! 🧪", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+				return false
+
+			_clear_source_slot(dragged)
+			var ing_id: String = dragged.data.id
+			var ing_name: String = dragged.data.display_name
+			dragged.queue_free()
+
+			target_item.cauldron_stored_items.append(ing_id)
+			target_item.animate_merge_pop()
+			SoundManager.play_drop()
+
+			if target_item.cauldron_stored_items.size() >= cap:
+				_brew_cauldron(target_item)
+			else:
+				GameEvents.show_floating_text.emit("Added %s! (%d/%d) 🧪" % [ing_name, target_item.cauldron_stored_items.size(), cap], target_item.global_position + Vector2(0, -45), Color(0.8, 0.5, 1.0))
+			select_item(target_item)
+			GameEvents.board_changed.emit()
+			return true
+
+	# 9. Familiar Sacrifice to Candle or Mystic Tree
+	if dragged.is_familiar() and target_item.data and target_item.data.chain_id in ["candle", "mystic_tree"]:
+		_clear_source_slot(dragged)
+		var fam_name: String = dragged.data.display_name
+		dragged.queue_free()
+
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+
+		var empty_cell := get_nearby_or_empty_cell(target_item.grid_coord)
+		var reward_id := "gold_6" if randf() < 0.5 else "exp_6"
+		if is_valid_coord(empty_cell):
+			spawn_item_flight(target_item.global_position, empty_cell, reward_id)
+		else:
+			ProgressionManager.push_reward(reward_id)
+
+		GameEvents.show_floating_text.emit("Sacrificed %s! Converted to Gold & EXP! ✨" % fam_name, target_item.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.3))
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
+	# 10. Potions: Target-based Consumables
+	if dragged.is_potion():
+		match dragged.data.id:
+			"potion_angelic":
+				if target_item.data.tier < target_item.data.max_tier:
+					_clear_source_slot(dragged)
+					dragged.queue_free()
+					var max_id := "%s_%d" % [target_item.data.chain_id, target_item.data.max_tier]
+					var new_data := ItemDatabase.get_item(max_id)
+					if new_data:
+						target_item.data = new_data
+					target_item._update_visuals()
+					target_item.animate_merge_pop()
+					SoundManager.play_consume()
+					ProgressionManager.unlock_item(max_id)
+					GameEvents.show_floating_text.emit("Angelic Blessing! Max Level Reached! 🌟", target_item.global_position + Vector2(0, -45), Color(1.0, 0.9, 0.4))
+					select_item(target_item)
+					GameEvents.board_changed.emit()
+					return true
+				else:
+					dragged.animate_wobble()
+					SoundManager.play_error()
+					GameEvents.show_floating_text.emit("Item already at Max Level! ⭐", dragged.global_position + Vector2(0, -45), Color(1.0, 0.6, 0.4))
+					return false
+
+			"potion_fire":
+				if target_item.data.tier > 1:
+					_clear_source_slot(dragged)
+					dragged.queue_free()
+					var lower_tier := target_item.data.tier - 1
+					var lower_id := "%s_%d" % [target_item.data.chain_id, lower_tier]
+					var lower_data := ItemDatabase.get_item(lower_id)
+					if lower_data:
+						target_item.data = lower_data
+					target_item._update_visuals()
+					target_item.animate_merge_pop()
+					SoundManager.play_consume()
+
+					var empty_cell := get_nearby_or_empty_cell(target_item.grid_coord)
+					if is_valid_coord(empty_cell):
+						spawn_item_flight(target_item.global_position, empty_cell, lower_id)
+					else:
+						ProgressionManager.push_reward(lower_id)
+
+					GameEvents.show_floating_text.emit("Fire Split into Two (Lv.%d)! 🔥" % lower_tier, target_item.global_position + Vector2(0, -45), Color(1.0, 0.5, 0.2))
+					select_item(target_item)
+					GameEvents.board_changed.emit()
+					return true
+				else:
+					dragged.animate_wobble()
+					SoundManager.play_error()
+					GameEvents.show_floating_text.emit("Cannot split Level 1 item! ⚠️", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					return false
+
+			"potion_freeze":
+				_clear_source_slot(dragged)
+				var dup_id := target_item.data.id
+				var dup_name := target_item.data.display_name
+				dragged.queue_free()
+
+				var empty_cell := get_nearby_or_empty_cell(target_item.grid_coord)
+				if is_valid_coord(empty_cell):
+					spawn_item_flight(target_item.global_position, empty_cell, dup_id)
+				else:
+					ProgressionManager.push_reward(dup_id)
+
+				SoundManager.play_consume()
+				GameEvents.show_floating_text.emit("Frozen Clone of %s! ❄️" % dup_name, target_item.global_position + Vector2(0, -45), Color(0.4, 0.8, 1.0))
+				select_item(target_item)
+				GameEvents.board_changed.emit()
+				return true
+
+			"potion_nature":
+				if target_item.data.chain_id in ["tree", "pine"]:
+					_clear_source_slot(dragged)
+					dragged.queue_free()
+					target_item.cooldown_removed = true
+					target_item.current_cooldown = 0.0
+					target_item.current_charges = target_item.max_charges
+					target_item.producer_status = ItemView.ProducerStatus.READY
+					target_item._update_visuals()
+					target_item.animate_merge_pop()
+					SoundManager.play_consume()
+					GameEvents.show_floating_text.emit("Nature Blessing! Cooldown Removed! 🌿", target_item.global_position + Vector2(0, -45), Color(0.3, 1.0, 0.5))
+					select_item(target_item)
+					GameEvents.board_changed.emit()
+					return true
+				else:
+					dragged.animate_wobble()
+					SoundManager.play_error()
+					GameEvents.show_floating_text.emit("Must be placed on Pine or Fruit Tree! 🌿", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					return false
+
+			"potion_void":
+				_clear_source_slot(dragged)
+				dragged.queue_free()
+				var pos := target_item.global_position
+				remove_item(target_item)
+				target_item.queue_free()
+				SoundManager.play_consume()
+				GameEvents.show_floating_text.emit("Banished to the Void! 🕳️", pos + Vector2(0, -45), Color(0.6, 0.2, 0.8))
+				clear_selection()
+				GameEvents.board_changed.emit()
+				return true
+
+			"potion_water":
+				if target_item.data.chain_id == "water":
+					_clear_source_slot(dragged)
+					dragged.queue_free()
+					target_item.cooldown_removed = true
+					target_item.current_cooldown = 0.0
+					target_item.current_charges = target_item.max_charges
+					target_item.producer_status = ItemView.ProducerStatus.READY
+					target_item._update_visuals()
+					target_item.animate_merge_pop()
+					SoundManager.play_consume()
+					GameEvents.show_floating_text.emit("Endless Spring! Cooldown Removed! 💧", target_item.global_position + Vector2(0, -45), Color(0.2, 0.8, 1.0))
+					select_item(target_item)
+					GameEvents.board_changed.emit()
+					return true
+				else:
+					dragged.animate_wobble()
+					SoundManager.play_error()
+					GameEvents.show_floating_text.emit("Must be placed on Water item! 💧", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					return false
+
+			"potion_wind":
+				if target_item.data.chain_id == "mystic_tree":
+					_clear_source_slot(dragged)
+					dragged.queue_free()
+					target_item.cooldown_removed = true
+					target_item.current_cooldown = 0.0
+					target_item.current_charges = target_item.max_charges
+					target_item.producer_status = ItemView.ProducerStatus.READY
+					target_item._update_visuals()
+					target_item.animate_merge_pop()
+					SoundManager.play_consume()
+					GameEvents.show_floating_text.emit("Wind Swiftness! Cooldown Removed! 🌪️", target_item.global_position + Vector2(0, -45), Color(0.7, 0.9, 1.0))
+					select_item(target_item)
+					GameEvents.board_changed.emit()
+					return true
+				else:
+					dragged.animate_wobble()
+					SoundManager.play_error()
+					GameEvents.show_floating_text.emit("Must be placed on Mystic Tree! 🌪️", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					return false
+
 	return false
+
+func _trigger_potion_tap(potion: ItemView) -> void:
+	if not potion or not potion.data:
+		return
+	var pid: String = potion.data.id
+
+	match pid:
+		"potion_exp":
+			var pos := potion.global_position
+			var cell := potion.grid_coord
+			remove_item(potion)
+			potion.queue_free()
+			for i in range(5):
+				var empty_cell := get_nearby_or_empty_cell(cell)
+				if is_valid_coord(empty_cell):
+					spawn_item_flight(pos, empty_cell, "exp_10")
+				else:
+					ProgressionManager.push_reward("exp_10")
+			SoundManager.play_quest()
+			GameEvents.show_floating_text.emit("+5 Celestial Beacons (Max EXP)! 🌟", pos + Vector2(0, -50), Color(0.8, 0.5, 1.0))
+			clear_selection()
+			GameEvents.board_changed.emit()
+
+		"potion_gold":
+			var pos := potion.global_position
+			var cell := potion.grid_coord
+			remove_item(potion)
+			potion.queue_free()
+			for i in range(5):
+				var empty_cell := get_nearby_or_empty_cell(cell)
+				if is_valid_coord(empty_cell):
+					spawn_item_flight(pos, empty_cell, "gold_8")
+				else:
+					ProgressionManager.push_reward("gold_8")
+			SoundManager.play_quest()
+			GameEvents.show_floating_text.emit("+5 Royal Treasure Chests (Max Gold)! 💰", pos + Vector2(0, -50), Color(1.0, 0.85, 0.2))
+			clear_selection()
+			GameEvents.board_changed.emit()
+
+		"potion_love":
+			var pos := potion.global_position
+			var cell := potion.grid_coord
+			remove_item(potion)
+			potion.queue_free()
+			for i in range(5):
+				var empty_cell := get_nearby_or_empty_cell(cell)
+				if is_valid_coord(empty_cell):
+					spawn_item_flight(pos, empty_cell, "diamond_7")
+				else:
+					ProgressionManager.push_reward("diamond_7")
+			SoundManager.play_quest()
+			GameEvents.show_floating_text.emit("+5 Hearts of Eternity (Max Diamond)! 💎", pos + Vector2(0, -50), Color(0.45, 0.88, 1.0))
+			clear_selection()
+			GameEvents.board_changed.emit()
+
+		"potion_omni":
+			var pos := potion.global_position
+			clear_board(true)
+			EconomyManager.add_gems(20000)
+			SoundManager.play_quest()
+			GameEvents.show_floating_text.emit("OMNI PURIFICATION! Board Purified! +20,000 💎", pos + Vector2(0, -50), Color(1.0, 0.9, 0.3))
+			clear_selection()
+			GameEvents.board_changed.emit()
+
+func _brew_cauldron(cauldron: ItemView) -> void:
+	if not cauldron or not cauldron.is_cauldron():
+		return
+	if cauldron.cauldron_stored_items.is_empty():
+		return
+
+	var ingredients: Array[String] = cauldron.cauldron_stored_items.duplicate()
+	cauldron.cauldron_stored_items.clear()
+
+	var result_id := _match_cauldron_recipe(ingredients)
+	if result_id.is_empty():
+		var fallbacks := ["familiar_rat", "hay_7", "potion_health"]
+		result_id = fallbacks[randi() % fallbacks.size()]
+
+	var empty_cell := get_nearby_or_empty_cell(cauldron.grid_coord)
+	if is_valid_coord(empty_cell):
+		spawn_item_flight(cauldron.global_position, empty_cell, result_id)
+	else:
+		ProgressionManager.push_reward(result_id)
+
+	cauldron.animate_merge_pop()
+	SoundManager.play_quest()
+	var res_data := ItemDatabase.get_item(result_id)
+	var res_name := res_data.display_name if res_data else result_id
+	GameEvents.show_floating_text.emit("Brewed %s! 🔮" % res_name, cauldron.global_position + Vector2(0, -50), Color(0.9, 0.6, 1.0))
+	select_item(cauldron)
+	GameEvents.board_changed.emit()
+
+func _match_cauldron_recipe(ingredients: Array[String]) -> String:
+	var n := ingredients.size()
+	if n == 0:
+		return ""
+
+	var datas: Array[ItemData] = []
+	for id in ingredients:
+		var d := ItemDatabase.get_item(id)
+		if d:
+			datas.append(d)
+		else:
+			return ""
+
+	# a. heal potion, 1 or 2 any fruit, can only be sold
+	var all_fruit := true
+	for d in datas:
+		if d.chain_id != "fruit":
+			all_fruit = false
+			break
+	if (n == 1 or n == 2) and all_fruit:
+		return "potion_health"
+
+	# b. angelic potion, 3 combo, max level diamond, max level exp, max level broom, turn any item into max level
+	if n == 3:
+		var has_max_diamond := false
+		var has_max_exp := false
+		var has_max_broom := false
+		for d in datas:
+			if d.chain_id == "diamond" and d.tier == d.max_tier: has_max_diamond = true
+			elif d.chain_id == "exp" and d.tier == d.max_tier: has_max_exp = true
+			elif d.chain_id == "broom" and d.tier == d.max_tier: has_max_broom = true
+		if has_max_diamond and has_max_exp and has_max_broom:
+			return "potion_angelic"
+
+	# c. exp potion, 1 max level exp, or any spawner item, spawn 5 max level exp
+	if n == 1:
+		var d := datas[0]
+		if (d.chain_id == "exp" and d.tier == d.max_tier) or d.is_spawner:
+			return "potion_exp"
+
+	# d. fire potion, oven level 4 or higher and any wood or trees
+	if n == 2:
+		var has_oven_4 := false
+		var has_wood_tree := false
+		for d in datas:
+			if d.chain_id == "oven" and d.tier >= 4: has_oven_4 = true
+			elif d.chain_id in ["tree", "pine", "mystic_tree"]: has_wood_tree = true
+		if has_oven_4 and has_wood_tree:
+			return "potion_fire"
+
+	# e. freeze potion, fridge level 4 or higher and any water
+	if n == 2:
+		var has_fridge_4 := false
+		var has_water := false
+		for d in datas:
+			if d.chain_id == "fridge" and d.tier >= 4: has_fridge_4 = true
+			elif d.chain_id == "water": has_water = true
+		if has_fridge_4 and has_water:
+			return "potion_freeze"
+
+	# f. gold potion, mushroom any level and gold max level
+	if n == 2:
+		var has_shroom := false
+		var has_max_gold := false
+		for d in datas:
+			if d.chain_id == "shroom": has_shroom = true
+			elif d.chain_id == "gold" and d.tier == d.max_tier: has_max_gold = true
+		if has_shroom and has_max_gold:
+			return "potion_gold"
+
+	# g. love potion, 3 combo, cake max level, fruit max level, shroom max level
+	if n == 3:
+		var has_max_cake := false
+		var has_max_fruit := false
+		var has_max_shroom := false
+		for d in datas:
+			if d.chain_id == "cake" and d.tier == d.max_tier: has_max_cake = true
+			elif d.chain_id == "fruit" and d.tier == d.max_tier: has_max_fruit = true
+			elif d.chain_id == "shroom" and d.tier == d.max_tier: has_max_shroom = true
+		if has_max_cake and has_max_fruit and has_max_shroom:
+			return "potion_love"
+
+	# h. nature potion, 2 combo or more, max level pine, max level tree, max level hay
+	if n >= 2:
+		var all_nature_max := true
+		for d in datas:
+			var is_nature_max := (d.chain_id == "pine" and d.tier == d.max_tier) or \
+								 (d.chain_id == "tree" and d.tier == d.max_tier) or \
+								 (d.chain_id == "hay" and d.tier == d.max_tier)
+			if not is_nature_max:
+				all_nature_max = false
+				break
+		if all_nature_max:
+			return "potion_nature"
+
+	# i. omni potion, 3 combo, only potion combo, void potion, love potion, angelic potion
+	if n == 3:
+		var has_void := false
+		var has_love := false
+		var has_angelic := false
+		for d in datas:
+			if d.id == "potion_void": has_void = true
+			elif d.id == "potion_love": has_love = true
+			elif d.id == "potion_angelic": has_angelic = true
+		if has_void and has_love and has_angelic:
+			return "potion_omni"
+
+	# j. void potion, candle max level
+	if n == 1:
+		var d := datas[0]
+		if d.chain_id == "candle" and d.tier == d.max_tier:
+			return "potion_void"
+
+	# k. water potion, max level water
+	if n == 1:
+		var d := datas[0]
+		if d.chain_id == "water" and d.tier == d.max_tier:
+			return "potion_water"
+
+	# l. wind potion, any level wood or tree with max level broom
+	if n == 2:
+		var has_wood_tree := false
+		var has_max_broom := false
+		for d in datas:
+			if d.chain_id in ["tree", "pine", "mystic_tree"]: has_wood_tree = true
+			elif d.chain_id == "broom" and d.tier == d.max_tier: has_max_broom = true
+		if has_wood_tree and has_max_broom:
+			return "potion_wind"
+
+	# m. owl, any level of chicken (chain_id == "bird")
+	if n == 1 and datas[0].chain_id == "bird":
+		return "familiar_owl"
+
+	# n. raven, 3 combo, any level of chicken (3 items of chain_id == "bird")
+	if n == 3:
+		var all_birds := true
+		for d in datas:
+			if d.chain_id != "bird":
+				all_birds = false
+				break
+		if all_birds:
+			return "familiar_raven"
+
+	# o. frog, any level of pig
+	if n == 1 and datas[0].chain_id == "pig":
+		return "familiar_frog"
+
+	# p. kitten, 1 combo max level of sheep or cow
+	if n == 1:
+		var d := datas[0]
+		if (d.chain_id == "sheep" and d.tier == d.max_tier) or (d.chain_id == "cow" and d.tier == d.max_tier):
+			return "familiar_kitten"
+
+	# q. cat, 3 combo max level sheep, max level cow, max level pig
+	if n == 3:
+		var has_max_sheep := false
+		var has_max_cow := false
+		var has_max_pig := false
+		for d in datas:
+			if d.chain_id == "sheep" and d.tier == d.max_tier: has_max_sheep = true
+			elif d.chain_id == "cow" and d.tier == d.max_tier: has_max_cow = true
+			elif d.chain_id == "pig" and d.tier == d.max_tier: has_max_pig = true
+		if has_max_sheep and has_max_cow and has_max_pig:
+			return "familiar_cat"
+
+	return ""
 
 func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 	var target_item := get_item_at(target_coord)
@@ -1525,6 +2031,11 @@ func _return_item_to_origin(item: ItemView) -> void:
 		item.animate_bounce_back(_item_start_local_pos)
 
 func _sell_item(item: ItemView) -> void:
+	if item.is_familiar():
+		SoundManager.play_error()
+		GameEvents.show_floating_text.emit("Familiars cannot be sold!", item.global_position + Vector2(0, -40), Color(1.0, 0.4, 0.4))
+		return
+
 	var value := item.data.sell_value
 	var item_id := item.data.id
 
@@ -1660,6 +2171,7 @@ func serialize_items() -> Array[Dictionary]:
 					"boost_charges": it.boost_charges,
 					"is_milked_ready": it.is_milked_ready,
 					"water_fed": it.water_fed,
+					"cooldown_removed": it.cooldown_removed,
 					"board_theme": it.board_theme
 				}
 				if it.data.is_spawner:
@@ -1672,6 +2184,8 @@ func serialize_items() -> Array[Dictionary]:
 				if it.is_cage():
 					dict["cage_stored_items"] = it.cage_stored_items.duplicate(true)
 					dict["cage_auto_feed_timer"] = it.cage_auto_feed_timer
+				if it.is_cauldron():
+					dict["cauldron_stored_items"] = it.cauldron_stored_items.duplicate(true)
 				result.append(dict)
 	return result
 
@@ -1704,13 +2218,20 @@ func load_items(items_data: Array) -> void:
 						entry.get("cage_stored_items", []),
 						float(entry.get("cage_auto_feed_timer", 30.0))
 					)
+				if entry.has("cauldron_stored_items") and spawned.is_cauldron():
+					var c_items: Array = entry.get("cauldron_stored_items", [])
+					var string_items: Array[String] = []
+					for item in c_items:
+						string_items.append(str(item))
+					spawned.restore_cauldron_state(string_items)
 				spawned.restore_interaction_state(
 					int(entry.get("fed_count", 0)),
 					float(entry.get("shear_cooldown", 0.0)),
 					bool(entry.get("is_boosted", false)),
 					int(entry.get("boost_charges", 0)),
 					bool(entry.get("is_milked_ready", false)),
-					int(entry.get("water_fed", 0))
+					int(entry.get("water_fed", 0)),
+					bool(entry.get("cooldown_removed", false))
 				)
 	check_boxed_items_unlock(ProgressionManager.player_level)
 	check_map_unlock_milestone()

@@ -23,6 +23,7 @@ var tutorial_manager_ref: Node = null
 var current_board_id: String = "kitchen"
 var kitchen_board_items: Array = []
 var farm_board_items: Array = []
+var witch_board_items: Array = []
 
 var _saved_completed_quest_count: int = 0
 
@@ -84,7 +85,9 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 	save_started.emit(is_auto_save)
 
 	if is_instance_valid(board_ref):
-		if current_board_id == "farm":
+		if current_board_id == "witch":
+			witch_board_items = board_ref.serialize_items()
+		elif current_board_id == "farm":
 			farm_board_items = board_ref.serialize_items()
 		else:
 			kitchen_board_items = board_ref.serialize_items()
@@ -99,7 +102,8 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		"current_board_id": current_board_id,
 		"boards": {
 			"kitchen": kitchen_board_items,
-			"farm": farm_board_items
+			"farm": farm_board_items,
+			"witch": witch_board_items
 		},
 		"board": {
 			"cols": board_ref.cols if is_instance_valid(board_ref) else 7,
@@ -170,7 +174,9 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 			int(prog.get("player_exp", 0)),
 			prog.get("reward_queue", []),
 			bool(prog.get("is_map_unlocked", false)),
-			bool(prog.get("farm_visited_first_time", false))
+			bool(prog.get("farm_visited_first_time", false)),
+			bool(prog.get("is_witch_unlocked", false)),
+			bool(prog.get("witch_visited_first_time", false))
 		)
 
 	# 3. Restore Inventory
@@ -188,14 +194,23 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 		var boards_dict: Dictionary = data["boards"]
 		kitchen_board_items = boards_dict.get("kitchen", [])
 		farm_board_items = boards_dict.get("farm", [])
+		witch_board_items = boards_dict.get("witch", [])
 	elif data.has("board"):
 		kitchen_board_items = data["board"].get("items", [])
 		farm_board_items = []
+		witch_board_items = []
 
 	var b := target_board if is_instance_valid(target_board) else board_ref
 	if is_instance_valid(b):
 		b.board_theme = current_board_id
-		var active_items: Array = farm_board_items if current_board_id == "farm" else kitchen_board_items
+		var active_items: Array = []
+		if current_board_id == "witch":
+			active_items = witch_board_items
+		elif current_board_id == "farm":
+			active_items = farm_board_items
+		else:
+			active_items = kitchen_board_items
+
 		if not active_items.is_empty():
 			b.load_items(active_items)
 		elif data.has("board") and current_board_id == "kitchen":
@@ -247,12 +262,16 @@ func load_data(data: Dictionary) -> void:
 		self.completed_quest_count = int(data.get("completed_quest_count", 0))
 
 func get_board_items(board_id: String) -> Array:
-	if board_id == "farm":
+	if board_id == "witch":
+		return witch_board_items
+	elif board_id == "farm":
 		return farm_board_items
 	return kitchen_board_items
 
 func set_board_items(board_id: String, items: Array) -> void:
-	if board_id == "farm":
+	if board_id == "witch":
+		witch_board_items = items
+	elif board_id == "farm":
 		farm_board_items = items
 	else:
 		kitchen_board_items = items
