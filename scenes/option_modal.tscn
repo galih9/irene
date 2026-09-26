@@ -304,7 +304,7 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_close_normal")
 theme_override_styles/pressed = SubResource("StyleBoxFlat_close_pressed")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_hover")
 theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
-text = "✕"
+text = "X"
 
 [node name="Divider" type="HSeparator" parent="Panel/Margin/VBox"]
 layout_mode = 2
@@ -422,5 +422,5 @@ text = "  RESUME GAME"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.58, 0.62, 0.68, 0.7)
 theme_override_font_sizes/font_size = 12
-text = "Version 1.0.8 • Build 8"
+text = "Version 1.0.8 - Build 8"
 horizontal_alignment = 1

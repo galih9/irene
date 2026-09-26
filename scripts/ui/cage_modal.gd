@@ -162,7 +162,7 @@ func _create_occupied_card(slot_idx: int, entry: Dictionary) -> Control:
 	var s_cd: float = float(entry.get("shear_cooldown", 0.0))
 	if s_cd > 0.0:
 		var badge := Label.new()
-		badge.text = "✂️%ds" % int(ceil(s_cd))
+		badge.text = "%ds" % int(ceil(s_cd))
 		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		badge.custom_minimum_size = Vector2(38, 18)
@@ -194,7 +194,7 @@ func _retrieve_animal_to_board(slot_idx: int, from_pos: Vector2) -> void:
 	var empty_cells := board_ref.get_empty_cells()
 	if empty_cells.is_empty():
 		SoundManager.play_error()
-		GameEvents.show_floating_text.emit("Board is Full! ⚠️", global_position + Vector2(240, 300), Color(1.0, 0.4, 0.4))
+		GameEvents.show_floating_text.emit("Board is Full!", global_position + Vector2(240, 300), Color(1.0, 0.4, 0.4))
 		return
 
 	var animal_dict := current_cage.remove_animal_from_cage(slot_idx)
@@ -208,7 +208,7 @@ func _retrieve_animal_to_board(slot_idx: int, from_pos: Vector2) -> void:
 
 	var item_data := ItemDatabase.get_item(item_id)
 	var item_name := item_data.display_name if item_data else item_id
-	GameEvents.show_floating_text.emit("%s to Board! ⬆️" % item_name, from_pos + Vector2(0, -30), Color(0.4, 0.85, 1.0))
+	GameEvents.show_floating_text.emit("%s to Board!" % item_name, from_pos + Vector2(0, -30), Color(0.4, 0.85, 1.0))
 
 	_update_slots()
 	GameEvents.board_changed.emit()

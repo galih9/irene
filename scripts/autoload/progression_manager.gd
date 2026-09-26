@@ -217,7 +217,7 @@ func unlock_map(silent: bool = false) -> void:
 			{
 				"character": "irene",
 				"emotion": "happy",
-				"text": "Incredible work! You have unlocked over 50 tiles in our kitchen! The bistro is thriving again! 🎉"
+				"text": "Incredible work! You have unlocked over 50 tiles in our kitchen! The bistro is thriving again!"
 			},
 			{
 				"character": "irene",

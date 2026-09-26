@@ -205,6 +205,34 @@ var _indicator_base_scale: Vector2 = Vector2.ONE
 # Reference to bottom navigation bar
 var bottom_nav_bar: BottomNavBar = null
 
+var _idle_time: float = 0.0
+var _idle_animation_triggered: bool = false
+
+func _process(delta: float) -> void:
+	_idle_time += delta
+	if _idle_time >= 5.0 and not _idle_animation_triggered:
+		_trigger_idle_helper_animation()
+		_idle_animation_triggered = true
+
+func _trigger_idle_helper_animation() -> void:
+	var items: Array[ItemView] = []
+	for c in range(cols):
+		for r in range(rows):
+			var it: ItemView = _grid[c][r]
+			if is_instance_valid(it) and not it.is_locked and not it.is_webbed:
+				items.append(it)
+	
+	for i in range(items.size()):
+		var it1 := items[i]
+		if it1.data == null or it1.data.tier >= it1.data.max_tier or it1.data.is_spawner or it1.data.is_consumable or it1.data.is_combiner:
+			continue
+		for j in range(i + 1, items.size()):
+			var it2 := items[j]
+			if it2.data == it1.data:
+				it1.animate_shake_left_right()
+				it2.animate_shake_left_right()
+				return
+
 func _ready() -> void:
 	_apply_theme_styling()
 	_apply_board_styling()
@@ -539,6 +567,10 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 # --- Drag and Drop & Tap Processing ---
 
 func _unhandled_input(event: InputEvent) -> void:
+	if event is InputEventMouseButton or (event is InputEventMouseMotion and (event as InputEventMouseMotion).velocity.length() > 0):
+		_idle_time = 0.0
+		_idle_animation_triggered = false
+
 	if event is InputEventMouseButton:
 		var mb := event as InputEventMouseButton
 		if mb.button_index == MOUSE_BUTTON_LEFT:
@@ -732,6 +764,9 @@ func _handle_release(mouse_pos: Vector2) -> void:
 	select_item(item)
 	_update_hover_cursor(mouse_pos)
 
+func _on_item_clicked(item: ItemView) -> void:
+	_handle_item_tap(item)
+
 func _handle_item_tap(item: ItemView) -> void:
 	# 0. Cow Lv.3 Milking
 	if item.data.id == "cow_3" and item.is_milked_ready:
@@ -745,7 +780,7 @@ func _handle_item_tap(item: ItemView) -> void:
 		item.animate_spawner_tap()
 		SoundManager.play_spawn()
 		spawn_item_flight(item.global_position, empty_cells[0], "milk_1")
-		GameEvents.show_floating_text.emit("Milked +1 Fresh Milk! 🥛", item.global_position + Vector2(0, -50), Color(0.95, 0.95, 0.8))
+		GameEvents.show_floating_text.emit("Milked +1 Fresh Milk!", item.global_position + Vector2(0, -50), Color(0.95, 0.95, 0.8))
 		item._update_visuals()
 		select_item(item)
 		GameEvents.board_changed.emit()
@@ -771,7 +806,7 @@ func _handle_item_tap(item: ItemView) -> void:
 		elif item.data.id == "potion_health":
 			item.animate_click()
 			SoundManager.play_pickup()
-			GameEvents.show_floating_text.emit("Heal Potion: Can only be sold! 💰", item.global_position + Vector2(0, -50), Color(0.9, 0.9, 0.4))
+			GameEvents.show_floating_text.emit("Heal Potion: Can only be sold!", item.global_position + Vector2(0, -50), Color(0.9, 0.9, 0.4))
 			return
 		else:
 			item.animate_click()
@@ -783,7 +818,7 @@ func _handle_item_tap(item: ItemView) -> void:
 	if item.is_familiar():
 		item.animate_click()
 		SoundManager.play_pickup()
-		GameEvents.show_floating_text.emit("Drag onto Candle or Mystic Tree to sacrifice! ✨", item.global_position + Vector2(0, -50), Color(0.9, 0.7, 1.0))
+		GameEvents.show_floating_text.emit("Drag onto Candle or Mystic Tree to sacrifice!", item.global_position + Vector2(0, -50), Color(0.9, 0.7, 1.0))
 		return
 
 	# 1. Spawner tap
@@ -817,7 +852,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 		if spawner.water_fed <= 0:
 			spawner.animate_wobble()
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Needs Water to bear fruit! 💧", spawner.global_position + Vector2(0, -50), Color(0.4, 0.8, 1.0))
+			GameEvents.show_floating_text.emit("Needs Water to bear fruit!", spawner.global_position + Vector2(0, -50), Color(0.4, 0.8, 1.0))
 			return
 
 		if not EconomyManager.has_energy(spawner.data.energy_cost):
@@ -849,8 +884,8 @@ func _trigger_spawner(spawner: ItemView) -> void:
 				var d := Vector2(ec).distance_to(Vector2(spawner.grid_coord))
 				if d < best_d:
 					best_d = d
-					best_ec = ec
-			var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+			var drop_context := board_theme if not board_theme.is_empty() else (spawner.board_theme if spawner and not spawner.board_theme.is_empty() else "")
+			var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, drop_context)
 			spawn_item_flight(spawner.global_position, best_ec, drop_id)
 
 		spawner.water_fed -= fruits_to_drop
@@ -858,7 +893,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 			spawner.is_boosted = false
 		spawner._update_visuals()
 		select_item(spawner)
-		GameEvents.show_floating_text.emit("Harvested %d Fruit%s! 🍎" % [fruits_to_drop, "s" if fruits_to_drop > 1 else ""], spawner.global_position + Vector2(0, -50), Color(0.4, 1.0, 0.4))
+		GameEvents.show_floating_text.emit("Harvested %d Fruit%s!" % [fruits_to_drop, "s" if fruits_to_drop > 1 else ""], spawner.global_position + Vector2(0, -50), Color(0.4, 1.0, 0.4))
 		GameEvents.board_changed.emit()
 		return
 	if spawner.is_spawner_exhausted():
@@ -890,7 +925,8 @@ func _trigger_spawner(spawner: ItemView) -> void:
 	SoundManager.play_spawn()
 
 	# Pick drop item
-	var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+	var drop_context := board_theme if not board_theme.is_empty() else (spawner.board_theme if spawner and not spawner.board_theme.is_empty() else "")
+	var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, drop_context)
 	if spawner.data.id.begins_with("foodbox"):
 		if SaveManager and SaveManager.tutorial_manager_ref and SaveManager.tutorial_manager_ref.current_step == TutorialManager.TutorialStep.SPAWN_ITEM:
 			drop_id = "egg_1"
@@ -915,7 +951,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 			spawner.is_boosted = false
 		var extra_cells := get_empty_cells()
 		if not extra_cells.is_empty():
-			var extra_drop := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+			var extra_drop := ItemDatabase.get_spawner_drop(spawner.data.id, drop_context)
 			var it_d := ItemDatabase.get_item(extra_drop)
 			if it_d and it_d.tier < it_d.max_tier:
 				var next_id := it_d.get_next_tier_id()
@@ -929,7 +965,7 @@ func _trigger_spawner(spawner: ItemView) -> void:
 		for f in range(target_count - 1):
 			var extra_cells := get_empty_cells()
 			if not extra_cells.is_empty():
-				var f_drop := ItemDatabase.get_spawner_drop(spawner.data.id, board_theme)
+				var f_drop := ItemDatabase.get_spawner_drop(spawner.data.id, drop_context)
 				spawn_item_flight(spawner.global_position, extra_cells[0], f_drop)
 
 	# If the spawner is consumable (e.g. Chest) and exhausted, it vanishes!
@@ -983,7 +1019,7 @@ func try_auto_spawn(spawner: ItemView) -> bool:
 	var animal_data := ItemDatabase.get_item(drop_id)
 	var animal_name := animal_data.display_name if animal_data else "Animal"
 	GameEvents.show_floating_text.emit(
-		"🐾 %s!" % animal_name,
+		"+1 %s!" % animal_name,
 		spawner.global_position + Vector2(0, -45),
 		Color(0.3, 0.9, 0.5)
 	)
@@ -1017,7 +1053,7 @@ func _harvest_cage_animal(cage: ItemView, chain: String, tier: int) -> bool:
 		var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
 		if is_valid_coord(target_cell):
 			spawn_item_flight(cage.global_position, target_cell, "milk_1")
-			GameEvents.show_floating_text.emit("Harvested Fresh Milk! 🥛", cage.global_position + Vector2(0, -45), Color(1.0, 1.0, 0.8))
+			GameEvents.show_floating_text.emit("Harvested Fresh Milk!", cage.global_position + Vector2(0, -45), Color(1.0, 1.0, 0.8))
 			return true
 	elif chain == "sheep":
 		var wool_count := 1
@@ -1031,19 +1067,19 @@ func _harvest_cage_animal(cage: ItemView, chain: String, tier: int) -> bool:
 			var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
 			if is_valid_coord(target_cell):
 				spawn_item_flight(cage.global_position, target_cell, "wool_1")
-		GameEvents.show_floating_text.emit("Harvested %d Wool! ✂️" % wool_count, cage.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
+		GameEvents.show_floating_text.emit("Harvested %d Wool!" % wool_count, cage.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
 		return true
 	elif chain == "bird":
 		var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
 		if is_valid_coord(target_cell):
 			spawn_item_flight(cage.global_position, target_cell, "egg_1")
-			GameEvents.show_floating_text.emit("Harvested Fresh Egg! 🥚", cage.global_position + Vector2(0, -45), Color(1.0, 0.95, 0.8))
+			GameEvents.show_floating_text.emit("Harvested Fresh Egg!", cage.global_position + Vector2(0, -45), Color(1.0, 0.95, 0.8))
 			return true
 	elif chain == "pig":
 		var target_cell := get_nearby_or_empty_cell(cage.grid_coord)
 		if is_valid_coord(target_cell):
 			spawn_item_flight(cage.global_position, target_cell, "gold_1")
-			GameEvents.show_floating_text.emit("Harvested Gold Coins! 🪙", cage.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.2))
+			GameEvents.show_floating_text.emit("Harvested Gold Coins!", cage.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.2))
 			return true
 	return false
 
@@ -1079,7 +1115,7 @@ func _trigger_consumable(item: ItemView) -> void:
 		GameEvents.show_floating_text.emit("+%d Gold!" % amt, pos + Vector2(0, -40), Color(1.0, 0.85, 0.2))
 		GameEvents.coin_consumed.emit(amt)
 	elif curr == "energy":
-		EconomyManager.add_energy(amt)
+		EconomyManager.add_energy(amt, true)
 		GameEvents.show_floating_text.emit("+%d Energy!" % amt, pos + Vector2(0, -40), Color(0.3, 1.0, 0.5))
 	elif curr == "exp":
 		ProgressionManager.add_exp(amt)
@@ -1093,7 +1129,9 @@ func _trigger_consumable(item: ItemView) -> void:
 	item.queue_free()
 	GameEvents.board_changed.emit()
 
-func _can_merge(data_a: ItemData, data_b: ItemData) -> bool:
+func _can_merge(a: Variant, b: Variant) -> bool:
+	var data_a: ItemData = a.data if (a is ItemView) else (a as ItemData)
+	var data_b: ItemData = b.data if (b is ItemView) else (b as ItemData)
 	if not data_a or not data_b:
 		return false
 	if data_a.chain_id == "potions" or data_b.chain_id == "potions" or data_a.is_potion or data_b.is_potion:
@@ -1124,7 +1162,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 			spawn_item_flight(target_item.global_position, empty_cells[0], "milk_1")
 		target_item._update_visuals()
 		select_item(target_item)
-		GameEvents.show_floating_text.emit("Milked +1 Fresh Milk! 🥛", target_item.global_position + Vector2(0, -45), Color(1.0, 1.0, 1.0))
+		GameEvents.show_floating_text.emit("Milked +1 Fresh Milk!", target_item.global_position + Vector2(0, -45), Color(1.0, 1.0, 1.0))
 		GameEvents.board_changed.emit()
 		return true
 
@@ -1151,7 +1189,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 
 		target_item._update_visuals()
 		select_item(target_item)
-		GameEvents.show_floating_text.emit("Sheared +%d Wool! ✂️" % wool_count, target_item.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
+		GameEvents.show_floating_text.emit("Sheared +%d Wool!" % wool_count, target_item.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
 		GameEvents.board_changed.emit()
 		return true
 
@@ -1164,7 +1202,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 			target_item.is_milked_ready = true
 			target_item.animate_merge_pop()
 			SoundManager.play_consume()
-			GameEvents.show_floating_text.emit("Fed! Cow Ready to Milk! 🥛", target_item.global_position + Vector2(0, -45), Color(0.9, 1.0, 0.4))
+			GameEvents.show_floating_text.emit("Fed! Cow Ready to Milk!", target_item.global_position + Vector2(0, -45), Color(0.9, 1.0, 0.4))
 			target_item._update_visuals()
 			select_item(target_item)
 			GameEvents.board_changed.emit()
@@ -1179,7 +1217,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 			target_item.boost_charges = bonus
 			target_item.animate_merge_pop()
 			SoundManager.play_consume()
-			GameEvents.show_floating_text.emit("Tree Boosted! (+%d Fruit Drop) 🍎" % bonus, target_item.global_position + Vector2(0, -45), Color(0.4, 1.0, 0.4))
+			GameEvents.show_floating_text.emit("Tree Boosted! (+%d Fruit Drop)" % bonus, target_item.global_position + Vector2(0, -45), Color(0.4, 1.0, 0.4))
 			target_item._update_visuals()
 			select_item(target_item)
 			GameEvents.board_changed.emit()
@@ -1193,7 +1231,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		SoundManager.play_consume()
 		var req_cnt := target_item.get_required_feed_count()
 		if target_item.fed_count >= req_cnt:
-			GameEvents.show_floating_text.emit("Fully Fed! Ready to Merge! ⭐", target_item.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.2))
+			GameEvents.show_floating_text.emit("Fully Fed! Ready to Merge!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.2))
 		else:
 			GameEvents.show_floating_text.emit("Fed! (%d/%d)" % [target_item.fed_count, req_cnt], target_item.global_position + Vector2(0, -45), Color(0.5, 1.0, 0.5))
 		target_item._update_visuals()
@@ -1211,7 +1249,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		target_item.producer_status = ItemView.ProducerStatus.READY
 		target_item.animate_merge_pop()
 		SoundManager.play_consume()
-		GameEvents.show_floating_text.emit("Barn Boosted! (+Drop Tier & Spawns) 🛠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.75, 0.3))
+		GameEvents.show_floating_text.emit("Barn Boosted! (+Drop Tier & Spawns)", target_item.global_position + Vector2(0, -45), Color(1.0, 0.75, 0.3))
 		target_item._update_visuals()
 		select_item(target_item)
 		GameEvents.board_changed.emit()
@@ -1228,7 +1266,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 			target_item.is_boosted = true
 			target_item.animate_merge_pop()
 			SoundManager.play_consume()
-			GameEvents.show_floating_text.emit("Watered! (+%d Fruit Yield) 💧🍎" % water_yield, target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
+			GameEvents.show_floating_text.emit("Watered! (+%d Fruit Yield)" % water_yield, target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
 		else:
 			target_item.is_boosted = true
 			target_item.boost_charges += 5
@@ -1238,7 +1276,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 				target_item.producer_status = ItemView.ProducerStatus.READY
 			target_item.animate_merge_pop()
 			SoundManager.play_consume()
-			GameEvents.show_floating_text.emit("Watered & Boosted! 💧", target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
+			GameEvents.show_floating_text.emit("Watered & Boosted!", target_item.global_position + Vector2(0, -45), Color(0.3, 0.85, 1.0))
 
 		target_item._update_visuals()
 		select_item(target_item)
@@ -1250,12 +1288,12 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		if target_item.get_cage_stored_count() >= target_item.get_cage_capacity():
 			target_item.animate_wobble()
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Cage is Full! ⚠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+			GameEvents.show_floating_text.emit("Cage is Full!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 			return false
 		if not target_item.cage_stored_items.is_empty() and dragged.data.id != target_item.get_cage_stored_animal_id():
 			target_item.animate_wobble()
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Only same animal & level allowed! ⚠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+			GameEvents.show_floating_text.emit("Only same animal & level allowed!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 			return false
 
 		target_item.add_animal_to_cage(dragged)
@@ -1264,7 +1302,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		target_item.animate_merge_pop()
 		SoundManager.play_drop()
 		var a_name := target_item.get_cage_stored_animal_name()
-		GameEvents.show_floating_text.emit("Stored %s! (%d/%d) 🐾" % [a_name, target_item.get_cage_stored_count(), target_item.get_cage_capacity()], target_item.global_position + Vector2(0, -45), Color(0.4, 0.85, 1.0))
+		GameEvents.show_floating_text.emit("Stored %s! (%d/%d)" % [a_name, target_item.get_cage_stored_count(), target_item.get_cage_capacity()], target_item.global_position + Vector2(0, -45), Color(0.4, 0.85, 1.0))
 		select_item(target_item)
 		GameEvents.board_changed.emit()
 		return true
@@ -1275,7 +1313,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		if s_idx < 0:
 			target_item.animate_wobble()
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Sheep are resting! (Cooldown) ✂️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.6, 0.4))
+			GameEvents.show_floating_text.emit("Sheep are resting! (Cooldown)", target_item.global_position + Vector2(0, -45), Color(1.0, 0.6, 0.4))
 			return false
 
 		_clear_source_slot(dragged)
@@ -1302,7 +1340,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 
 		target_item._update_visuals()
 		select_item(target_item)
-		GameEvents.show_floating_text.emit("Sheared +%d Wool! ✂️" % wool_count, target_item.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
+		GameEvents.show_floating_text.emit("Sheared +%d Wool!" % wool_count, target_item.global_position + Vector2(0, -45), Color(0.9, 0.85, 1.0))
 		GameEvents.board_changed.emit()
 		return true
 
@@ -1334,12 +1372,12 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 			if cap <= 0:
 				target_item.animate_wobble()
 				SoundManager.play_error()
-				GameEvents.show_floating_text.emit("Merge to Lv.4 to unlock brewing! 🧪", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+				GameEvents.show_floating_text.emit("Merge to Lv.4 to unlock brewing!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 				return false
 			if target_item.cauldron_stored_items.size() >= cap:
 				target_item.animate_wobble()
 				SoundManager.play_error()
-				GameEvents.show_floating_text.emit("Cauldron is full! Tap to brew! 🧪", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+				GameEvents.show_floating_text.emit("Cauldron is full! Tap to brew!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 				return false
 
 			_clear_source_slot(dragged)
@@ -1354,7 +1392,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 			if target_item.cauldron_stored_items.size() >= cap:
 				_brew_cauldron(target_item)
 			else:
-				GameEvents.show_floating_text.emit("Added %s! (%d/%d) 🧪" % [ing_name, target_item.cauldron_stored_items.size(), cap], target_item.global_position + Vector2(0, -45), Color(0.8, 0.5, 1.0))
+				GameEvents.show_floating_text.emit("Added %s! (%d/%d)" % [ing_name, target_item.cauldron_stored_items.size(), cap], target_item.global_position + Vector2(0, -45), Color(0.8, 0.5, 1.0))
 			select_item(target_item)
 			GameEvents.board_changed.emit()
 			return true
@@ -1368,14 +1406,13 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		target_item.animate_merge_pop()
 		SoundManager.play_consume()
 
-		var empty_cell := get_nearby_or_empty_cell(target_item.grid_coord)
-		var reward_id := "gold_6" if randf() < 0.5 else "exp_6"
-		if is_valid_coord(empty_cell):
-			spawn_item_flight(target_item.global_position, empty_cell, reward_id)
-		else:
-			ProgressionManager.push_reward(reward_id)
+		if target_item.data.chain_id == "candle":
+			EconomyManager.add_coins(100)
+			GameEvents.show_floating_text.emit("Sacrificed %s! +100 Gold!" % fam_name, target_item.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.3))
+		elif target_item.data.chain_id == "mystic_tree":
+			ProgressionManager.add_exp(50)
+			GameEvents.show_floating_text.emit("Sacrificed %s! +50 EXP!" % fam_name, target_item.global_position + Vector2(0, -45), Color(0.8, 0.5, 1.0))
 
-		GameEvents.show_floating_text.emit("Sacrificed %s! Converted to Gold & EXP! ✨" % fam_name, target_item.global_position + Vector2(0, -45), Color(1.0, 0.85, 0.3))
 		select_item(target_item)
 		GameEvents.board_changed.emit()
 		return true
@@ -1395,14 +1432,14 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 					target_item.animate_merge_pop()
 					SoundManager.play_consume()
 					ProgressionManager.unlock_item(max_id)
-					GameEvents.show_floating_text.emit("Angelic Blessing! Max Level Reached! 🌟", target_item.global_position + Vector2(0, -45), Color(1.0, 0.9, 0.4))
+					GameEvents.show_floating_text.emit("Angelic Blessing! Max Level Reached!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.9, 0.4))
 					select_item(target_item)
 					GameEvents.board_changed.emit()
 					return true
 				else:
 					dragged.animate_wobble()
 					SoundManager.play_error()
-					GameEvents.show_floating_text.emit("Item already at Max Level! ⭐", dragged.global_position + Vector2(0, -45), Color(1.0, 0.6, 0.4))
+					GameEvents.show_floating_text.emit("Item already at Max Level!", dragged.global_position + Vector2(0, -45), Color(1.0, 0.6, 0.4))
 					return false
 
 			"potion_fire":
@@ -1424,14 +1461,14 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 					else:
 						ProgressionManager.push_reward(lower_id)
 
-					GameEvents.show_floating_text.emit("Fire Split into Two (Lv.%d)! 🔥" % lower_tier, target_item.global_position + Vector2(0, -45), Color(1.0, 0.5, 0.2))
+					GameEvents.show_floating_text.emit("Fire Split into Two (Lv.%d)!" % lower_tier, target_item.global_position + Vector2(0, -45), Color(1.0, 0.5, 0.2))
 					select_item(target_item)
 					GameEvents.board_changed.emit()
 					return true
 				else:
 					dragged.animate_wobble()
 					SoundManager.play_error()
-					GameEvents.show_floating_text.emit("Cannot split Level 1 item! ⚠️", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					GameEvents.show_floating_text.emit("Cannot split Level 1 item!", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 					return false
 
 			"potion_freeze":
@@ -1447,7 +1484,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 					ProgressionManager.push_reward(dup_id)
 
 				SoundManager.play_consume()
-				GameEvents.show_floating_text.emit("Frozen Clone of %s! ❄️" % dup_name, target_item.global_position + Vector2(0, -45), Color(0.4, 0.8, 1.0))
+				GameEvents.show_floating_text.emit("Frozen Clone of %s!" % dup_name, target_item.global_position + Vector2(0, -45), Color(0.4, 0.8, 1.0))
 				select_item(target_item)
 				GameEvents.board_changed.emit()
 				return true
@@ -1463,14 +1500,14 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 					target_item._update_visuals()
 					target_item.animate_merge_pop()
 					SoundManager.play_consume()
-					GameEvents.show_floating_text.emit("Nature Blessing! Cooldown Removed! 🌿", target_item.global_position + Vector2(0, -45), Color(0.3, 1.0, 0.5))
+					GameEvents.show_floating_text.emit("Nature Blessing! Cooldown Removed!", target_item.global_position + Vector2(0, -45), Color(0.3, 1.0, 0.5))
 					select_item(target_item)
 					GameEvents.board_changed.emit()
 					return true
 				else:
 					dragged.animate_wobble()
 					SoundManager.play_error()
-					GameEvents.show_floating_text.emit("Must be placed on Pine or Fruit Tree! 🌿", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					GameEvents.show_floating_text.emit("Must be placed on Pine or Fruit Tree!", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 					return false
 
 			"potion_void":
@@ -1480,7 +1517,7 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 				remove_item(target_item)
 				target_item.queue_free()
 				SoundManager.play_consume()
-				GameEvents.show_floating_text.emit("Banished to the Void! 🕳️", pos + Vector2(0, -45), Color(0.6, 0.2, 0.8))
+				GameEvents.show_floating_text.emit("Banished to the Void!", pos + Vector2(0, -45), Color(0.6, 0.2, 0.8))
 				clear_selection()
 				GameEvents.board_changed.emit()
 				return true
@@ -1496,14 +1533,14 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 					target_item._update_visuals()
 					target_item.animate_merge_pop()
 					SoundManager.play_consume()
-					GameEvents.show_floating_text.emit("Endless Spring! Cooldown Removed! 💧", target_item.global_position + Vector2(0, -45), Color(0.2, 0.8, 1.0))
+					GameEvents.show_floating_text.emit("Endless Spring! Cooldown Removed!", target_item.global_position + Vector2(0, -45), Color(0.2, 0.8, 1.0))
 					select_item(target_item)
 					GameEvents.board_changed.emit()
 					return true
 				else:
 					dragged.animate_wobble()
 					SoundManager.play_error()
-					GameEvents.show_floating_text.emit("Must be placed on Water item! 💧", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					GameEvents.show_floating_text.emit("Must be placed on Water item!", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 					return false
 
 			"potion_wind":
@@ -1517,14 +1554,14 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 					target_item._update_visuals()
 					target_item.animate_merge_pop()
 					SoundManager.play_consume()
-					GameEvents.show_floating_text.emit("Wind Swiftness! Cooldown Removed! 🌪️", target_item.global_position + Vector2(0, -45), Color(0.7, 0.9, 1.0))
+					GameEvents.show_floating_text.emit("Wind Swiftness! Cooldown Removed!", target_item.global_position + Vector2(0, -45), Color(0.7, 0.9, 1.0))
 					select_item(target_item)
 					GameEvents.board_changed.emit()
 					return true
 				else:
 					dragged.animate_wobble()
 					SoundManager.play_error()
-					GameEvents.show_floating_text.emit("Must be placed on Mystic Tree! 🌪️", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+					GameEvents.show_floating_text.emit("Must be placed on Mystic Tree!", dragged.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
 					return false
 
 	return false
@@ -1547,23 +1584,17 @@ func _trigger_potion_tap(potion: ItemView) -> void:
 				else:
 					ProgressionManager.push_reward("exp_10")
 			SoundManager.play_quest()
-			GameEvents.show_floating_text.emit("+5 Celestial Beacons (Max EXP)! 🌟", pos + Vector2(0, -50), Color(0.8, 0.5, 1.0))
+			GameEvents.show_floating_text.emit("+5 Celestial Beacons (Max EXP)!", pos + Vector2(0, -50), Color(0.8, 0.5, 1.0))
 			clear_selection()
 			GameEvents.board_changed.emit()
 
 		"potion_gold":
 			var pos := potion.global_position
-			var cell := potion.grid_coord
 			remove_item(potion)
 			potion.queue_free()
-			for i in range(5):
-				var empty_cell := get_nearby_or_empty_cell(cell)
-				if is_valid_coord(empty_cell):
-					spawn_item_flight(pos, empty_cell, "gold_8")
-				else:
-					ProgressionManager.push_reward("gold_8")
-			SoundManager.play_quest()
-			GameEvents.show_floating_text.emit("+5 Royal Treasure Chests (Max Gold)! 💰", pos + Vector2(0, -50), Color(1.0, 0.85, 0.2))
+			EconomyManager.add_coins(150)
+			SoundManager.play_consume()
+			GameEvents.show_floating_text.emit("+150 Coins!", pos + Vector2(0, -50), Color(1.0, 0.85, 0.2))
 			clear_selection()
 			GameEvents.board_changed.emit()
 
@@ -1579,7 +1610,7 @@ func _trigger_potion_tap(potion: ItemView) -> void:
 				else:
 					ProgressionManager.push_reward("diamond_7")
 			SoundManager.play_quest()
-			GameEvents.show_floating_text.emit("+5 Hearts of Eternity (Max Diamond)! 💎", pos + Vector2(0, -50), Color(0.45, 0.88, 1.0))
+			GameEvents.show_floating_text.emit("+5 Hearts of Eternity (Max Diamond)!", pos + Vector2(0, -50), Color(0.45, 0.88, 1.0))
 			clear_selection()
 			GameEvents.board_changed.emit()
 
@@ -1588,7 +1619,7 @@ func _trigger_potion_tap(potion: ItemView) -> void:
 			clear_board(true)
 			EconomyManager.add_gems(20000)
 			SoundManager.play_quest()
-			GameEvents.show_floating_text.emit("OMNI PURIFICATION! Board Purified! +20,000 💎", pos + Vector2(0, -50), Color(1.0, 0.9, 0.3))
+			GameEvents.show_floating_text.emit("OMNI PURIFICATION! Board Purified! +20,000 Diamonds", pos + Vector2(0, -50), Color(1.0, 0.9, 0.3))
 			clear_selection()
 			GameEvents.board_changed.emit()
 
@@ -1598,7 +1629,7 @@ func _brew_cauldron(cauldron: ItemView) -> void:
 	if cauldron.cauldron_stored_items.is_empty():
 		return
 
-	var ingredients: Array[String] = cauldron.cauldron_stored_items.duplicate()
+	var ingredients: Array = cauldron.cauldron_stored_items.duplicate()
 	cauldron.cauldron_stored_items.clear()
 
 	var result_id := _match_cauldron_recipe(ingredients)
@@ -1606,21 +1637,19 @@ func _brew_cauldron(cauldron: ItemView) -> void:
 		var fallbacks := ["familiar_rat", "hay_7", "potion_health"]
 		result_id = fallbacks[randi() % fallbacks.size()]
 
-	var empty_cell := get_nearby_or_empty_cell(cauldron.grid_coord)
-	if is_valid_coord(empty_cell):
-		spawn_item_flight(cauldron.global_position, empty_cell, result_id)
-	else:
-		ProgressionManager.push_reward(result_id)
+	var res_data := ItemDatabase.get_item(result_id)
+	if res_data:
+		cauldron.setup(res_data, ItemView.ItemState.NORMAL)
+		cauldron.board_theme = board_theme
 
 	cauldron.animate_merge_pop()
 	SoundManager.play_quest()
-	var res_data := ItemDatabase.get_item(result_id)
 	var res_name := res_data.display_name if res_data else result_id
-	GameEvents.show_floating_text.emit("Brewed %s! 🔮" % res_name, cauldron.global_position + Vector2(0, -50), Color(0.9, 0.6, 1.0))
+	GameEvents.show_floating_text.emit("Brewed %s!" % res_name, cauldron.global_position + Vector2(0, -50), Color(0.9, 0.6, 1.0))
 	select_item(cauldron)
 	GameEvents.board_changed.emit()
 
-func _match_cauldron_recipe(ingredients: Array[String]) -> String:
+func _match_cauldron_recipe(ingredients: Array) -> String:
 	var n := ingredients.size()
 	if n == 0:
 		return ""
@@ -1857,7 +1886,7 @@ func _drop_into_board(dragged: ItemView, target_coord: Vector2i) -> void:
 			target_item.animate_wobble()
 			dragged.animate_wobble()
 			SoundManager.play_error()
-			GameEvents.show_floating_text.emit("Empty cage before merging! ⚠️", target_item.global_position + Vector2(0, -45), Color(1.0, 0.45, 0.45))
+			GameEvents.show_floating_text.emit("Empty cage before merging!", target_item.global_position + Vector2(0, -45), Color(1.0, 0.45, 0.45))
 			_return_item_to_origin(dragged)
 			select_item(dragged)
 			return
@@ -1909,7 +1938,7 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		if bottom_nav_bar:
 			var inv_btn: Control = bottom_nav_bar.get_inventory_button()
 			text_pos = inv_btn.global_position + Vector2(inv_btn.size.x * 0.5, -20)
-		GameEvents.show_floating_text.emit("Too large for Backpack! 🎒", text_pos, Color(1.0, 0.4, 0.4))
+		GameEvents.show_floating_text.emit("Too large for Backpack!", text_pos, Color(1.0, 0.4, 0.4))
 		_return_item_to_origin(item)
 		return
 
@@ -1954,6 +1983,16 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		GameEvents.board_changed.emit()
 	else:
 		_return_item_to_origin(item)
+
+func try_merge(from_coord: Vector2i, to_coord: Vector2i) -> bool:
+	var source := get_item_at(from_coord)
+	var target := get_item_at(to_coord)
+	if not source or not target:
+		return false
+	if not _can_merge(source.data, target.data):
+		return false
+	_execute_merge(source, target)
+	return true
 
 func _execute_merge(source: ItemView, target: ItemView) -> void:
 	var next_id := target.data.get_next_tier_id()
@@ -2044,7 +2083,7 @@ func _sell_item(item: ItemView) -> void:
 		var diamond_value := 50
 		EconomyManager.add_gems(diamond_value)
 		SoundManager.play_consume()
-		GameEvents.show_floating_text.emit("+%d Diamonds (Boar Sold) 💎" % diamond_value, item.global_position + Vector2(0, -40), Color(0.45, 0.88, 1.0))
+		GameEvents.show_floating_text.emit("+%d Diamonds (Boar Sold)" % diamond_value, item.global_position + Vector2(0, -40), Color(0.45, 0.88, 1.0))
 		remove_item(item)
 		item.queue_free()
 		GameEvents.item_sold.emit(item_id, diamond_value)

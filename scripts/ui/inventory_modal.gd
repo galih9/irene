@@ -96,7 +96,7 @@ func _update_slots() -> void:
 
 			var buy_btn := Button.new()
 			buy_btn.custom_minimum_size = Vector2(120, 38)
-			var currency_icon_str := "🪙 Gold" if cost.get("currency", "") == "coins" else "💎 Gems"
+			var currency_icon_str := "Gold" if cost.get("currency", "") == "coins" else "Gems"
 			buy_btn.text = "%d %s\nUnlock" % [cost.get("amount", 0), currency_icon_str]
 			buy_btn.add_theme_font_size_override("font_size", 11)
 			buy_btn.disabled = not can_afford
@@ -119,14 +119,14 @@ func _update_slots() -> void:
 			buy_btn.pressed.connect(func():
 				if InventoryManager.unlock_next_row():
 					SoundManager.play_quest()
-					GameEvents.show_floating_text.emit("+4 Backpack Slots! 🎉", buy_btn.global_position + Vector2(0, -30), Color(0.3, 1.0, 0.4))
+					GameEvents.show_floating_text.emit("+4 Backpack Slots!", buy_btn.global_position + Vector2(0, -30), Color(0.3, 1.0, 0.4))
 					_update_slots()
 			)
 			hbox.add_child(buy_btn)
 			expansion_container.add_child(expand_panel)
 		else:
 			var max_lbl := Label.new()
-			max_lbl.text = "✨ Maximum Storage Capacity Reached (9 / 9 Rows) ✨"
+			max_lbl.text = "Maximum Storage Capacity Reached (9 / 9 Rows)"
 			max_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 			max_lbl.add_theme_font_size_override("font_size", 12)
 			max_lbl.add_theme_color_override("font_color", Color(0.35, 0.65, 0.4))
@@ -225,7 +225,7 @@ func _create_slot_card(slot_idx: int, item_id: String) -> Control:
 	elif slot_data.has("water_fed") and int(slot_data.get("water_fed", 0)) > 0:
 		var w_count: int = int(slot_data.get("water_fed", 0))
 		var badge := Label.new()
-		badge.text = "🍎%d" % w_count
+		badge.text = "%d" % w_count
 		badge.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		badge.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 		badge.custom_minimum_size = Vector2(28, 18)
@@ -255,7 +255,7 @@ func _retrieve_item_to_board(slot_idx: int, item_id: String, from_pos: Vector2) 
 	var empty_cells := board_ref.get_empty_cells()
 	if empty_cells.is_empty():
 		SoundManager.play_error()
-		GameEvents.show_floating_text.emit("Board is Full! ⚠️", global_position + Vector2(330, 400), Color(1.0, 0.4, 0.4))
+		GameEvents.show_floating_text.emit("Board is Full!", global_position + Vector2(330, 400), Color(1.0, 0.4, 0.4))
 		return
 
 	# Retrieve stored metadata before removing
@@ -271,6 +271,6 @@ func _retrieve_item_to_board(slot_idx: int, item_id: String, from_pos: Vector2) 
 
 	var item_data := ItemDatabase.get_item(item_id)
 	var item_name := item_data.display_name if item_data else item_id
-	GameEvents.show_floating_text.emit("%s to Board! ⬆️" % item_name, from_pos + Vector2(0, -30), Color(0.4, 0.85, 1.0))
+	GameEvents.show_floating_text.emit("%s to Board!" % item_name, from_pos + Vector2(0, -30), Color(0.4, 0.85, 1.0))
 
 	_update_slots()

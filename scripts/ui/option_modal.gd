@@ -100,10 +100,10 @@ func _on_save_pressed() -> void:
 	SoundManager.play_click()
 	var success := SaveManager.save_game(true, false)
 	if success:
-		status_label.text = "Game saved successfully! ✔"
+		status_label.text = "Game saved successfully!"
 		status_label.add_theme_color_override("font_color", Color(0.18, 0.65, 0.32))
 	else:
-		status_label.text = "Failed to save game! ✖"
+		status_label.text = "Failed to save game!"
 		status_label.add_theme_color_override("font_color", Color(0.85, 0.2, 0.2))
 
 func _on_bgm_pressed() -> void:

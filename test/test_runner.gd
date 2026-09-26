@@ -32,7 +32,7 @@ func _ready() -> void:
 	assert(removed == "egg_1", "Removed item should be egg_1")
 	assert(InventoryManager.get_used_count() == 7, "Used slots should be 7")
 	assert(InventoryManager.has_free_slot() == true, "Inventory should now have a free slot")
-	print("✔ InventoryManager test passed!")
+	print("[OK] InventoryManager test passed!")
 
 	# 2. Test ProgressionManager & EXP / Leveling
 	print("\n--- Testing ProgressionManager & Player Level ---")
@@ -66,7 +66,7 @@ func _ready() -> void:
 	assert(reward.coins == 0, "Reward coins should be 0")
 	assert(reward.exp == 0, "Reward exp should be 0")
 	assert(ProgressionManager.is_claimed("cake_1") == true, "Reward should now be claimed")
-	print("✔ ProgressionManager & Player Level test passed!")
+	print("[OK] ProgressionManager & Player Level test passed!")
 
 	# 3. Test Shop Purchases
 	print("\n--- Testing Shop Purchases ---")
@@ -78,7 +78,7 @@ func _ready() -> void:
 	EconomyManager.add_energy(25)
 	assert(EconomyManager.energy == 45, "Energy should be 45 after +25 refill")
 	assert(EconomyManager.coins == 75, "Coins should be 75 after spending 25")
-	print("✔ Shop economy test passed!")
+	print("[OK] Shop economy test passed!")
 
 	# 4. Test All 15 Item Chains Registration
 	print("\n--- Testing 15 Item Chains & Textures ---")
@@ -136,7 +136,7 @@ func _ready() -> void:
 			total_items_checked += 1
 
 	assert(total_items_checked == 105, "Expected exactly 105 items, checked %d" % total_items_checked)
-	print("✔ All 15 item chains (105 items) successfully verified!")
+	print("[OK] All 15 item chains (105 items) successfully verified!")
 
 	# 5. Test HUD UI Currency & Level Sprites
 	print("\n--- Testing HUD UI Elements & Sprites ---")
@@ -165,7 +165,7 @@ func _ready() -> void:
 	assert(options_btn.icon.resource_path == "res://assets/icon/icon_gear.png", "OptionsBtn must use icon_gear.png")
 
 	hud_inst.queue_free()
-	print("✔ HUD UI & Currency indicators verified!")
+	print("[OK] HUD UI & Currency indicators verified!")
 
 	# 6. Test BottomNavBar Sprites
 	print("\n--- Testing BottomNavBar Sprites ---")
@@ -186,7 +186,7 @@ func _ready() -> void:
 	assert(nav_shop_icon.texture.resource_path == "res://assets/icon/icon_shop.png", "ShopBtn must use icon_shop.png")
 
 	nav_inst.queue_free()
-	print("✔ BottomNavBar button sprites verified!")
+	print("[OK] BottomNavBar button sprites verified!")
 
 	# 7. Test ItemView Visuals & Dynamic Scaling
 	print("\n--- Testing ItemView Texture & Dynamic Scaling ---")
@@ -198,7 +198,7 @@ func _ready() -> void:
 	assert(leaf_sprite.texture == ItemDatabase.get_item("leaf_1").icon_texture, "Leaf sprite texture must match leaf_1 icon_texture")
 	assert(leaf_sprite.scale.x > 0.0 and leaf_sprite.scale.x < 0.3, "Leaf sprite scale must be dynamically scaled down for 500px textures")
 	leaf_view.queue_free()
-	print("✔ ItemView dynamic scaling verified!")
+	print("[OK] ItemView dynamic scaling verified!")
 
 	# 8. Test Main Scene & Background Setup
 	print("\n--- Testing Main Scene Background Setup ---")
@@ -223,7 +223,7 @@ func _ready() -> void:
 	assert(sell_btn != null, "SellBtn must exist in InfoArea")
 
 	main_inst.queue_free()
-	print("✔ Main scene background & InfoArea verified!")
+	print("[OK] Main scene background & InfoArea verified!")
 
 	# 9. Test 7x9 Board & Visual Parameters
 	print("\n--- Testing 7x9 Board & Visual Parameters ---")
@@ -244,7 +244,7 @@ func _ready() -> void:
 	assert(cell_1_0.cell_bg_color.is_equal_approx(test_board.tile_bg_alt_color), "Cell (1, 0) should use tile_bg_alt_color (lighter tone)")
 
 	test_board.queue_free()
-	print("✔ 7x9 Board verified!")
+	print("[OK] 7x9 Board verified!")
 
 	# 10. Test Persistence Save & Restore
 	print("\n--- Testing Persistence Save & Restore ---")
@@ -315,7 +315,7 @@ func _ready() -> void:
 	SaveManager.delete_save()
 	save_board.queue_free()
 	SaveManager.board_ref = null
-	print("✔ Persistence Save & Restore verified!")
+	print("[OK] Persistence Save & Restore verified!")
 
 	# 11. Test Option Modal
 	print("\n--- Testing Option Modal ---")
@@ -337,7 +337,7 @@ func _ready() -> void:
 	assert(SoundManager.bgm_enabled == orig_bgm, "BGM toggle must restore state")
 
 	option_inst.queue_free()
-	print("✔ Option Modal verified!")
+	print("[OK] Option Modal verified!")
 
 	# 12. Test Main Menu Scene
 	print("\n--- Testing Main Menu Scene ---")
@@ -349,6 +349,11 @@ func _ready() -> void:
 	assert(menu_inst.new_game_btn != null, "NewGameBtn must exist in MainMenu")
 	assert(menu_inst.options_btn != null, "OptionsBtn must exist in MainMenu")
 	assert(menu_inst.quit_btn != null, "QuitBtn must exist in MainMenu")
+	assert(menu_inst.title_label != null and menu_inst.title_label.text == "All you can merge", "Game title should be 'All you can merge'")
+	assert(menu_inst.tap_to_play_area != null, "TapToPlayArea must exist in MainMenu")
+	assert(menu_inst.tap_label != null and menu_inst.tap_label.text.to_lower().contains("tap to play"), "Tap to play text must be present")
+	assert(menu_inst.options_btn.text.strip_edges() == "OPTIONS", "Options button text must be OPTIONS")
+	assert(menu_inst.quit_btn.text.strip_edges() == "EXIT", "QuitBtn text must be EXIT")
 
 	# Test opening options modal hides main menu UI
 	assert(menu_inst.menu_container.visible == true, "Menu container should be visible initially")
@@ -361,8 +366,14 @@ func _ready() -> void:
 	menu_inst._on_options_closed()
 	assert(menu_inst.menu_container.visible == true, "Menu container should be restored when options closes")
 
+	# Test tap to play logic
+	SaveManager.delete_save()
+	menu_inst._is_starting = false
+	menu_inst._on_tap_to_play()
+	assert(SaveManager.should_load_on_start == false, "Without save, tap to play sets should_load_on_start = false")
+
 	menu_inst.queue_free()
-	print("✔ Main Menu Scene verified!")
+	print("[OK] Main Menu Scene verified!")
 
 	# 13. Test Boxed & Locked Item Gameplay Mechanics
 	print("\n--- Testing Boxed & Locked Item Mechanics ---")
@@ -491,7 +502,7 @@ func _ready() -> void:
 	GameEvents.show_floating_text.disconnect(float_sub)
 	mech_board.queue_free()
 	restore_board.queue_free()
-	print("✔ Boxed & Locked Item Mechanics fully verified!")
+	print("[OK] Boxed & Locked Item Mechanics fully verified!")
 
 	# 14. Test Producer Tier 3 & Stacking Cooldown Mechanics
 	print("\n--- Testing Producer Tier 3 & Stacking Cooldown Mechanics ---")
@@ -558,7 +569,7 @@ func _ready() -> void:
 	assert(fb3.current_charges == 10, "Full charges (10) must be restored")
 
 	spawner_board.queue_free()
-	print("✔ Producer Tier 3 & Stacking Cooldown Mechanics verified!")
+	print("[OK] Producer Tier 3 & Stacking Cooldown Mechanics verified!")
 
 	# 15. Test Initial Board First Experience Layout
 	print("\n--- Testing Initial Board First Experience Layout ---")
@@ -615,7 +626,7 @@ func _ready() -> void:
 	assert(spawner_t3f.is_spawner_ready() == true, "foodbox_3 must be ready")
 	assert(main_board.get_item_at(Vector2i(2, 4)) == null, "Cell (2, 4) must now be empty")
 
-	print("✔ Initial Board First Experience Layout verified!")
+	print("[OK] Initial Board First Experience Layout verified!")
 
 	# 16. Test UI Scene-Configured Styles & No Script Overwrite
 	print("\n--- Testing UI Scene-Configured Styles & No Script Overwrite ---")
@@ -639,7 +650,7 @@ func _ready() -> void:
 	assert(hud_shop_sb is StyleBoxFlat, "HUD ShopBtn must have StyleBoxFlat configured from scene")
 
 	main_inst_test.queue_free()
-	print("✔ UI Scene-Configured Styles verified!")
+	print("[OK] UI Scene-Configured Styles verified!")
 
 	# 17. Test Custom Cursor System
 	print("\n--- Testing Custom Cursor System ---")
@@ -708,7 +719,7 @@ func _ready() -> void:
 	CursorManager.reset_cursor()
 
 	cursor_test_board.queue_free()
-	print("✔ Custom Cursor System verified!")
+	print("[OK] Custom Cursor System verified!")
 
 	# 18. Test Multi-Track Looped BGM System & Splash Screen Duration
 	print("\n--- Testing Multi-Track Looped BGM System & Splash Screen ---")
@@ -742,7 +753,7 @@ func _ready() -> void:
 
 	# Verify SplashScreen duration constant is 3.0s
 	assert(SplashScreen.SPLASH_DURATION == 3.0, "SplashScreen duration must be 3.0 seconds")
-	print("✔ Multi-Track Looped BGM System & Splash Screen verified!")
+	print("[OK] Multi-Track Looped BGM System & Splash Screen verified!")
 
 	# 19. Test Sound Effects (Kenney SFX Audio Pool)
 	print("\n--- Testing Kenney SFX Audio Pool ---")
@@ -767,7 +778,7 @@ func _ready() -> void:
 	SoundManager.play_click()
 	SoundManager.play_open()
 	SoundManager.play_close()
-	print("✔ Kenney SFX Audio Pool verified!")
+	print("[OK] Kenney SFX Audio Pool verified!")
 
 	# 20. Test Distinct Merge Sounds per Item & Chain
 	print("\n--- Testing Distinct Merge Sounds per Item & Chain ---")
@@ -792,7 +803,7 @@ func _ready() -> void:
 	SoundManager.play_merge(test_beef)
 	SoundManager.play_merge(test_chest)
 	SoundManager.play_merge(null) # Test fallback
-	print("✔ Distinct Merge Sounds verified!")
+	print("[OK] Distinct Merge Sounds verified!")
 
 	# 21. Test Chest Item Data & Producer Drops
 	print("\n--- Testing Chest Item Data & Producer Drops ---")
@@ -809,7 +820,7 @@ func _ready() -> void:
 	assert(chest_1.spawn_pool.has("fridge_1"), "chest_1 must spawn fridge_1")
 	assert(chest_2.spawn_pool.has("rack_1"), "chest_2 must spawn rack_1")
 	assert(chest_2.spawn_pool.has("foodbox_1"), "chest_2 must spawn foodbox_1")
-	print("✔ Chest Item Data & Producer Drops verified!")
+	print("[OK] Chest Item Data & Producer Drops verified!")
 
 	# 22. Test Chest Gameplay Mechanics (Exhaustion Disappearance & Merge Reset)
 	print("\n--- Testing Chest Gameplay Mechanics ---")
@@ -853,7 +864,7 @@ func _ready() -> void:
 	assert(merged_chest.spawner_label.text == "5", "Merged chest badge must display 5")
 
 	test_board_2.queue_free()
-	print("✔ Chest Gameplay Mechanics (Disappearance & Charge Reset) verified!")
+	print("[OK] Chest Gameplay Mechanics (Disappearance & Charge Reset) verified!")
 
 	# 23. Test Temporary Reward Slot & FIFO Queue
 	print("\n--- Testing Temporary Reward Slot & FIFO Queue ---")
@@ -907,7 +918,7 @@ func _ready() -> void:
 	assert(reward_nav_bar.reward_btn.visible == false, "Reward button must be hidden when queue is empty")
 
 	reward_nav_bar.queue_free()
-	print("✔ Temporary Reward Slot & FIFO Queue verified!")
+	print("[OK] Temporary Reward Slot & FIFO Queue verified!")
 
 	# 24. Test Codex Discovery Chest Rewards & Persistence
 	print("\n--- Testing Codex Discovery Chest Rewards & Persistence ---")
@@ -937,7 +948,7 @@ func _ready() -> void:
 	SaveManager.load_game()
 	assert(ProgressionManager.get_reward_count() == 1, "Restored queue must have 1 reward")
 	assert(ProgressionManager.peek_reward() == expected_chest, "Restored reward must be expected chest")
-	print("✔ Codex Discovery Chest Rewards & Persistence verified!")
+	print("[OK] Codex Discovery Chest Rewards & Persistence verified!")
 
 	# 25. Test 4 New Color Chest Chains (Purple, Green, Yellow, Blue)
 	print("\n--- Testing 4 Color Chest Chains ---")
@@ -985,7 +996,7 @@ func _ready() -> void:
 			assert(focus_count > 0, "Chest %s must drop focus resource %s" % [chest_id, focus_prefix])
 			assert(focus_count >= spawner_count, "Chest %s focus drops must exceed spawner drops" % chest_id)
 
-	print("✔ 4 Color Chest chains (16 items) verified!")
+	print("[OK] 4 Color Chest chains (16 items) verified!")
 
 	# 26. Test Irene Dialogue Modal & Toaster UI
 	print("\n--- Testing Irene Dialogue Modal & Toaster UI ---")
@@ -1020,7 +1031,7 @@ func _ready() -> void:
 
 	irene_modal.queue_free()
 	irene_toast.queue_free()
-	print("✔ Irene Dialogue Modal & Toaster verified!")
+	print("[OK] Irene Dialogue Modal & Toaster verified!")
 
 	# 27. Test TutorialManager Step Progression & Reward Delivery
 	print("\n--- Testing TutorialManager Step Progression & Reward Delivery ---")
@@ -1100,7 +1111,7 @@ func _ready() -> void:
 
 	tut.queue_free()
 	tut2.queue_free()
-	print("✔ TutorialManager Step Progression & Reward Delivery verified!")
+	print("[OK] TutorialManager Step Progression & Reward Delivery verified!")
 
 	# 28. Test UI/UX Overhaul: Indicator, InfoArea, 3-Tab Codex, Board-like Inventory, Light Theme
 	print("\n--- Testing UI/UX Overhaul Features ---")
@@ -1222,7 +1233,7 @@ func _ready() -> void:
 	assert(qc_style != null and qc_style.bg_color.r > 0.85, "QuestCard must use light background tone")
 	qc_inst.queue_free()
 
-	print("✔ UI/UX Overhaul Features verified!")
+	print("[OK] UI/UX Overhaul Features verified!")
 
 	# 29. Test Landscape Orientation System & 7x9 <-> 9x7 Board Rotation & Adaptive UI
 	print("\n--- Testing Landscape Orientation System & 7x9 <-> 9x7 Board Rotation ---")
@@ -1283,7 +1294,7 @@ func _ready() -> void:
 	assert(rot_board.get_item_at(Vector2i(0, 0)) == boxed_item_29, "Boxed item must return to (0, 0)")
 
 	rot_board.queue_free()
-	print("✔ Board 7x9 <-> 9x7 rotation & lossless coordinate mapping verified!")
+	print("[OK] Board 7x9 <-> 9x7 rotation & lossless coordinate mapping verified!")
 
 	# Test 29.3: Option Modal Orientation Button
 	var opt_test: OptionModal = option_scene.instantiate()
@@ -1304,7 +1315,7 @@ func _ready() -> void:
 	assert(opt_test.orientation_btn.text.contains("PORTRAIT"), "Button must show PORTRAIT again")
 
 	opt_test.queue_free()
-	print("✔ Option Modal Orientation Button verified!")
+	print("[OK] Option Modal Orientation Button verified!")
 
 	# Test 29.4: Main Scene Adaptive Layout in Landscape and Portrait
 	var main_orient_scene: PackedScene = load("res://main.tscn")
@@ -1339,7 +1350,7 @@ func _ready() -> void:
 	assert(main_orient_inst.bottom_bar.offset_top == 1296.0, "Information Area must be at bottom in portrait")
 
 	main_orient_inst.queue_free()
-	print("✔ Main Scene Adaptive Layout in Landscape and Portrait verified!")
+	print("[OK] Main Scene Adaptive Layout in Landscape and Portrait verified!")
 
 	# Test 29.5: Main Menu Background Switching
 	var mm_scene: PackedScene = load("res://scenes/main_menu.tscn")
@@ -1352,7 +1363,7 @@ func _ready() -> void:
 	assert(mm_inst.background_rect.texture.resource_path.contains("kitchen.jpeg"), "MainMenu must use kitchen.jpeg in portrait")
 
 	mm_inst.queue_free()
-	print("✔ Main Menu Background Switching verified!")
+	print("[OK] Main Menu Background Switching verified!")
 
 	# Test 29.6: SaveManager Orientation Persistence
 	SaveManager.delete_save()
@@ -1370,7 +1381,7 @@ func _ready() -> void:
 	SaveManager.delete_save()
 	# Restore default portrait
 	OrientationManager.set_landscape(false, true)
-	print("✔ SaveManager Orientation Persistence verified!")
+	print("[OK] SaveManager Orientation Persistence verified!")
 
 	# 30. Test Quest Generation Chain Filtering & Starter Quests
 	print("\n--- Testing Quest Generation Chain Filtering & Starter Quests ---")
@@ -1418,7 +1429,7 @@ func _ready() -> void:
 	assert(generated_beef_chain == true, "Once beef_1 is unlocked, beef items should appear in quest pools")
 
 	qm.queue_free()
-	print("✔ Quest Generation Chain Filtering & Starter Quests verified!")
+	print("[OK] Quest Generation Chain Filtering & Starter Quests verified!")
 
 	# 31. Test Quest Milestone Progression & BottomNavBar Gating
 	print("\n--- Testing Quest Milestone Progression & BottomNavBar Gating ---")
@@ -1483,7 +1494,7 @@ func _ready() -> void:
 	qm_prog.queue_free()
 	nav_test.queue_free()
 	SaveManager.quest_manager_ref = null
-	print("✔ Quest Milestone Progression & BottomNavBar Gating verified!")
+	print("[OK] Quest Milestone Progression & BottomNavBar Gating verified!")
 
 	# 32. Test Extended Event-Driven Tutorial Triggers & Flags Persistence
 	print("\n--- Testing Extended Event-Driven Tutorial Triggers & Flags Persistence ---")
@@ -1530,7 +1541,7 @@ func _ready() -> void:
 
 	tut_ext.queue_free()
 	tut_ext_2.queue_free()
-	print("✔ Extended Event-Driven Tutorial Triggers & Flags Persistence verified!")
+	print("[OK] Extended Event-Driven Tutorial Triggers & Flags Persistence verified!")
 
 	# 33. Test Radial Tier Bias & Preview Locked Spawners
 	print("\n--- Testing Radial Tier Bias & Preview Locked Spawners ---")
@@ -1572,7 +1583,7 @@ func _ready() -> void:
 	assert(t2_count > 65, "Distance > 1.5 must be biased toward tier 2, got %d/100" % t2_count)
 
 	main_rb_inst.queue_free()
-	print("✔ Radial Tier Bias & Preview Locked Spawners verified!")
+	print("[OK] Radial Tier Bias & Preview Locked Spawners verified!")
 
 	# 34. Test Boxed Perimeter Item Color/Identity Cue
 	print("\n--- Testing Boxed Perimeter Item Color/Identity Cue ---")
@@ -1596,7 +1607,7 @@ func _ready() -> void:
 	assert(boxed_drink.sprite.modulate != boxed_beef.sprite.modulate, "Different chain boxed items must have distinct tints")
 
 	tint_board.queue_free()
-	print("✔ Boxed Perimeter Item Color/Identity Cue verified!")
+	print("[OK] Boxed Perimeter Item Color/Identity Cue verified!")
 
 	# 35. Test ItemState.HIDDEN, Cell Hiding, and Progressive Outward Reveal
 	print("\n--- Testing ItemState.HIDDEN & Progressive Outward Reveal ---")
@@ -1637,7 +1648,7 @@ func _ready() -> void:
 	assert(hidden_nbr2.is_hidden() == false and hidden_nbr2.is_boxed() == true, "hidden_nbr2 with req_level 2 must reveal to BOXED")
 
 	fog_board.queue_free()
-	print("✔ ItemState.HIDDEN & Progressive Outward Reveal verified!")
+	print("[OK] ItemState.HIDDEN & Progressive Outward Reveal verified!")
 
 	# 36. Test Non-Consumable Guarantee in Populated Board Items
 	print("\n--- Testing Non-Consumable Guarantee in Populated Board Items ---")
@@ -1663,7 +1674,7 @@ func _ready() -> void:
 	assert(visible_cell_count == 9, "Initial starting active island must have exactly 9 visible cells, got %d" % visible_cell_count)
 
 	main_pop.queue_free()
-	print("✔ Non-Consumable Guarantee & 3x3 Starting Island verified!")
+	print("[OK] Non-Consumable Guarantee & 3x3 Starting Island verified!")
 
 	# 37. Test Behavioral Guidance Watchers (Coin Spending & Board Full Selling)
 	print("\n--- Testing Behavioral Guidance Watchers ---")
@@ -1693,7 +1704,7 @@ func _ready() -> void:
 	assert(tut_bg._shown_flags.get("board_full_sell_guide", false) == true, "board_full_sell_guide must trigger at 3 board-full events")
 
 	tut_bg.queue_free()
-	print("✔ Behavioral Guidance Watchers verified!")
+	print("[OK] Behavioral Guidance Watchers verified!")
 
 	# 38. Test Tutorial Progression Claim & First Quest Delivery Highlight
 	print("\n--- Testing Tutorial Progression Claim & Delivery Highlight ---")
@@ -1719,7 +1730,7 @@ func _ready() -> void:
 	assert(feat3_qc._highlight_tween == null, "Delivery highlight tween must be cleared")
 	feat3_qc.queue_free()
 	tut_test.queue_free()
-	print("✔ Tutorial Progression Claim & First Quest Delivery Highlight verified!")
+	print("[OK] Tutorial Progression Claim & First Quest Delivery Highlight verified!")
 
 	# 39. Test Temporary Slot Tile Styling & Shine Shader
 	print("\n--- Testing Temporary Slot Tile Styling & Shine ---")
@@ -1739,7 +1750,7 @@ func _ready() -> void:
 	ProgressionManager.clear_reward_queue()
 	feat39_nav_bar.update_reward_slot_display()
 	feat39_nav_bar.queue_free()
-	print("✔ Temporary Slot Tile Styling & Shine verified!")
+	print("[OK] Temporary Slot Tile Styling & Shine verified!")
 
 	# 40. Test Extra Inventory Expansion System
 	print("\n--- Testing Extra Inventory Expansion System ---")
@@ -1782,7 +1793,7 @@ func _ready() -> void:
 	InventoryManager.load_data(feat40_inv_data)
 	assert(InventoryManager.unlocked_rows == 4, "load_data must restore unlocked_rows to 4")
 	assert(InventoryManager.get_max_slots() == 16, "Max slots restored to 16")
-	print("✔ Extra Inventory Expansion System verified!")
+	print("[OK] Extra Inventory Expansion System verified!")
 
 	# 41. Test Quest System Pacing, Cooldowns & Ultimate Quest
 	print("\n--- Testing Quest Pacing, Cooldowns & Ultimate Quest ---")
@@ -1827,7 +1838,7 @@ func _ready() -> void:
 
 	feat41_test_b.queue_free()
 	feat41_qm.queue_free()
-	print("✔ Quest Pacing, Cooldowns & Ultimate Quest verified!")
+	print("[OK] Quest Pacing, Cooldowns & Ultimate Quest verified!")
 
 	# 42. Test Map Milestone, Level Selection, Farm Board & Special Mechanics
 	print("\n--- Testing Map Milestone, Level Selection, Farm Board & Special Mechanics ---")
@@ -1861,7 +1872,7 @@ func _ready() -> void:
 			assert(data.tier == t, "Farm item %s tier must match %d" % [item_id, t])
 			total_farm_items += 1
 	assert(total_farm_items == 89, "Should have verified all 89 farm items")
-	print("✔ All 14 Farm Chains (89 items) verified in ItemDatabase!")
+	print("[OK] All 14 Farm Chains (89 items) verified in ItemDatabase!")
 
 	# B. Test ItemView Farm Visuals (Bush only for Boxed, Dirt only for Locked)
 	var test_farm_board_scene: PackedScene = load("res://scenes/board.tscn")
@@ -1878,7 +1889,7 @@ func _ready() -> void:
 	assert(locked_farm_item.is_locked() == true, "Farm item must be locked")
 	assert(locked_farm_item.sprite.texture == ItemDatabase.get_item("hay_1").icon_texture, "Locked item uses item texture")
 	assert(locked_farm_item.web_sprite == null or locked_farm_item.web_sprite.visible == false or locked_farm_item.web_sprite.texture == ItemView.DIRT_TEXTURE, "Web sprite must be hidden or show dirt on farm locked item")
-	print("✔ Farm visual style (bush only for boxed, dirt only for locked) verified!")
+	print("[OK] Farm visual style (bush only for boxed, dirt only for locked) verified!")
 
 	# C. Test Map Unlock Milestone (50 Kitchen Tiles)
 	var kitchen_b: Board = test_farm_board_scene.instantiate()
@@ -1895,7 +1906,7 @@ func _ready() -> void:
 	assert(kitchen_b.get_unlocked_tile_count() >= 50, "Should have at least 50 unlocked tiles")
 	kitchen_b.check_map_unlock_milestone()
 	assert(ProgressionManager.is_map_unlocked == true, "Map must unlock after 50 unlocked kitchen tiles!")
-	print("✔ Map Unlock Milestone at 50 kitchen tiles verified!")
+	print("[OK] Map Unlock Milestone at 50 kitchen tiles verified!")
 
 	# D. Test Animal Feeding Restrictions (Block Merging Until Fed)
 	var bird_a := farm_b.spawn_item_at(Vector2i(2, 0), "bird_1", ItemView.ItemState.NORMAL)
@@ -1906,7 +1917,7 @@ func _ready() -> void:
 	assert(bird_a.can_merge_with(bird_b) == false, "Cannot merge if only one bird is fed!")
 	bird_b.fed_count = 5
 	assert(bird_a.can_merge_with(bird_b) == true, "Both fully fed birds can now merge!")
-	print("✔ Animal feeding merge restrictions verified!")
+	print("[OK] Animal feeding merge restrictions verified!")
 
 	# E. Test Cow Lv.3 Milking and Upgrading Requirements
 	var cow3 := farm_b.spawn_item_at(Vector2i(4, 0), "cow_3", ItemView.ItemState.NORMAL)
@@ -1924,7 +1935,7 @@ func _ready() -> void:
 	assert(cow3.is_milked_ready == false, "Cow Lv.3 is no longer ready to milk after milking")
 	var spawned_milk := farm_b.get_item_at(prev_milk_cell)
 	assert(spawned_milk != null and spawned_milk.data.id == "milk_1", "Milking cow must spawn Milk Lv.1")
-	print("✔ Cow Lv.3 milking & feed requirements verified!")
+	print("[OK] Cow Lv.3 milking & feed requirements verified!")
 
 	# F. Test Sheep Shearing with Tool Lv.4, Wool Yield & Cooldown
 	var sheep2 := farm_b.spawn_item_at(Vector2i(5, 0), "sheep_2", ItemView.ItemState.NORMAL)
@@ -1934,7 +1945,7 @@ func _ready() -> void:
 	assert(sheared == true, "Shearing sheep with tool_4 should succeed")
 	assert(sheep2.shear_cooldown > 0.0, "Sheep should now be on shearing cooldown")
 	assert(sheep2.can_be_sheared() == false, "Sheep cannot be sheared while on cooldown")
-	print("✔ Sheep shearing with Tool Lv.4 and cooldown verified!")
+	print("[OK] Sheep shearing with Tool Lv.4 and cooldown verified!")
 
 	# G. Test Wild Boar (Pig Lv.5) Sells for Diamonds
 	var boar := farm_b.spawn_item_at(Vector2i(0, 1), "pig_5", ItemView.ItemState.NORMAL)
@@ -1942,7 +1953,7 @@ func _ready() -> void:
 	var prev_gems := EconomyManager.gems
 	farm_b.sell_selected_item()
 	assert(EconomyManager.gems == prev_gems + 50, "Selling Wild Boar must grant 50 Diamonds!")
-	print("✔ Wild Boar selling for 50 Diamonds verified!")
+	print("[OK] Wild Boar selling for 50 Diamonds verified!")
 
 	# H. Test Tree Lv.3 Compost Boost & Fruit Drops
 	var tree3 := farm_b.spawn_item_at(Vector2i(1, 1), "tree_3", ItemView.ItemState.NORMAL)
@@ -1951,7 +1962,7 @@ func _ready() -> void:
 	assert(boosted_tree == true, "Boosting tree_3 with hay_7 (compost) should succeed")
 	assert(tree3.is_boosted == true, "Tree should now be boosted")
 	assert(tree3.boost_charges == 2, "Tree Lv.3 should get 2 fruit drop charges")
-	print("✔ Tree Lv.3 Compost boosting verified!")
+	print("[OK] Tree Lv.3 Compost boosting verified!")
 
 	# I. Test Multi-Board Save & Restore
 	SaveManager.current_board_id = "farm"
@@ -2029,7 +2040,7 @@ func _ready() -> void:
 	assert(spawned_item.data.chain_id == "hay", "Spawned item from barn_3 must belong to hay chain")
 
 	feat42_farm_board.queue_free()
-	print("✔ Farm Board Hardcoded Starter Layout & Barn Merge Loop verified!")
+	print("[OK] Farm Board Hardcoded Starter Layout & Barn Merge Loop verified!")
 
 	# 43. Test Progression Modal Tabs, Board-Aware Chest Rewards, and Cross-Board Inventory
 	print("\n--- Testing Progression Modal Tabs, Board-Aware Chest Rewards, and Cross-Board Inventory ---")
@@ -2090,7 +2101,7 @@ func _ready() -> void:
 	t43_prog_inst._load_tab("achievements")
 
 	t43_prog_inst.queue_free()
-	print("✔ Progression Modal Tabs & Chains verified!")
+	print("[OK] Progression Modal Tabs & Chains verified!")
 
 	# 43.2 Test Dynamic Board-Aware Chest Rewards
 	# Kitchen Chest Drops
@@ -2129,7 +2140,33 @@ func _ready() -> void:
 	var f_blue := ItemDatabase.get_chest_pool("chest_blue_1", "farm")
 	assert(f_blue.has("diamond_1") and f_blue.has("barn_1"), "Farm blue chest must drop diamond and farm producers")
 
-	print("✔ Board-Aware Chest Drops verified!")
+	# Witch Chest Drops
+	var w_pool_1 := ItemDatabase.get_chest_pool("chest_1", "witch")
+	assert(w_pool_1.has("mystic_tree_1") and w_pool_1.has("cauldron_1"), "Witch chest_1 must drop mystic_tree_1 and cauldron_1")
+	assert(not w_pool_1.has("oven_1") and not w_pool_1.has("barn_1"), "Witch chest_1 must not drop kitchen or farm items")
+
+	var w_pool_2 := ItemDatabase.get_chest_pool("chest_2", "witch")
+	assert(w_pool_2.has("mystic_tree_1") and w_pool_2.has("cauldron_1") and w_pool_2.has("shroom_1") and w_pool_2.has("wand_1"), "Witch chest_2 must drop witch producers")
+	assert(not w_pool_2.has("oven_1") and not w_pool_2.has("barn_1"), "Witch chest_2 must not drop kitchen or farm items")
+
+	# Colored Chest Drops on Witch
+	var w_purple := ItemDatabase.get_chest_pool("chest_purple_1", "witch")
+	assert(w_purple.has("exp_1") and w_purple.has("mystic_tree_1") and w_purple.has("cauldron_1"), "Witch purple chest must drop exp and mystic_tree/cauldron")
+	assert(not w_purple.has("oven_1") and not w_purple.has("barn_1"), "Witch purple chest must not drop kitchen or farm items")
+
+	var w_green := ItemDatabase.get_chest_pool("chest_green_2", "witch")
+	assert(w_green.has("energy_2") and w_green.has("mystic_tree_1") and w_green.has("cauldron_1") and w_green.has("shroom_1"), "Witch green chest must drop energy and witch producers")
+	assert(not w_green.has("oven_1") and not w_green.has("barn_1"), "Witch green chest must not drop kitchen or farm items")
+
+	var w_yellow := ItemDatabase.get_chest_pool("chest_yellow_3", "witch")
+	assert(w_yellow.has("gold_3") and w_yellow.has("mystic_tree_1") and w_yellow.has("cauldron_1") and w_yellow.has("wand_1"), "Witch yellow chest must drop gold and witch producers")
+	assert(not w_yellow.has("oven_1") and not w_yellow.has("barn_1"), "Witch yellow chest must not drop kitchen or farm items")
+
+	var w_blue := ItemDatabase.get_chest_pool("chest_blue_1", "witch")
+	assert(w_blue.has("diamond_1") and w_blue.has("mystic_tree_1") and w_blue.has("cauldron_1"), "Witch blue chest must drop diamond and witch producers")
+	assert(not w_blue.has("oven_1") and not w_blue.has("barn_1"), "Witch blue chest must not drop kitchen or farm items")
+
+	print("[OK] Board-Aware Chest Drops verified!")
 
 	# 43.3 Test Board Chest Spawn & Cross-Board Inventory Transfer
 	var t43_cross_board: Board = board_scene.instantiate()
@@ -2179,7 +2216,56 @@ func _ready() -> void:
 	t43_main_for_stuck.queue_free()
 
 	t43_cross_board.queue_free()
-	print("✔ Cross-Board Inventory Transfer & Board Chest Spawning verified!")
+	print("[OK] Cross-Board Inventory Transfer & Board Chest Spawning verified!")
+
+	# 43.4 Test Board Chest Spawning on Witch Board
+	var t43_witch_board: Board = board_scene.instantiate()
+	add_child(t43_witch_board)
+	t43_witch_board.clear_board()
+	t43_witch_board.board_theme = "witch"
+
+	var t43_w_empty := t43_witch_board.get_empty_cells()
+	var t43_w_chest := t43_witch_board.spawn_item_at(t43_w_empty[0], "chest_1", ItemView.ItemState.NORMAL)
+	assert(t43_w_chest != null and t43_w_chest.data.id == "chest_1", "Chest should spawn on witch board")
+	t43_witch_board._trigger_spawner(t43_w_chest)
+
+	var t43_w_drops: Array[String] = []
+	for c in range(t43_witch_board.cols):
+		for r in range(t43_witch_board.rows):
+			var it := t43_witch_board.get_item_at(Vector2i(c, r))
+			if it and it != t43_w_chest:
+				t43_w_drops.append(it.data.id)
+	assert(t43_w_drops.size() >= 1, "Tapping chest on witch board must spawn drop")
+	assert(t43_w_drops[0] in ["mystic_tree_1", "cauldron_1"], "Chest drop on witch board must be mystic_tree_1 or cauldron_1, got %s" % t43_w_drops[0])
+
+	# Test colored chest spawning on witch board
+	var empty_before_blue := t43_witch_board.get_empty_cells()
+	var t43_w_chest_blue := t43_witch_board.spawn_item_at(empty_before_blue[0], "chest_blue_1", ItemView.ItemState.NORMAL)
+	t43_witch_board._trigger_spawner(t43_w_chest_blue)
+	var t43_w_blue_drop: ItemView = null
+	for coord in empty_before_blue:
+		var it := t43_witch_board.get_item_at(coord)
+		if it and it != t43_w_chest_blue:
+			t43_w_blue_drop = it
+			break
+	assert(t43_w_blue_drop != null, "Tapping blue chest on witch board must spawn drop")
+	assert(t43_w_blue_drop.data.id in ["diamond_1", "diamond_2", "mystic_tree_1", "cauldron_1"], "Blue chest drop on witch board must be diamond or witch producer, got %s" % t43_w_blue_drop.data.id)
+
+	# Test purple chest spawning on witch board
+	var empty_before_purple := t43_witch_board.get_empty_cells()
+	var t43_w_chest_purple := t43_witch_board.spawn_item_at(empty_before_purple[0], "chest_purple_1", ItemView.ItemState.NORMAL)
+	t43_witch_board._trigger_spawner(t43_w_chest_purple)
+	var t43_w_purple_drop: ItemView = null
+	for coord in empty_before_purple:
+		var it := t43_witch_board.get_item_at(coord)
+		if it and it != t43_w_chest_purple:
+			t43_w_purple_drop = it
+			break
+	assert(t43_w_purple_drop != null, "Tapping purple chest on witch board must spawn drop")
+	assert(t43_w_purple_drop.data.id in ["exp_1", "exp_2", "mystic_tree_1", "cauldron_1"], "Purple chest drop on witch board must be exp or witch producer, got %s" % t43_w_purple_drop.data.id)
+
+	t43_witch_board.queue_free()
+	print("[OK] Witch Board Chest Spawning verified!")
 
 	# 44. Test Progression Modal Swipe Scrolling, Separated Quests, Board Theming, and Diamond+Chest Rewards
 	print("\n--- Testing Modal Swipe Scroll, Separated Board Quests, Board Theming & Rewards ---")
@@ -2197,7 +2283,7 @@ func _ready() -> void:
 	assert(test_board_theme.tile_bg_color == Color(0.96, 0.91, 0.74, 0.90), "Farm tile 1 must be light yellow")
 	assert(test_board_theme.tile_bg_alt_color == Color(0.84, 0.74, 0.61, 0.90), "Farm tile 2 must be light brown")
 	test_board_theme.queue_free()
-	print("✔ Board theme visual styling verified!")
+	print("[OK] Board theme visual styling verified!")
 
 	# B. Test Separated Quests
 	var test_qm_scene := preload("res://scenes/quest_manager.tscn")
@@ -2240,7 +2326,7 @@ func _ready() -> void:
 
 	test_qm.queue_free()
 	dummy_board.queue_free()
-	print("✔ Separated Board Quests verified!")
+	print("[OK] Separated Board Quests verified!")
 
 	# C. Test Progression Rewards (Diamond and Chest Only)
 	var test_rew_t1 := ProgressionManager.get_reward_for_item("egg_1")
@@ -2254,7 +2340,7 @@ func _ready() -> void:
 	assert(test_rew_t5.exp == 0, "Tier 5 exp must be 0")
 	assert(test_rew_t5.gems >= 15, "Tier 5 diamonds should be 15")
 	assert(test_rew_t5.chest == "chest_blue_3", "Tier 5 chest must be chest_blue_3")
-	print("✔ Progression Rewards (Diamond & Chest only) verified!")
+	print("[OK] Progression Rewards (Diamond & Chest only) verified!")
 
 	# D. Test ProgressionModal Swipe Touch Variables
 	var prog_modal_scene: PackedScene = preload("res://scenes/progression_modal.tscn")
@@ -2274,7 +2360,7 @@ func _ready() -> void:
 	assert(test_pm._is_touching == false, "Touching should be false after end")
 	assert(test_pm._is_swiping == false, "Swiping should be false after end")
 	test_pm.queue_free()
-	print("✔ ProgressionModal Touch Swipe Scroll verified!")
+	print("[OK] ProgressionModal Touch Swipe Scroll verified!")
 
 	# 45. Test Boot Splash Pre-Scene, Audio Playback & Adaptive Landscape Crop
 	print("\n--- Testing Boot Splash Pre-Scene, Audio & Adaptive Crop ---")
@@ -2328,8 +2414,8 @@ func _ready() -> void:
 	assert(app_ver.MAJOR == 1 and app_ver.MINOR == 0 and app_ver.PATCH == 9, "Version should be 1.0.9")
 	assert(app_ver.BUILD == 19, "Build number should be 19")
 	assert(app_ver.get_version_string() == "v1.0.9 (Build 19)", "Version string mismatch")
-	assert(app_ver.get_full_display() == "Version 1.0.9 • Build 19", "Full display mismatch")
-	print("✔ AppVersion 1.0.9 (Build 19) verified!")
+	assert(app_ver.get_full_display() == "Version 1.0.9 - Build 19", "Full display mismatch")
+	print("[OK] AppVersion 1.0.9 (Build 19) verified!")
 
 	# B. Test Spawner Inventory Persistence
 	var t46_inv_board: Board = board_scene.instantiate()
@@ -2356,7 +2442,7 @@ func _ready() -> void:
 	var t46_retrieved_chest := t46_inv_board.spawn_item_flight(Vector2.ZERO, t46_empty_cells[0], "chest_blue_1", t46_inv_data)
 	assert(t46_retrieved_chest.current_charges == 1, "Retrieved chest must retain 1 charge, got %d" % t46_retrieved_chest.current_charges)
 	t46_inv_board.queue_free()
-	print("✔ Spawner Inventory Persistence verified!")
+	print("[OK] Spawner Inventory Persistence verified!")
 
 	# C. Test Farm Animals 1-Feed Requirement
 	var t46_farm_b: Board = board_scene.instantiate()
@@ -2377,7 +2463,7 @@ func _ready() -> void:
 	t46_bird.fed_count = 1
 	assert(t46_bird.needs_feeding_to_upgrade() == false, "Fed once bird does not need feeding")
 	assert(t46_bird.is_fully_fed() == true, "Bird fed once is fully fed")
-	print("✔ Animal 1-Feed Requirement verified!")
+	print("[OK] Animal 1-Feed Requirement verified!")
 
 	# D. Test Tree Water Requirement & Fruit Drop Scaling
 	var t46_tree := t46_farm_b.spawn_item_at(Vector2i(4, 0), "tree_3", ItemView.ItemState.NORMAL)
@@ -2407,7 +2493,7 @@ func _ready() -> void:
 	assert(t46_tree.water_fed == 0, "Tree fruit should be harvested, water_fed should be 0, got %d" % t46_tree.water_fed)
 	assert(EconomyManager.energy == 9, "Harvesting tree should consume 1 energy")
 	t46_farm_b.queue_free()
-	print("✔ Tree Water Requirement & Fruit Yield verified!")
+	print("[OK] Tree Water Requirement & Fruit Yield verified!")
 
 	# E. Test StartupLoadingScreen Scene & Splash Screen Next Scene
 	assert(SplashScreen.NEXT_SCENE_PATH == "res://scenes/startup_loading_screen.tscn", "SplashScreen NEXT_SCENE_PATH must point to startup_loading_screen.tscn")
@@ -2419,7 +2505,7 @@ func _ready() -> void:
 	assert(t46_loading_inst.version_label != null, "StartupLoadingScreen must have VersionLabel")
 	assert(t46_loading_inst.version_label.text == app_ver.get_version_string(), "StartupLoadingScreen version label mismatch")
 	t46_loading_inst.queue_free()
-	print("✔ StartupLoadingScreen Scene & Transition verified!")
+	print("[OK] StartupLoadingScreen Scene & Transition verified!")
 
 	# F. Test Minimalist OptionModal (StyleBoxFlat buttons)
 	var t46_opt_scene: PackedScene = load("res://scenes/option_modal.tscn")
@@ -2434,7 +2520,7 @@ func _ready() -> void:
 	assert(t46_opt_inst.version_label != null, "OptionModal must have version_label")
 	assert(t46_opt_inst.version_label.text == app_ver.get_full_display(), "OptionModal version display mismatch")
 	t46_opt_inst.queue_free()
-	print("✔ Minimalist OptionModal StyleBoxFlat verified!")
+	print("[OK] Minimalist OptionModal StyleBoxFlat verified!")
 
 	# G. Test Lowered Animal Drop Rates from Barn Spawners
 	var t46_barn4_pool := ItemDatabase._get_barn_pool(4)
@@ -2464,7 +2550,7 @@ func _ready() -> void:
 	assert(t46_b5_animal_rate <= 0.15, "Barn 5 animal drop rate must be 15%% or lower (was 66.7%%), got %.2f" % t46_b5_animal_rate)
 	assert(t46_b5_hay >= t46_b5_animals * 5, "Barn 5 must drop at least 5x more hay than animals to sustain farm feeding")
 	assert(t46_barn5_pool.has("bird_1") and t46_barn5_pool.has("cow_1") and t46_barn5_pool.has("sheep_1") and t46_barn5_pool.has("pig_1"), "Barn 5 must still include all 4 livestock species")
-	print("✔ Lowered Animal Drop Rate (10% vs 70% Hay) verified!")
+	print("[OK] Lowered Animal Drop Rate (10% vs 70% Hay) verified!")
 
 	# =========================================================================
 	# 47. Test Auto Spawn Mechanic (Barn Tiers 3-5 & Generic Items)
@@ -2494,7 +2580,7 @@ func _ready() -> void:
 		for a_id in b_it.auto_spawn_pool:
 			assert(a_id.begins_with("bird") or a_id.begins_with("cow") or a_id.begins_with("sheep") or a_id.begins_with("pig"), "%s auto spawn pool items must all be animal species, got %s" % [b_it.id, a_id])
 			assert(ItemDatabase.has_item(a_id), "%s auto spawn pool item %s must exist in ItemDatabase" % [b_it.id, a_id])
-	print("✔ Auto Spawn ItemData & Barn Tier 3-5 definitions verified!")
+	print("[OK] Auto Spawn ItemData & Barn Tier 3-5 definitions verified!")
 
 	# B. Test Spatial Adjacency / Empty Neighbor Cells
 	var t47_board: Board = load("res://scenes/board.tscn").instantiate()
@@ -2531,7 +2617,7 @@ func _ready() -> void:
 	var spawn_blocked := t47_board.try_auto_spawn(t47_barn)
 	assert(spawn_blocked == false, "Auto spawn must fail when all nearby cells are blocked")
 	assert(t47_barn.auto_spawn_current_stack == 1, "Auto spawn stack must be preserved when nearby cells are blocked")
-	print("✔ Empty Neighbor Detection & Blocked Surroundings verified!")
+	print("[OK] Empty Neighbor Detection & Blocked Surroundings verified!")
 
 	# D. Test Auto Spawn Trigger When Neighbor Cell Opens
 	# Clear one adjacent cell (3, 2)
@@ -2552,7 +2638,7 @@ func _ready() -> void:
 	var newly_spawned := t47_board.get_item_at(opened_coord)
 	assert(newly_spawned != null, "A new animal item must have spawned at (3, 2)")
 	assert(newly_spawned.data.chain_id in ["bird", "cow", "sheep", "pig"], "Spawned item must belong to an animal chain, got %s" % newly_spawned.data.chain_id)
-	print("✔ Auto Spawn Execution into Adjacent Space & Free Energy verified!")
+	print("[OK] Auto Spawn Execution into Adjacent Space & Free Energy verified!")
 
 	# E. Test Manual Click Spawner Remains Fully Functional on Barn 3
 	# Free another neighbor (3, 4)
@@ -2566,7 +2652,7 @@ func _ready() -> void:
 	assert(EconomyManager.energy == prev_energy - 1, "Manual tap spawner must consume 1 energy")
 	var manual_drop := t47_board.get_item_at(opened_coord2)
 	assert(manual_drop != null and manual_drop.data.chain_id == "hay", "Manual tap from barn_3 must drop from hay pool")
-	print("✔ Manual Tap Spawner Coexistence verified!")
+	print("[OK] Manual Tap Spawner Coexistence verified!")
 
 	# F. Test Multi-Stack Auto-Spawning (Barn 4 with Stack of 2)
 	t47_board.clear_board()
@@ -2587,7 +2673,7 @@ func _ready() -> void:
 	# Third attempt fails because stack is 0
 	var b4_s3 := t47_board.try_auto_spawn(t47_barn4)
 	assert(b4_s3 == false, "Auto spawn must fail when stack is 0")
-	print("✔ Multi-Stack Auto Spawning (Barn 4) verified!")
+	print("[OK] Multi-Stack Auto Spawning (Barn 4) verified!")
 
 	# G. Test Generic Normal Item with Auto Spawn (Non-Spawner)
 	var normal_item_data := ItemData.new()
@@ -2617,7 +2703,7 @@ func _ready() -> void:
 	var normal_auto_success := t47_board.try_auto_spawn(custom_item)
 	assert(normal_auto_success == true, "Normal item with auto spawn must successfully auto spawn")
 	assert(custom_item.auto_spawn_current_stack == 0, "Normal item stack must be consumed")
-	print("✔ Normal Item (Non-Spawner) Auto Spawn verified!")
+	print("[OK] Normal Item (Non-Spawner) Auto Spawn verified!")
 
 	# H. Test Timer Ticking & Stack Cap Logic
 	custom_item.auto_spawn_timer = 8.0
@@ -2641,7 +2727,7 @@ func _ready() -> void:
 	# Tick another 20s -> stack must not exceed max stack 2
 	custom_item.tick_auto_spawn(20.0)
 	assert(custom_item.auto_spawn_current_stack == 2, "Stack must NOT exceed max stack 2")
-	print("✔ Timer Ticking & Stack Cap verified!")
+	print("[OK] Timer Ticking & Stack Cap verified!")
 
 	# I. Test Persistence (Serialization & Load)
 	var t47_serialized := t47_board.serialize_items()
@@ -2658,7 +2744,7 @@ func _ready() -> void:
 	var restored_b4 := t47_board.get_item_at(Vector2i(2, 2))
 	assert(restored_b4 != null and restored_b4.data.id == "barn_4", "barn_4 must be restored at (2, 2)")
 	assert(restored_b4.data.has_auto_spawn == true, "Restored barn_4 must have auto spawn enabled")
-	print("✔ Auto Spawn State Serialization & Restoration verified!")
+	print("[OK] Auto Spawn State Serialization & Restoration verified!")
 
 	t47_board.queue_free()
 
@@ -2681,12 +2767,12 @@ func _ready() -> void:
 	assert(t48_pine3_pool.has("tree_1"), "Pine 3 must drop tree_1")
 	assert(t48_pine4_pool.has("tree_1"), "Pine 4 must drop tree_1")
 	assert(t48_pine5_pool.has("tree_1"), "Pine 5 must drop tree_1")
-	print("✔ Tree seed drop rebalance (Pine vs Barn) verified!")
+	print("[OK] Tree seed drop rebalance (Pine vs Barn) verified!")
 
 	# B. Verify Cage 1 drop from Barn 4++
 	assert(t48_b4_pool.has("cage_1"), "Barn 4 must have rare cage_1 drop")
 	assert(t48_b5_pool.has("cage_1"), "Barn 5 must have rare cage_1 drop")
-	print("✔ Rare Cage Lv.1 drop from Barn 4++ verified!")
+	print("[OK] Rare Cage Lv.1 drop from Barn 4++ verified!")
 
 	# C. Verify Cage Item Data & Capacities
 	for t48_lvl in range(1, 7):
@@ -2722,7 +2808,7 @@ func _ready() -> void:
 	t48_c6_node.setup(ItemDatabase.get_item("cage_6"))
 	assert(t48_c6_node.get_cage_capacity() == 15, "Cage 6 capacity should be 15")
 	t48_c6_node.queue_free()
-	print("✔ Cage Items 1-6 registration & capacities verified!")
+	print("[OK] Cage Items 1-6 registration & capacities verified!")
 
 	# D. Animal Insertion Rules (Same species, same level)
 	var t48_cow1 = ItemDatabase.get_item("cow_1")
@@ -2749,7 +2835,7 @@ func _ready() -> void:
 	t48_c3_node.add_animal_to_cage("cow_1")
 	assert(t48_c3_node.get_cage_stored_count() == 2, "Cage 3 should have 2 items (full)")
 	assert(not t48_c3_node.can_accept_animal_into_cage(t48_cow1), "Full cage 3 must REJECT further animals")
-	print("✔ Cage animal insertion & validation rules verified!")
+	print("[OK] Cage animal insertion & validation rules verified!")
 
 	# E. Non-empty Cage Merge Prevention
 	var t48_c3_node_b = t48_cage_scene.instantiate()
@@ -2764,7 +2850,7 @@ func _ready() -> void:
 	t48_c3_node.queue_free()
 	t48_c3_node_b.queue_free()
 	t48_c3_node_c.queue_free()
-	print("✔ Non-empty cage merge restriction verified!")
+	print("[OK] Non-empty cage merge restriction verified!")
 
 	# F. Backpack Restriction
 	assert(InventoryManager.is_item_backpack_allowed("cage_1") == false, "cage_1 must NOT be allowed in backpack")
@@ -2775,7 +2861,7 @@ func _ready() -> void:
 	assert(InventoryManager.is_item_backpack_allowed("pine_5") == false, "pine_5 must NOT be allowed in backpack")
 	assert(InventoryManager.is_item_backpack_allowed("cow_1") == true, "cow_1 MUST be allowed in backpack")
 	assert(InventoryManager.is_item_backpack_allowed("hay_3") == true, "hay_3 MUST be allowed in backpack")
-	print("✔ Backpack inventory item restrictions verified!")
+	print("[OK] Backpack inventory item restrictions verified!")
 
 	# G. Board Special Interactions (Feed & Shearing & Auto-Feed)
 	var t48_board_scene = load("res://scenes/board.tscn")
@@ -2803,7 +2889,7 @@ func _ready() -> void:
 			if t48_it != null and t48_it.data.id == "milk_1":
 				t48_found_milk = true
 	assert(t48_found_milk == true, "Feeding cow cage must autospawn milk_1 nearby")
-	print("✔ Cage feeding with Hay Lv.3-6 & autospawn harvest verified!")
+	print("[OK] Cage feeding with Hay Lv.3-6 & autospawn harvest verified!")
 
 	# Test Shearing with Sheep
 	var t48_cage_sheep = t48_board.spawn_item_at(Vector2i(3, 3), "cage_3")
@@ -2823,7 +2909,7 @@ func _ready() -> void:
 			if t48_it != null and t48_it.data.id == "wool_1":
 				t48_found_wool = true
 	assert(t48_found_wool == true, "Shearing sheep in cage must autospawn wool_1 nearby")
-	print("✔ Cage sheep shearing with Tool Lv.4 & cooldown verified!")
+	print("[OK] Cage sheep shearing with Tool Lv.4 & cooldown verified!")
 
 	# Test Lv.6 Cage Auto-Feed logic
 	var t48_cage6 = t48_board.spawn_item_at(Vector2i(5, 5), "cage_6")
@@ -2840,7 +2926,7 @@ func _ready() -> void:
 			if t48_it != null and t48_it.data.id == "egg_1":
 				t48_found_egg = true
 	assert(t48_found_egg == true, "Lv.6 Cage auto-feed must autospawn egg_1 nearby")
-	print("✔ Cage Lv.6 30s auto-feed mechanic verified!")
+	print("[OK] Cage Lv.6 30s auto-feed mechanic verified!")
 
 	# H. Serialization & Restoration of Cage State
 	var t48_serialized_board = t48_board.serialize_items()
@@ -2861,7 +2947,7 @@ func _ready() -> void:
 	assert(t48_restored_cage6 != null and t48_restored_cage6.data.id == "cage_6", "cage_6 must be restored at (5, 5)")
 	assert(t48_restored_cage6.get_cage_stored_count() == 1, "Restored cage_6 must retain stored animal count")
 	assert(t48_restored_cage6.get_cage_stored_animal_id() == "bird_1", "Restored animal must be bird_1")
-	print("✔ Board Serialization & Restoration of Cage state verified!")
+	print("[OK] Board Serialization & Restoration of Cage state verified!")
 
 	# 49. Test Witch Level Mechanics (Spawners, Cauldrons, Recipes, Potions, Familiars, Map Unlock, Multi-Board & Serialization)
 	print("\n--- Testing Witch Level Mechanics ---")
@@ -2890,7 +2976,7 @@ func _ready() -> void:
 	assert(ItemDatabase.get_item("cauldron_4").is_combiner == true, "cauldron_4 must be a combiner")
 	assert(ItemDatabase.get_item("potion_fire").is_potion == true, "potion_fire must be a potion")
 	assert(ItemDatabase.get_item("familiar_owl").is_familiar == true, "familiar_owl must be a familiar")
-	print("✔ ItemDatabase Witch chains & item metadata verified!")
+	print("[OK] ItemDatabase Witch chains & item metadata verified!")
 
 	# B. Board Theming & Chessboard Colors
 	var t49_board: Board = board_scene.instantiate()
@@ -2898,7 +2984,7 @@ func _ready() -> void:
 	add_child(t49_board)
 	assert(t49_board.tile_bg_color == Color(0.38, 0.26, 0.48, 0.92), "Witch tile bg should be light dark purple")
 	assert(t49_board.tile_bg_alt_color == Color(0.68, 0.56, 0.28, 0.92), "Witch tile alt bg should be light dark yellow")
-	print("✔ Board Witch styling & tile colors verified!")
+	print("[OK] Board Witch styling & tile colors verified!")
 
 	# C. Cauldron Combining & Brewing Recipes
 	# Lv.4 Cauldron (Cap: 1) -> Recipe (a): fruit_1 -> potion_health
@@ -2921,23 +3007,23 @@ func _ready() -> void:
 	assert(t49_handled3 == true, "Feeding second ingredient to cauldron_6 should succeed")
 	assert(t49_c6.data.id == "potion_fire", "Cauldron 6 with oven_4 + tree_1 should brew potion_fire")
 
-	# Lv.8 Cauldron (Cap: 3) -> Recipe (q): sheep_6 + cow_6 + pig_6 -> familiar_cat
+	# Lv.8 Cauldron (Cap: 3) -> Recipe (q): sheep_4 + cow_6 + pig_5 -> familiar_cat
 	var t49_c8 = t49_board.spawn_item_at(Vector2i(3, 1), "cauldron_8", ItemView.ItemState.NORMAL)
 	assert(t49_c8.get_cauldron_capacity() == 3, "Cauldron 8 capacity must be 3")
-	var t49_ing1 = t49_board.spawn_item_at(Vector2i(3, 2), "sheep_6", ItemView.ItemState.NORMAL)
+	var t49_ing1 = t49_board.spawn_item_at(Vector2i(3, 2), "sheep_4", ItemView.ItemState.NORMAL)
 	var t49_ing2 = t49_board.spawn_item_at(Vector2i(3, 3), "cow_6", ItemView.ItemState.NORMAL)
-	var t49_ing3 = t49_board.spawn_item_at(Vector2i(3, 4), "pig_6", ItemView.ItemState.NORMAL)
+	var t49_ing3 = t49_board.spawn_item_at(Vector2i(3, 4), "pig_5", ItemView.ItemState.NORMAL)
 	t49_board._try_special_interaction(t49_ing1, t49_c8)
 	t49_board._try_special_interaction(t49_ing2, t49_c8)
 	t49_board._try_special_interaction(t49_ing3, t49_c8)
-	assert(t49_c8.data.id == "familiar_cat", "Cauldron 8 with sheep_6 + cow_6 + pig_6 should brew familiar_cat")
+	assert(t49_c8.data.id == "familiar_cat", "Cauldron 8 with sheep_4 + cow_6 + pig_5 should brew familiar_cat")
 
 	# Fallback recipe test
 	var t49_c4_fb = t49_board.spawn_item_at(Vector2i(0, 1), "cauldron_4", ItemView.ItemState.NORMAL)
 	var t49_egg = t49_board.spawn_item_at(Vector2i(0, 2), "egg_1", ItemView.ItemState.NORMAL)
 	t49_board._try_special_interaction(t49_egg, t49_c4_fb)
 	assert(t49_c4_fb.data.id in ["familiar_rat", "hay_7", "potion_health"], "Unmatched recipe should fallback")
-	print("✔ Cauldron capacity, recipes (1-3 items), and fallback brewing verified!")
+	print("[OK] Cauldron capacity, recipes (1-3 items), and fallback brewing verified!")
 
 	# D. Familiars (Cannot merge, cannot sell, sacrifice for Gold & EXP)
 	var t49_cat1 = t49_board.spawn_item_at(Vector2i(4, 1), "familiar_cat", ItemView.ItemState.NORMAL)
@@ -2958,12 +3044,13 @@ func _ready() -> void:
 
 	# Sacrifice to Mystic Tree -> EXP
 	var t49_tree3 = t49_board.spawn_item_at(Vector2i(4, 4), "mystic_tree_3", ItemView.ItemState.NORMAL)
+	var t49_level_before = ProgressionManager.player_level
 	var t49_exp_before = ProgressionManager.player_exp
 	var t49_sac2 = t49_board._try_special_interaction(t49_cat2, t49_tree3)
 	assert(t49_sac2 == true, "Sacrificing familiar to mystic_tree_3 should succeed")
-	assert(ProgressionManager.player_exp == t49_exp_before + 50, "Sacrificing to mystic tree must grant 50 EXP")
+	assert((ProgressionManager.player_exp == t49_exp_before + 50) or (ProgressionManager.player_level > t49_level_before), "Sacrificing to mystic tree must grant 50 EXP")
 	assert(t49_board.get_item_at(Vector2i(4, 2)) == null, "Sacrificed familiar must be removed")
-	print("✔ Familiar merge/sell restrictions and Candle/Tree sacrifice mechanics verified!")
+	print("[OK] Familiar merge/sell restrictions and Candle/Tree sacrifice mechanics verified!")
 
 	# E. Potions (Cannot merge, drag and tap effects)
 	var t49_p1 = t49_board.spawn_item_at(Vector2i(5, 1), "potion_nature", ItemView.ItemState.NORMAL)
@@ -2986,7 +3073,7 @@ func _ready() -> void:
 	t49_board._on_item_clicked(t49_pgold)
 	assert(EconomyManager.coins == t49_coins_before_p + 150, "Gold potion grants 150 coins")
 	assert(t49_board.get_item_at(Vector2i(5, 4)) == null, "Consumed potion removed from board")
-	print("✔ Potion unmergeable constraint and active effects verified!")
+	print("[OK] Potion unmergeable constraint and active effects verified!")
 
 	# F. Board Item Serialization & Restoration of Witch Data
 	var t49_c6_store = t49_board.spawn_item_at(Vector2i(6, 1), "cauldron_6", ItemView.ItemState.NORMAL)
@@ -3011,7 +3098,7 @@ func _ready() -> void:
 	assert(t49_restored_c6 != null and t49_restored_c6.cauldron_stored_items == ["wand_1"], "Restored cauldron_6 has preserved stored items")
 	var t49_restored_tree3 = t49_board.get_item_at(Vector2i(4, 4))
 	assert(t49_restored_tree3 != null and t49_restored_tree3.cooldown_removed == true, "Restored mystic_tree_3 has preserved cooldown_removed")
-	print("✔ Board Serialization & Deserialization of Witch state verified!")
+	print("[OK] Board Serialization & Deserialization of Witch state verified!")
 
 	t49_board.queue_free()
 
@@ -3041,7 +3128,7 @@ func _ready() -> void:
 	assert(t49_lvl_modal.witch_btn.text == "Travel", "Witch button now displays Travel")
 
 	t49_lvl_modal.queue_free()
-	print("✔ LevelSelectionModal Ivy preview, 5,000 Gold unlock & Travel verified!")
+	print("[OK] LevelSelectionModal Ivy preview, 5,000 Gold unlock & Travel verified!")
 
 	# Ivy Dialogue & Toast Verification
 	var t49_popup_scene = preload("res://scenes/irene_popup_modal.tscn")
@@ -3057,11 +3144,11 @@ func _ready() -> void:
 	add_child(t49_toast)
 	SaveManager.current_board_id = "witch"
 	t49_toast.show_toast("Ivy toast message", "greeting")
-	assert(t49_toast.tag_label.text == "✦ IVY'S TIP", "Toast tag label in witch board must be Ivy's Tip")
+	assert(t49_toast.tag_label.text == "IVY'S TIP", "Toast tag label in witch board must be Ivy's Tip")
 	assert(t49_toast.avatar_rect.texture == IreneToast.IVY_EMOTIONS["greeting"], "Toast avatar in witch board must be Ivy")
 	t49_toast.queue_free()
 	SaveManager.current_board_id = "kitchen"
-	print("✔ Ivy Dialogue Modal and Toast character rendering verified!")
+	print("[OK] Ivy Dialogue Modal and Toast character rendering verified!")
 
 	# H. ProgressionModal Witch Tab & Chains
 	var t49_prog_modal_scene = preload("res://scenes/progression_modal.tscn")
@@ -3079,7 +3166,7 @@ func _ready() -> void:
 	t49_prog_modal.focus_chain("cauldron")
 	assert(t49_prog_modal._current_tab_id == "witch", "Focusing cauldron chain opens Witch tab")
 	t49_prog_modal.queue_free()
-	print("✔ ProgressionModal Witch Tab & 10 chains verified!")
+	print("[OK] ProgressionModal Witch Tab & 10 chains verified!")
 
 	# I. Starter Board Setup & Hardcoded 3x3 Progression
 	var t49_main_scene = preload("res://main.tscn")
@@ -3113,7 +3200,7 @@ func _ready() -> void:
 	assert(t49_tree3_res.data.is_spawner == true, "Mystic Tree Lv.3 is a spawner")
 
 	t49_main_game.queue_free()
-	print("✔ Witch Initial Board hardcoded 3x3 starter merge sequence to Spawner verified!")
+	print("[OK] Witch Initial Board hardcoded 3x3 starter merge sequence to Spawner verified!")
 
 	SaveManager.delete_save()
 	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH

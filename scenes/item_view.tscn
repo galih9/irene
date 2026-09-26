@@ -85,8 +85,8 @@ theme_override_styles/panel = SubResource("StyleBoxFlat_spawner")
 
 [node name="SpawnerLabel" type="Label" parent="Visuals/SpawnerBadge" unique_id=2075950304]
 layout_mode = 2
-theme_override_font_sizes/font_size = 14
-text = "⚡"
+theme_override_font_sizes/font_size = 11
+text = "SP"
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -104,7 +104,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.1, 0.15, 0.9)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 12
-text = "🔒"
+text = ""
 horizontal_alignment = 1
 vertical_alignment = 1
 
@@ -122,7 +122,7 @@ theme_override_colors/font_color = Color(1, 1, 1, 1)
 theme_override_colors/font_outline_color = Color(0.1, 0.3, 0.15, 0.9)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 13
-text = "🐾"
+text = "+"
 horizontal_alignment = 1
 vertical_alignment = 1
 

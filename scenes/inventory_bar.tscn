@@ -47,7 +47,7 @@ theme_override_colors/font_color = Color(1, 0.98, 0.94, 1)
 theme_override_colors/font_outline_color = Color(0.18, 0.12, 0.08, 0.6)
 theme_override_constants/outline_size = 1
 theme_override_font_sizes/font_size = 13
-text = "🎒 BACKPACK STORAGE"
+text = "BACKPACK STORAGE"
 horizontal_alignment = 1
 
 [node name="MarginContainer" type="MarginContainer" parent="."]

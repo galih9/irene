@@ -15,11 +15,11 @@ const PRELOAD_SCENE_PATHS: Array[String] = [
 const MIN_LOAD_DURATION: float = 5.0
 
 const TIPS: Array[String] = [
-	"💡 Tip: Feed farm animals once to prepare them for merging!",
-	"💡 Tip: Water your fruit trees to harvest fresh, delicious fruits!",
-	"💡 Tip: Backpack items preserve all their remaining charges and status!",
-	"💡 Tip: Complete quests to earn coins, gems, and expand your backpack!",
-	"💡 Tip: Merge higher tier items to discover exciting new items!"
+	"Tip: Feed farm animals once to prepare them for merging!",
+	"Tip: Water your fruit trees to harvest fresh, delicious fruits!",
+	"Tip: Backpack items preserve all their remaining charges and status!",
+	"Tip: Complete quests to earn coins, gems, and expand your backpack!",
+	"Tip: Merge higher tier items to discover exciting new items!"
 ]
 
 @onready var background_rect: ColorRect = $Background

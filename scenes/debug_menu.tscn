@@ -105,7 +105,7 @@ custom_minimum_size = Vector2(38, 38)
 layout_mode = 2
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
-text = "✕"
+text = "X"
 
 [node name="Scroll" type="ScrollContainer" parent="Panel/Margin/VBox"]
 layout_mode = 2
@@ -121,7 +121,7 @@ theme_override_constants/separation = 16
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.85, 0.35, 1)
 theme_override_font_sizes/font_size = 13
-text = "── ECONOMY CHEATS ──"
+text = "-- ECONOMY CHEATS --"
 
 [node name="EcoGrid" type="HBoxContainer" parent="Panel/Margin/VBox/Scroll/Content"]
 layout_mode = 2
@@ -155,7 +155,7 @@ text = "Infinite Energy Mode"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.65, 0.88, 1, 1)
 theme_override_font_sizes/font_size = 13
-text = "── BOARD CONTROLS ──"
+text = "-- BOARD CONTROLS --"
 
 [node name="BoardGrid" type="HBoxContainer" parent="Panel/Margin/VBox/Scroll/Content"]
 layout_mode = 2
@@ -175,7 +175,7 @@ text = "Fill Random"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.55, 0.92, 0.65, 1)
 theme_override_font_sizes/font_size = 13
-text = "── QUEST CONTROLS ──"
+text = "-- QUEST CONTROLS --"
 
 [node name="QuestBtn" type="Button" parent="Panel/Margin/VBox/Scroll/Content"]
 custom_minimum_size = Vector2(0, 38)
@@ -186,7 +186,7 @@ text = "Instant Complete Active Quest"
 layout_mode = 2
 theme_override_colors/font_color = Color(1, 0.7, 0.8, 1)
 theme_override_font_sizes/font_size = 13
-text = "── BOXED & LOCKED ITEMS TEST ──"
+text = "-- BOXED & LOCKED ITEMS TEST --"
 
 [node name="MechanicsGrid" type="HBoxContainer" parent="Panel/Margin/VBox/Scroll/Content"]
 layout_mode = 2
@@ -211,7 +211,7 @@ text = "Boxed (Lv.3)"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.72, 1, 1)
 theme_override_font_sizes/font_size = 13
-text = "── INSTANT ITEM SPAWNER ──"
+text = "-- INSTANT ITEM SPAWNER --"
 
 [node name="SpawnItemsContainer" type="HFlowContainer" parent="Panel/Margin/VBox/Scroll/Content"]
 layout_mode = 2

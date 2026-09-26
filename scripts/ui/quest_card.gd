@@ -141,9 +141,10 @@ func set_delivery_highlight(enable: bool) -> void:
 
 func slide_in_from_top() -> void:
 	modulate.a = 0.0
-	position.y -= 45.0
+	scale = Vector2(0.8, 0.8)
+	pivot_offset = size / 2.0
 	var tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "position:y", position.y + 45.0, 0.45)
+	tween.tween_property(self, "scale", Vector2.ONE, 0.45)
 	tween.tween_property(self, "modulate:a", 1.0, 0.4)
 
 func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
@@ -189,7 +190,7 @@ func _create_req_badge(item_data: ItemData, has_it: bool) -> Control:
 
 	# Status checkmark / dots
 	var check_lbl := Label.new()
-	check_lbl.text = "✓" if has_it else "..."
+	check_lbl.text = "OK" if has_it else "..."
 	check_lbl.add_theme_font_size_override("font_size", 14)
 	check_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	check_lbl.position = Vector2(16, 25)

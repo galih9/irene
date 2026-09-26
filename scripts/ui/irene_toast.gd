@@ -168,13 +168,13 @@ func show_toast(text: String, emotion: String = "greeting", duration: float = 5.
 	var tex_dict := EMOTIONS
 	if tag_label:
 		if current_board == "witch":
-			tag_label.text = "✦ IVY'S TIP"
+			tag_label.text = "IVY'S TIP"
 			tex_dict = IVY_EMOTIONS
 		elif current_board == "farm":
-			tag_label.text = "✦ IVAN'S TIP"
+			tag_label.text = "IVAN'S TIP"
 			tex_dict = IVAN_EMOTIONS
 		else:
-			tag_label.text = "✦ IRENE'S TIP"
+			tag_label.text = "IRENE'S TIP"
 			tex_dict = EMOTIONS
 
 	var default_tex: Texture2D = tex_dict.get("explain", tex_dict.get("greeting", EMOTIONS["greeting"]))

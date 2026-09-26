@@ -191,7 +191,7 @@ func _show_continue_button() -> void:
 	continue_btn.visible = true
 	var btn_tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	continue_btn.scale = Vector2(0.85, 0.85)
-	continue_btn.pivot_offset = continue_btn.size * 0.5
+	continue_btn.pivot_offset = continue_btn.custom_minimum_size * 0.5
 	btn_tween.tween_property(continue_btn, "modulate:a", 1.0, 0.15)
 	btn_tween.parallel().tween_property(continue_btn, "scale", Vector2.ONE, 0.18)
 

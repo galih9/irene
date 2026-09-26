@@ -492,8 +492,8 @@ func _init_database() -> void:
 		"Producer Supply Chest", "Grand Producer Chest"
 	]
 	var chest_descs := [
-		"A special supply chest! Tap to spawn tier 1 producers for your current board (Oven/Fridge in Kitchen, Barn/Water on Farm). Exhausts and vanishes after 5 uses. Merge to reset charges!",
-		"A grand supply chest! Tap to spawn tier 1 producers for your current board (Oven/Fridge/Rack/Foodbox in Kitchen, Barn/Water/Tree/Pine on Farm). Exhausts and vanishes after 5 uses. Merge to reset charges!"
+		"A special supply chest! Tap to spawn tier 1 producers for your current board (Oven/Fridge in Kitchen, Barn/Water on Farm, Mystic Tree/Cauldron in Witch). Exhausts and vanishes after 5 uses. Merge to reset charges!",
+		"A grand supply chest! Tap to spawn tier 1 producers for your current board (Oven/Fridge/Rack/Foodbox in Kitchen, Barn/Water/Tree/Pine on Farm, Mystic Tree/Cauldron/Shroom/Wand in Witch). Exhausts and vanishes after 5 uses. Merge to reset charges!"
 	]
 	var chest_colors := [
 		Color(0.95, 0.65, 0.25), Color(1.0, 0.85, 0.35)
@@ -1550,117 +1550,149 @@ func _register_color_chests() -> void:
 		it.sell_value = int(pow(2, t) * 5)
 		it.spawn_pool = _get_blue_chest_pool(t)
 
-func _get_purple_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
+func _get_purple_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
 			pool = ["exp_1", "exp_1", "exp_1", "exp_2", "exp_2"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
 			pool = ["exp_2", "exp_2", "exp_3", "exp_3"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
 			pool = ["exp_3", "exp_3", "exp_4", "exp_4"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
 			pool = ["exp_4", "exp_4", "exp_5", "exp_5", "exp_6"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
-func _get_green_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
+func _get_green_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
 			pool = ["energy_1", "energy_1", "energy_1", "energy_2", "energy_2"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
 			pool = ["energy_2", "energy_2", "energy_3", "energy_3"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
 			pool = ["energy_3", "energy_3", "energy_4", "energy_4"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
 			pool = ["energy_4", "energy_4", "energy_5", "energy_5", "energy_6"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
-func _get_yellow_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
+func _get_yellow_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
 			pool = ["gold_1", "gold_1", "gold_1", "gold_2", "gold_2"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
 			pool = ["gold_2", "gold_2", "gold_3", "gold_3"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
 			pool = ["gold_3", "gold_3", "gold_4", "gold_4"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
 			pool = ["gold_4", "gold_4", "gold_5", "gold_5", "gold_6"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 	return pool
 
-func _get_blue_chest_pool(tier: int, is_farm: bool = false) -> Array[String]:
+func _get_blue_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = false) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		1:
 			pool = ["diamond_1", "diamond_1", "diamond_1", "diamond_2", "diamond_2"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
 			pool = ["diamond_2", "diamond_2", "diamond_3", "diamond_3"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
 			pool = ["diamond_3", "diamond_3", "diamond_4", "diamond_4"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
 			pool = ["diamond_4", "diamond_4", "diamond_5", "diamond_5"]
-			if is_farm:
+			if is_witch:
+				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
+			elif is_farm:
 				pool.append_array(["barn_1", "water_1", "tree_1", "pine_1"])
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
@@ -1797,13 +1829,13 @@ func get_chest_pool(chest_id: String, board_context: String = "") -> Array[Strin
 	var is_farm := (context == "farm")
 	var is_witch := (context == "witch")
 
-	if chest_id == "chest_1":
+	if chest_id == "chest_1" or chest_id == "chest":
 		if is_witch:
 			return ["mystic_tree_1", "cauldron_1"]
 		elif is_farm:
 			return ["barn_1", "water_1"]
 		return ["oven_1", "fridge_1"]
-	elif chest_id == "chest_2":
+	elif chest_id == "chest_2" or (chest_id.begins_with("chest_") and not (chest_id.begins_with("chest_purple") or chest_id.begins_with("chest_green") or chest_id.begins_with("chest_yellow") or chest_id.begins_with("chest_blue"))):
 		if is_witch:
 			return ["mystic_tree_1", "shroom_1", "wand_1", "cauldron_1"]
 		elif is_farm:
@@ -1814,13 +1846,13 @@ func get_chest_pool(chest_id: String, board_context: String = "") -> Array[Strin
 	var tier := int(parts[-1]) if not parts.is_empty() else 1
 
 	if chest_id.begins_with("chest_purple"):
-		return _get_purple_chest_pool(tier, is_farm)
+		return _get_purple_chest_pool(tier, is_farm, is_witch)
 	elif chest_id.begins_with("chest_green"):
-		return _get_green_chest_pool(tier, is_farm)
+		return _get_green_chest_pool(tier, is_farm, is_witch)
 	elif chest_id.begins_with("chest_yellow"):
-		return _get_yellow_chest_pool(tier, is_farm)
+		return _get_yellow_chest_pool(tier, is_farm, is_witch)
 	elif chest_id.begins_with("chest_blue"):
-		return _get_blue_chest_pool(tier, is_farm)
+		return _get_blue_chest_pool(tier, is_farm, is_witch)
 
 	return []
 

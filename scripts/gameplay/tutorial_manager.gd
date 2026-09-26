@@ -146,7 +146,7 @@ func _show_step_1_merge_left() -> void:
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(3, 4)), true)
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 
-	var msg := "Welcome to Irene's Kitchen! 🍳\nLet's get cooking! See that Foodbox in the center? Drag it to the left and merge it with the matching locked Foodbox to unlock it!"
+	var msg := "Welcome to Irene's Kitchen!\nLet's get cooking! See that Foodbox in the center? Drag it to the left and merge it with the matching locked Foodbox to unlock it!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "greeting", func():
 			if toast_ref:
@@ -160,7 +160,7 @@ func _show_step_2_merge_right() -> void:
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
 
-	var msg := "Awesome job! ⭐ You unlocked your first item and upgraded it to a Tier 2 Foodbox!\nNow drag that Foodbox to the right and merge it with the locked Tier 2 Foodbox!"
+	var msg := "Awesome job! You unlocked your first item and upgraded it to a Tier 2 Foodbox!\nNow drag that Foodbox to the right and merge it with the locked Tier 2 Foodbox!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "happy", func():
 			if toast_ref:
@@ -173,7 +173,7 @@ func _show_step_3_spawn_item() -> void:
 		board_ref.clear_tutorial_highlights()
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
 
-	var msg := "Look at that! Tier 3 Foodbox is an ingredient producer! ⚡\nTap on your new Pantry Box to produce your very first kitchen ingredient! (Uses 1 Energy)"
+	var msg := "Look at that! Tier 3 Foodbox is an ingredient producer!\nTap on your new Pantry Box to produce your very first kitchen ingredient! (Uses 1 Energy)"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "explain", func():
 			if toast_ref:
@@ -189,7 +189,7 @@ func _show_step_4_unlock_first_item() -> void:
 			board_ref.highlight_tutorial_cell(_first_spawned_coord, true)
 		board_ref.highlight_tutorial_cell(locked_egg_coord, true)
 
-	var msg := "Great job! You produced a Fresh Egg! 🥚\nNow drag your newly spawned Egg and merge it onto the locked Egg nearby to unlock your first ingredient!"
+	var msg := "Great job! You produced a Fresh Egg!\nNow drag your newly spawned Egg and merge it onto the locked Egg nearby to unlock your first ingredient!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "explain", func():
 			if toast_ref:
@@ -214,7 +214,7 @@ func _show_step_claim_progression() -> void:
 		)
 		return
 
-	var msg := "Incredible! Look at the bottom navigation bar! 📖\nSee that red badge on the 'Progress' button? Every time you merge and discover new items, your progress is tracked in your Culinary Codex!\nTap the Progress button to claim your discovery rewards!"
+	var msg := "Incredible! Look at the bottom navigation bar!\nSee that red badge on the 'Progress' button? Every time you merge and discover new items, your progress is tracked in your Culinary Codex!\nTap the Progress button to claim your discovery rewards!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "admire", func():
 			if toast_ref:
@@ -239,7 +239,7 @@ func _show_step_5_unlock_three_slots() -> void:
 		board_ref.clear_tutorial_highlights()
 
 	locked_cleared_count = 0
-	var msg := "Brilliant! Unlocking items clears the fog and opens up more kitchen space! ✨\nNow tap your Pantry Box to produce more ingredients, and merge them with matching locked items across the board.\nClear 3 more locked slots to expand your kitchen!"
+	var msg := "Brilliant! Unlocking items clears the fog and opens up more kitchen space!\nNow tap your Pantry Box to produce more ingredients, and merge them with matching locked items across the board.\nClear 3 more locked slots to expand your kitchen!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "thinking", func():
 			if toast_ref:
@@ -254,7 +254,7 @@ func _show_step_6_deliver_quests() -> void:
 		board_ref.clear_tutorial_highlights()
 
 	var cnt := QuestManager.get_completed_count()
-	var msg := "Customers are arriving with orders! 📝\nCheck the Order Cards above. Produce and merge the requested ingredients, then tap the flashing DELIVER button to earn Gold, Gems, and EXP!\nComplete 5 orders to unlock the Backpack and the Shop! (%d/5 completed)" % cnt
+	var msg := "Customers are arriving with orders!\nCheck the Order Cards above. Produce and merge the requested ingredients, then tap the flashing DELIVER button to earn Gold, Gems, and EXP!\nComplete 5 orders to unlock the Backpack and the Shop! (%d/5 completed)" % cnt
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "explain", func():
 			_check_first_quest_highlight()
@@ -295,7 +295,7 @@ func _show_step_7_claim_reward() -> void:
 	if is_instance_valid(bottom_nav_bar_ref):
 		bottom_nav_bar_ref.animate_reward_wobble()
 
-	var msg := "Congratulations! Completing 5 orders unlocked both your Backpack and the Shop! 🎉\nI've sent you a special Reward Chest! Tap the shining tile in the bottom navigation bar to place it on the board!"
+	var msg := "Congratulations! Completing 5 orders unlocked both your Backpack and the Shop!\nI've sent you a special Reward Chest! Tap the shining tile in the bottom navigation bar to place it on the board!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "admire", func():
 			if toast_ref:
@@ -323,7 +323,7 @@ func _show_step_9_store_in_inventory() -> void:
 		bottom_nav_bar_ref.play_inventory_pulse()
 
 	stored_inventory_count = 0
-	var msg := "Look at that—your board is getting crowded! 📦\nThat's what your newly unlocked Backpack is for! Drag any item from your board directly onto the Backpack button below to store it safely!"
+	var msg := "Look at that - your board is getting crowded!\nThat's what your newly unlocked Backpack is for! Drag any item from your board directly onto the Backpack button below to store it safely!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "explain", func():
 			if toast_ref:
@@ -338,7 +338,7 @@ func _finish_tutorial() -> void:
 	if board_ref:
 		board_ref.clear_tutorial_highlights()
 
-	var msg := "Fantastic job! 🌟 You've mastered all the kitchen basics! You're now free to cook, merge, deliver orders, and unlock new areas at your own pace!\nHave fun in Irene's Kitchen!"
+	var msg := "Fantastic job! You've mastered all the kitchen basics! You're now free to cook, merge, deliver orders, and unlock new areas at your own pace!\nHave fun in Irene's Kitchen!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "admire", func():
 			if toast_ref:
@@ -499,14 +499,14 @@ func _on_coin_consumed(_amount: int) -> void:
 		tween.tween_property(bottom_nav_bar_ref.shop_btn, "scale", Vector2(1.15, 0.85), 0.1)
 		tween.tween_property(bottom_nav_bar_ref.shop_btn, "scale", Vector2.ONE, 0.2)
 	if toast_ref:
-		toast_ref.show_toast("You collected Gold! 🪙 Visit the Shop to spend coins on energy, chests, and supplies!", "happy", 6.5)
+		toast_ref.show_toast("You collected Gold! Visit the Shop to spend coins on energy, chests, and supplies!", "happy", 6.5)
 
 func _on_board_full_attempted() -> void:
 	board_full_count += 1
 	if board_full_count >= 3 and not _shown_flags.get("board_full_sell_guide", false):
 		_shown_flags["board_full_sell_guide"] = true
 		if toast_ref:
-			toast_ref.show_toast("Board is full! 🧹 Tap any item and press the Sell ($) button below to free up space and earn Gold!", "explain", 7.0)
+			toast_ref.show_toast("Board is full! Tap any item and press the Sell ($) button below to free up space and earn Gold!", "explain", 7.0)
 
 # --- Serialization for Save/Load ---
 func serialize_data() -> Dictionary:

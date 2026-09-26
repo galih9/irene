@@ -5,7 +5,7 @@ var gems: int = 25
 var energy: int = 100
 var max_energy: int = 100
 
-var energy_regen_time: float = 6.0
+var energy_regen_time: float = 120.0
 var _regen_timer: float = 0.0
 
 var infinite_energy: bool = false
@@ -46,11 +46,16 @@ func spend_gems(amount: int) -> bool:
 		return true
 	return false
 
-func add_energy(amount: int) -> void:
+func add_energy(amount: int, bypass_limit: bool = false) -> void:
 	if amount == 0:
 		return
 	var prev := energy
-	energy = clampi(energy + amount, 0, max_energy)
+	if bypass_limit:
+		energy += amount
+	else:
+		if energy >= max_energy:
+			return
+		energy = clampi(energy + amount, 0, max_energy)
 	var delta := energy - prev
 	if delta != 0:
 		GameEvents.currency_changed.emit("energy", energy, delta)

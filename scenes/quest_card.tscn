@@ -156,7 +156,7 @@ alignment = 1
 [node name="ClockIcon" type="Label" parent="Background/VBox/CooldownBox" unique_id=2147483645]
 layout_mode = 2
 theme_override_font_sizes/font_size = 22
-text = "⏱️"
+text = "..."
 horizontal_alignment = 1
 
 [node name="CooldownLabel" type="Label" parent="Background/VBox/CooldownBox" unique_id=2147483646]

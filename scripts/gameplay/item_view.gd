@@ -62,7 +62,7 @@ const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
 @export var cage_auto_feed_timer: float = 30.0
 
 # Witch Cauldron & Potion state
-@export var cauldron_stored_items: Array[String] = []
+@export var cauldron_stored_items: Array = []
 @export var cooldown_removed: bool = false
 
 # Auto-spawn state
@@ -173,7 +173,7 @@ func _ensure_auto_spawn_badge() -> void:
 		auto_spawn_label.add_theme_font_size_override("font_size", 13)
 		auto_spawn_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 		auto_spawn_label.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
-		auto_spawn_label.text = "🐾"
+		auto_spawn_label.text = "+"
 		auto_spawn_badge.add_child(auto_spawn_label)
 		visuals.add_child(auto_spawn_badge)
 	elif not auto_spawn_label:
@@ -870,7 +870,7 @@ func _update_visuals() -> void:
 			if data.chain_id == "tree":
 				spawner_badge.visible = true
 				if is_instance_valid(spawner_label):
-					spawner_label.text = ("🍎%d" % water_fed) if water_fed > 0 else "💧0"
+					spawner_label.text = str(water_fed)
 				if status_badge:
 					status_badge.visible = false
 				sprite.modulate = Color.WHITE if data.icon_texture else data.color
@@ -892,7 +892,7 @@ func _update_visuals() -> void:
 			elif producer_status == ProducerStatus.EXHAUST or current_charges <= 0:
 				spawner_badge.visible = false
 				if is_instance_valid(spawner_label):
-					spawner_label.text = "⚡"
+					spawner_label.text = "SP"
 				if status_badge and status_label:
 					status_badge.visible = true
 					status_label.text = "%ds" % int(ceil(current_cooldown))
@@ -901,7 +901,7 @@ func _update_visuals() -> void:
 			else:
 				spawner_badge.visible = true
 				if is_instance_valid(spawner_label):
-					spawner_label.text = "⚡"
+					spawner_label.text = "SP"
 				if status_badge:
 					status_badge.visible = false
 				sprite.modulate = Color.WHITE if data.icon_texture else data.color
@@ -914,7 +914,7 @@ func _update_visuals() -> void:
 					if cage_stored_items.is_empty():
 						status_label.text = "0/%d" % get_cage_capacity()
 					else:
-						status_label.text = "🐾%d/%d" % [cage_stored_items.size(), get_cage_capacity()]
+						status_label.text = "%d/%d" % [cage_stored_items.size(), get_cage_capacity()]
 			elif shear_cooldown > 0.0:
 				if status_badge and status_label:
 					status_badge.visible = true
@@ -935,9 +935,9 @@ func _update_visuals() -> void:
 					auto_spawn_badge.visible = true
 					if is_instance_valid(auto_spawn_label):
 						if auto_spawn_current_stack > 1:
-							auto_spawn_label.text = "🐾%d" % auto_spawn_current_stack
+							auto_spawn_label.text = "+%d" % auto_spawn_current_stack
 						else:
-							auto_spawn_label.text = "🐾"
+							auto_spawn_label.text = "+"
 				else:
 					auto_spawn_badge.visible = false
 		elif auto_spawn_badge:
@@ -1106,6 +1106,17 @@ func animate_click() -> void:
 
 func animate_wobble() -> void:
 	animate_click()
+
+func animate_shake_left_right() -> void:
+	if _scale_tween and _scale_tween.is_valid():
+		_scale_tween.kill()
+	visuals.rotation_degrees = 0.0
+	_scale_tween = create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_scale_tween.tween_property(visuals, "rotation_degrees", 15.0, 0.05)
+	_scale_tween.tween_property(visuals, "rotation_degrees", -15.0, 0.1)
+	_scale_tween.tween_property(visuals, "rotation_degrees", 15.0, 0.1)
+	_scale_tween.tween_property(visuals, "rotation_degrees", -15.0, 0.1)
+	_scale_tween.tween_property(visuals, "rotation_degrees", 0.0, 0.05)
 
 func animate_spawn_flight(from_pos: Vector2, to_pos: Vector2, on_complete: Callable = Callable()) -> void:
 	global_position = from_pos

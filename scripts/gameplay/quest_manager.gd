@@ -423,11 +423,11 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	if quest.id.begins_with("ultimate_quest"):
 		ultimate_quest_active = false
 		ultimate_quest_completed = true
-		var completion_text := "🏆 KITCHEN MASTERED! ULTIMATE FEAST COMPLETE! 🏆"
+		var completion_text := "KITCHEN MASTERED! ULTIMATE FEAST COMPLETE!"
 		if current_board_theme == "witch":
-			completion_text = "🏆 WITCH'S HAVEN MASTERED! GRAND COVEN COMPLETE! 🏆"
+			completion_text = "WITCH'S HAVEN MASTERED! GRAND COVEN COMPLETE!"
 		elif current_board_theme == "farm":
-			completion_text = "🏆 FARM MASTERED! GRAND HARVEST COMPLETE! 🏆"
+			completion_text = "FARM MASTERED! GRAND HARVEST COMPLETE!"
 		GameEvents.show_floating_text.emit(completion_text, global_position + Vector2(332, 50), Color(1.0, 0.85, 0.2))
 
 	# Replace with cooldown timer before next customer arrives
@@ -476,7 +476,7 @@ func check_ultimate_quest_trigger() -> void:
 	var arrival_msg := ""
 	if current_board_theme == "witch":
 		uq.id = "ultimate_quest_witch"
-		uq.customer_name = "👑 Archmage Morgana"
+		uq.customer_name = "Archmage Morgana"
 		uq.customer_color = Color(0.9, 0.5, 1.0)
 		uq.required_item_ids = [
 			"mystic_tree_6",
@@ -486,10 +486,10 @@ func check_ultimate_quest_trigger() -> void:
 			"wand_6",
 			"staff_6"
 		]
-		arrival_msg = "👑 GRAND COVEN QUEST ARRIVED! 👑"
+		arrival_msg = "GRAND COVEN QUEST ARRIVED!"
 	elif current_board_theme == "farm":
 		uq.id = "ultimate_quest_farm"
-		uq.customer_name = "👑 County Fair Judge Ivan"
+		uq.customer_name = "County Fair Judge Ivan"
 		uq.customer_color = Color(1.0, 0.84, 0.0)
 		uq.required_item_ids = [
 			"hay_6",
@@ -499,10 +499,10 @@ func check_ultimate_quest_trigger() -> void:
 			"pine_5",
 			"tool_4"
 		]
-		arrival_msg = "👑 GRAND HARVEST FESTIVAL QUEST ARRIVED! 👑"
+		arrival_msg = "GRAND HARVEST FESTIVAL QUEST ARRIVED!"
 	else:
 		uq.id = "ultimate_quest_kitchen"
-		uq.customer_name = "👑 Royal Food Critic Irene"
+		uq.customer_name = "Royal Food Critic Irene"
 		uq.customer_color = Color(1.0, 0.84, 0.0)
 		uq.required_item_ids = [
 			"egg_6",       # Foodbox max normal
@@ -513,7 +513,7 @@ func check_ultimate_quest_trigger() -> void:
 			"drink_5",     # Fridge max normal
 			"util_12"      # Rack max normal
 		]
-		arrival_msg = "👑 ULTIMATE FEAST QUEST ARRIVED! 👑"
+		arrival_msg = "ULTIMATE FEAST QUEST ARRIVED!"
 
 	uq.reward_coins = 5000
 	uq.reward_gems = 200

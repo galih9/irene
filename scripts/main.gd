@@ -390,7 +390,7 @@ func _update_info_area(item_view: Node) -> void:
 		else:
 			info_sell_btn.disabled = false
 			if item.data.chain_id == "pig" and item.data.tier == 5:
-				info_sell_btn.text = "💎 50"
+				info_sell_btn.text = "50 Gems"
 			else:
 				info_sell_btn.text = "$ %d" % item.data.sell_value
 
@@ -410,55 +410,55 @@ func _get_interaction_info_text(item: ItemView) -> String:
 	var lvl: int = item.data.tier
 
 	if item.cooldown_removed:
-		return "⚡ Instant Spawner! Cooldown removed & unlimited instant charges."
+		return "Instant Spawner! Cooldown removed & unlimited instant charges."
 
 	if chain_id == "cauldron":
 		if lvl in [4, 5]:
-			return "🧪 Cauldron (Cap: 1). Drag item here or tap to brew!"
+			return "Cauldron (Cap: 1). Drag item here or tap to brew!"
 		elif lvl in [6, 7]:
-			return "🧪 Cauldron (Cap: 2). Stored: %d/2. Drag items or tap to brew!" % item.cauldron_stored_items.size()
+			return "Cauldron (Cap: 2). Stored: %d/2. Drag items or tap to brew!" % item.cauldron_stored_items.size()
 		elif lvl >= 8:
-			return "🧪 Grand Cauldron (Cap: 3). Stored: %d/3. Drag items or tap to brew!" % item.cauldron_stored_items.size()
+			return "Grand Cauldron (Cap: 3). Stored: %d/3. Drag items or tap to brew!" % item.cauldron_stored_items.size()
 		else:
-			return "🧪 Cauldron: Merge to Lv.4 to unlock brewing!"
+			return "Cauldron: Merge to Lv.4 to unlock brewing!"
 
 	elif chain_id == "potions":
-		return "✨ Potion: Cannot be merged. Drag onto board items or tap to use!"
+		return "Potion: Cannot be merged. Drag onto board items or tap to use!"
 
 	elif chain_id == "familiars":
-		return "🐾 Familiar: Cannot merge or sell. Drag onto Candle (Gold) or Mystic Tree (EXP)!"
+		return "Familiar: Cannot merge or sell. Drag onto Candle (Gold) or Mystic Tree (EXP)!"
 
 	elif chain_id == "candle":
 		if lvl == 6:
-			return "🕯️ Candle (Max): Tap to spawn Broom/Spellbook! Sacrifice Familiars here for Gold!"
+			return "Candle (Max): Tap to spawn Broom/Spellbook! Sacrifice Familiars here for Gold!"
 		else:
-			return "🕯️ Candle: Merge to Lv.6 to unlock spawning & sacrifice!"
+			return "Candle: Merge to Lv.6 to unlock spawning & sacrifice!"
 
 	elif chain_id == "spellbook":
 		if lvl == 6:
-			return "📖 Spellbook (Max): Tap to spawn EXP Stars!"
+			return "Spellbook (Max): Tap to spawn EXP Stars!"
 		else:
-			return "📖 Spellbook: Merge to Lv.6 to unlock EXP spawning!"
+			return "Spellbook: Merge to Lv.6 to unlock EXP spawning!"
 
 	elif chain_id == "mystic_tree":
 		if lvl >= 3:
-			return "🌳 Mystic Tree: Tap to spawn Shrooms & Wands! Drag Familiars here for EXP!"
+			return "Mystic Tree: Tap to spawn Shrooms & Wands! Drag Familiars here for EXP!"
 		else:
-			return "🌳 Mystic Tree: Merge to Lv.3 to unlock spawner!"
+			return "Mystic Tree: Merge to Lv.3 to unlock spawner!"
 
 	elif chain_id == "cow":
 		if lvl == 3:
 			if item.is_milked_ready:
-				return "🥛 Ready to milk! (Spawns Milk Lv.1)"
+				return "Ready to milk! (Spawns Milk Lv.1)"
 			elif item.fed_count >= 1:
-				return "✨ Fully fed! Ready to merge/upgrade"
+				return "Fully fed! Ready to merge/upgrade"
 			else:
-				return "🌾 Feed 1x Hay Lv.5 to milk, or Hay Lv.6 to upgrade"
+				return "Feed 1x Hay Lv.5 to milk, or Hay Lv.6 to upgrade"
 		else:
 			if item.fed_count >= 1:
-				return "✨ Fully fed (1/1)! Ready to merge/upgrade"
+				return "Fully fed (1/1)! Ready to merge/upgrade"
 			else:
-				return "🌾 Fed: %d/1 Hay. Feed 1 time to merge/upgrade" % item.fed_count
+				return "Fed: %d/1 Hay. Feed 1 time to merge/upgrade" % item.fed_count
 
 	elif chain_id == "sheep":
 		var wool_yield: int = 1
@@ -468,55 +468,55 @@ func _get_interaction_info_text(item: ItemView) -> String:
 
 		var shear_str: String = ""
 		if item.shear_cooldown > 0.0:
-			shear_str = "✂ Sheared! Regrowing wool (%ds cooldown)" % int(ceil(item.shear_cooldown))
+			shear_str = "Sheared! Regrowing wool (%ds cooldown)" % int(ceil(item.shear_cooldown))
 		else:
-			shear_str = "✂ Ready to shear with Tool Lv.4 (+%d Wool)" % wool_yield
+			shear_str = "Ready to shear with Tool Lv.4 (+%d Wool)" % wool_yield
 
 		var feed_str: String = ""
 		if item.fed_count >= 1:
-			feed_str = " | ✨ Fully Fed (1/1)"
+			feed_str = " | Fully Fed (1/1)"
 		else:
-			feed_str = " | 🌾 Fed: %d/1 Hay" % item.fed_count
+			feed_str = " | Fed: %d/1 Hay" % item.fed_count
 		return shear_str + feed_str
 
 	elif chain_id == "bird":
 		if item.fed_count >= 1:
-			return "✨ Fully fed (1/1)! Ready to merge/upgrade"
+			return "Fully fed (1/1)! Ready to merge/upgrade"
 		else:
-			return "🌾 Fed: %d/1 Hay. Feed 1 time to merge/upgrade" % item.fed_count
+			return "Fed: %d/1 Hay. Feed 1 time to merge/upgrade" % item.fed_count
 
 	elif chain_id == "pig":
 		if lvl == 5:
-			return "💎 Wild Boar: Sells for 50 Diamonds!"
+			return "Wild Boar: Sells for 50 Diamonds!"
 		elif item.fed_count >= 1:
-			return "✨ Fully fed (1/1)! Ready to merge/upgrade"
+			return "Fully fed (1/1)! Ready to merge/upgrade"
 		else:
-			return "🌾 Feed Progress: %d/1 (Any Hay). Needs 1 feed to merge" % item.fed_count
+			return "Feed Progress: %d/1 (Any Hay). Needs 1 feed to merge" % item.fed_count
 
 	elif chain_id == "tree":
 		if lvl in [3, 4]:
 			if item.water_fed > 0:
-				return "🍎 Watered! Ready to drop %d fruit(s). Tap to harvest!" % item.water_fed
+				return "Watered! Ready to drop %d fruit(s). Tap to harvest!" % item.water_fed
 			else:
-				return "💧 Thirsty! Drag Water or Watering tool onto tree to grow fruit"
+				return "Thirsty! Drag Water or Watering tool onto tree to grow fruit"
 		elif item.is_boosted:
-			return "💧 Water Boosted! Extra spawn charges: %d" % item.boost_charges
+			return "Water Boosted! Extra spawn charges: %d" % item.boost_charges
 		else:
-			return "💧 Boost with Water can/hose for extra drops!"
+			return "Boost with Water can/hose for extra drops!"
 
 	elif chain_id == "barn":
 		var boost_str := ""
 		if item.is_boosted:
-			boost_str = "⚡ Boosted Barn! Enhanced drop tiers active (%d uses left)" % item.boost_charges
+			boost_str = "Boosted Barn! Enhanced drop tiers active (%d uses left)" % item.boost_charges
 		elif lvl >= 3:
-			boost_str = "⚡ Boost with Tool (Lv.3+) for higher drop tiers & extra items!"
+			boost_str = "Boost with Tool (Lv.3+) for higher drop tiers & extra items!"
 
 		var auto_str := ""
 		if item.data.has_auto_spawn:
 			if item.auto_spawn_current_stack >= item.data.auto_spawn_max_stack:
-				auto_str = " | 🐾 Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
+				auto_str = " | Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
 			else:
-				auto_str = " | 🐾 Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
+				auto_str = " | Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
 
 		if boost_str != "" or auto_str != "":
 			return (boost_str + auto_str).strip_edges().trim_prefix("| ")
@@ -524,18 +524,18 @@ func _get_interaction_info_text(item: ItemView) -> String:
 
 	elif chain_id == "pine" or chain_id == "hay":
 		if item.is_boosted:
-			return "💧 Water Boosted! Extra charges: %d" % item.boost_charges
+			return "Water Boosted! Extra charges: %d" % item.boost_charges
 		else:
-			return "💧 Can be watered with Water can/hose to boost!"
+			return "Can be watered with Water can/hose to boost!"
 
 	elif chain_id == "tool" and lvl == 4:
-		return "✂ Shearing Tool: Drag onto any Sheep to shear wool!"
+		return "Shearing Tool: Drag onto any Sheep to shear wool!"
 
 	elif chain_id == "hay" and lvl == 7:
-		return "🌱 Compost: Drag onto Tree Lv.3/4 to boost fruit production!"
+		return "Compost: Drag onto Tree Lv.3/4 to boost fruit production!"
 
 	elif chain_id == "watering":
-		return "💧 Water Tool: Drag onto Hay, Trees, or Pines to boost them!"
+		return "Water Tool: Drag onto Hay, Trees, or Pines to boost them!"
 
 	elif chain_id == "cage":
 		if lvl >= 3:
@@ -544,19 +544,19 @@ func _get_interaction_info_text(item: ItemView) -> String:
 			var animal_name := item.get_cage_stored_animal_name()
 			var auto_str := ""
 			if lvl == 6:
-				auto_str = " | ⏱️ Auto-feed: %ds" % int(ceil(item.cage_auto_feed_timer))
+				auto_str = " | Auto-feed: %ds" % int(ceil(item.cage_auto_feed_timer))
 			if count == 0:
-				return "📦 Empty Cage (%d slots). Tap to open, drag animals here!%s" % [cap, auto_str]
+				return "Empty Cage (%d slots). Tap to open, drag animals here!%s" % [cap, auto_str]
 			else:
-				return "🐾 Holds %d/%d %s. Tap to open, feed Hay 3-6 to harvest!%s" % [count, cap, animal_name, auto_str]
+				return "Holds %d/%d %s. Tap to open, feed Hay 3-6 to harvest!%s" % [count, cap, animal_name, auto_str]
 		else:
-			return "📦 Cage: Merge to Lv.3 to unlock animal storage!"
+			return "Cage: Merge to Lv.3 to unlock animal storage!"
 
 	if item.data and item.data.has_auto_spawn:
 		if item.auto_spawn_current_stack >= item.data.auto_spawn_max_stack:
-			return "🐾 Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
+			return "Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
 		else:
-			return "🐾 Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
+			return "Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
 
 	return ""
 
@@ -640,7 +640,7 @@ func _trigger_board_welcome(target_board_id: String) -> void:
 				{
 					"character": "ivy",
 					"emotion": "greeting",
-					"text": "Greetings, traveler! Welcome to my sanctuary, the Witch's Haven! 🔮 I'm Ivy!"
+					"text": "Greetings, traveler! Welcome to my sanctuary, the Witch's Haven! I'm Ivy!"
 				},
 				{
 					"character": "ivy",
@@ -671,7 +671,7 @@ func _trigger_board_welcome(target_board_id: String) -> void:
 				{
 					"character": "ivan",
 					"emotion": "greeting",
-					"text": "Howdy! Welcome to my farm! 🚜 I'm Ivan, and I'm so glad you're here!"
+					"text": "Howdy! Welcome to my farm! I'm Ivan, and I'm so glad you're here!"
 				},
 				{
 					"character": "ivan",
@@ -845,14 +845,14 @@ func _setup_initial_farm_board() -> void:
 	board.board_theme = "farm"
 
 	var boxed_pool := [
-		"tree_1", "tree_1", "tree_2",
-		"pine_1", "pine_1", "pine_2",
+		"pine_1", "pine_1", "pine_1", "pine_2",
 		"water_1", "water_1", "water_2",
 		"barn_1", "barn_1", "barn_2",
 		"tool_1", "tool_1", "tool_2",
 		"fruit_1", "fruit_2",
 		"hay_2", "hay_2", "hay_3", "hay_3",
-		"bird_1", "cow_1", "sheep_1", "pig_1"
+		"bird_1", "cow_1", "sheep_1", "pig_1",
+		"tree_1"
 	]
 
 	var is_ls := (board.cols == 9 and board.rows == 7)
@@ -923,7 +923,14 @@ func _setup_initial_farm_board() -> void:
 					board.spawn_item_at(cur_coord, previews[cur_coord], ItemView.ItemState.HIDDEN, 1)
 				else:
 					var dist: float = Vector2(c, r).distance_to(Vector2(center_coord))
-					var prefix := "hay" if randf() < 0.5 else "tree"
+					var r_val := randf()
+					var prefix := "hay"
+					if r_val < 0.5:
+						prefix = "hay"
+					elif r_val < 0.85:
+						prefix = "pine"
+					else:
+						prefix = "water"
 					var tier := 1
 					if dist > 1.5:
 						tier = 2 if randf() < 0.85 else 1

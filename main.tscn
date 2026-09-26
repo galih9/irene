@@ -109,7 +109,9 @@ grow_vertical = 2
 
 [node name="IreneToast" parent="CanvasLayer/UI" unique_id=987123456 instance=ExtResource("15_irene_toast")]
 layout_mode = 0
+offset_left = 0.0
 offset_top = 100.0
+offset_right = 664.0
 offset_bottom = 168.0
 
 [node name="Board" parent="CanvasLayer/UI" unique_id=370536853 instance=ExtResource("4_board")]
@@ -172,7 +174,7 @@ layout_mode = 2
 size_flags_vertical = 4
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_info_btn")
-text = "ℹ"
+text = "i"
 
 [node name="TextVBox" type="VBoxContainer" parent="CanvasLayer/UI/BottomBar/InfoArea/Margin/HBox" unique_id=1904344762]
 layout_mode = 2
@@ -244,7 +246,7 @@ layout_mode = 1
 [node name="LevelSelectionModal" parent="CanvasLayer/Modals" unique_id=1984729102 instance=ExtResource("17_level_modal")]
 layout_mode = 1
 
-[node name="CageModal" parent="CanvasLayer/Modals" instance=ExtResource("19_cage_modal")]
+[node name="CageModal" parent="CanvasLayer/Modals" unique_id=1371331232 instance=ExtResource("19_cage_modal")]
 layout_mode = 1
 
 [node name="SaveToast" parent="CanvasLayer" unique_id=1849204857 instance=ExtResource("12_toast")]

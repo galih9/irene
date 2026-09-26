@@ -21,11 +21,11 @@ const DRAG_THRESHOLD: float = 10.0
 const INERTIA_FRICTION: float = 7.0
 
 const TABS: Array[Dictionary] = [
-	{"id": "kitchen", "name": "🍳 Kitchen"},
-	{"id": "farm", "name": "🌾 Farm"},
-	{"id": "witch", "name": "🔮 Witch"},
-	{"id": "chests", "name": "🎁 Chests"},
-	{"id": "achievements", "name": "🏆 Achievements"}
+	{"id": "kitchen", "name": "Kitchen"},
+	{"id": "farm", "name": "Farm"},
+	{"id": "witch", "name": "Witch"},
+	{"id": "chests", "name": "Chests"},
+	{"id": "achievements", "name": "Achievements"}
 ]
 
 const KITCHEN_CHAINS: Array[Dictionary] = [
@@ -331,7 +331,7 @@ func _render_achievements_placeholder() -> void:
 	center_box.add_theme_constant_override("separation", 12)
 
 	var trophy_lbl := Label.new()
-	trophy_lbl.text = "🏆"
+	trophy_lbl.text = ""
 	trophy_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	trophy_lbl.add_theme_font_size_override("font_size", 48)
 	center_box.add_child(trophy_lbl)
@@ -495,7 +495,17 @@ func _create_item_row(item: ItemData) -> Control:
 		var claim_btn := Button.new()
 		claim_btn.custom_minimum_size = Vector2(96, 38)
 		
-		var reward_str := "+%d 💎\n+🎁 Chest" % reward.gems
+		var chest_name := "Item"
+		if reward.has("chest") and not str(reward.chest).is_empty():
+			if reward.chest.begins_with("chest_"):
+				var parts = reward.chest.split("_")
+				if parts.size() >= 2:
+					chest_name = parts[1].capitalize() + " Chest"
+			elif reward.chest.begins_with("potion_"):
+				var parts = reward.chest.split("_")
+				if parts.size() >= 2:
+					chest_name = parts[1].capitalize() + " Potion"
+		var reward_str := "+%d Gems\n+%d Coins\n%s" % [reward.gems, reward.coins, chest_name]
 		claim_btn.text = reward_str
 		claim_btn.add_theme_font_size_override("font_size", 11)
 		claim_btn.add_theme_color_override("font_color", Color.WHITE)
@@ -523,7 +533,7 @@ func _create_item_row(item: ItemData) -> Control:
 			var res := ProgressionManager.claim_reward(item.id)
 			_is_claiming_in_place = false
 			SoundManager.play_quest()
-			var msg := "+%d Diamonds!\n+🎁 Chest sent to Reward Slot!" % res.gems
+			var msg := "+%d Gems\n+%d Coins\nItem sent to Reward Slot!" % [res.gems, res.coins]
 			GameEvents.show_floating_text.emit("Codex Reward!\n" + msg, panel.global_position + Vector2(250, 20), Color(0.4, 1.0, 0.4))
 			
 			# In-place update to eliminate lag
