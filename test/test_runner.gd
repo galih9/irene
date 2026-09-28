@@ -3497,4 +3497,3 @@ func _ready() -> void:
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)
-

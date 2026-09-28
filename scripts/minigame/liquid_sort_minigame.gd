@@ -31,6 +31,11 @@ var win_modal: PanelContainer
 var win_title: Label
 var win_next_btn: Button
 var confetti_particles: CPUParticles2D
+var loading_overlay: Control       # shown while BFS level generation runs on a thread
+var loading_dots_label: Label      # animated "..." dots so the user knows it's working
+
+var generation_thread: Thread = null   # background thread for level generation
+var _pending_config = null             # result passed back from the thread
 
 var is_landscape_mode: bool = false
 
@@ -167,6 +172,9 @@ func _build_ui() -> void:
 	# 6. Victory Modal
 	_build_victory_modal()
 
+	# 7. Loading Overlay (shown during BFS generation on next level)
+	_build_loading_overlay()
+
 func _build_victory_modal() -> void:
 	win_modal = PanelContainer.new()
 	win_modal.name = "WinModal"
@@ -229,6 +237,72 @@ func _build_victory_modal() -> void:
 	win_next_btn.pressed.connect(_on_next_level_pressed)
 	vm_vbox.add_child(win_next_btn)
 
+func _build_loading_overlay() -> void:
+	loading_overlay = Control.new()
+	loading_overlay.name = "LoadingOverlay"
+	loading_overlay.set_anchors_preset(PRESET_FULL_RECT)
+	loading_overlay.z_index = 200
+	loading_overlay.visible = false
+	add_child(loading_overlay)
+
+	# Semi-transparent dark backdrop
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(PRESET_FULL_RECT)
+	bg.color = Color(0.0, 0.0, 0.0, 0.72)
+	loading_overlay.add_child(bg)
+
+	# Centered card
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(280, 130)
+	card.set_anchors_preset(PRESET_CENTER)
+	card.offset_left = -140.0
+	card.offset_top = -65.0
+	card.offset_right = 140.0
+	card.offset_bottom = 65.0
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = Color(0.12, 0.12, 0.18, 0.97)
+	card_style.border_color = Color(0.55, 0.75, 1.0, 0.7)
+	card_style.set_border_width_all(2)
+	card_style.set_corner_radius_all(16)
+	card_style.shadow_size = 18
+	card_style.shadow_color = Color(0, 0, 0, 0.45)
+	card.add_theme_stylebox_override("panel", card_style)
+	loading_overlay.add_child(card)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 24)
+	margin.add_theme_constant_override("margin_right", 24)
+	margin.add_theme_constant_override("margin_top", 20)
+	margin.add_theme_constant_override("margin_bottom", 20)
+	card.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 10)
+	margin.add_child(vbox)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "Generating Level..."
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 20)
+	title_lbl.add_theme_color_override("font_color", Color(0.85, 0.92, 1.0, 1.0))
+	vbox.add_child(title_lbl)
+
+	loading_dots_label = Label.new()
+	loading_dots_label.text = "Solving puzzle layout  ●○○"
+	loading_dots_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	loading_dots_label.add_theme_font_size_override("font_size", 13)
+	loading_dots_label.add_theme_color_override("font_color", Color(0.6, 0.75, 1.0, 0.85))
+	vbox.add_child(loading_dots_label)
+
+func _process(_delta: float) -> void:
+	# Animate loading dots while generation thread is running
+	if not (loading_overlay and loading_overlay.visible and loading_dots_label):
+		return
+	var frame := int(Time.get_ticks_msec() / 380) % 3
+	var frames := ["Solving puzzle layout  ●○○", "Solving puzzle layout  ●●○", "Solving puzzle layout  ●●●"]
+	loading_dots_label.text = frames[frame]
+
 func start_level(level: int) -> void:
 	current_level = level
 	undo_stack.clear()
@@ -236,20 +310,43 @@ func start_level(level: int) -> void:
 	selected_bottle = null
 	is_pouring = false
 	win_modal.visible = false
-	
+
 	if is_instance_valid(level_label):
 		level_label.text = "Level %d" % current_level
 
 	_update_undo_button()
 
-	# Clear previous bottles
+	# Clear previous bottles immediately so the screen isn't frozen on the old state
 	for b in bottles:
 		if is_instance_valid(b):
 			b.queue_free()
 	bottles.clear()
 
-	# Generate Level Configuration
+	# Show loading overlay right away — user sees feedback instead of a frozen screen
+	if loading_overlay:
+		loading_overlay.visible = true
+
+	# Run BFS level generation on a background thread so the main thread stays responsive
+	if generation_thread and generation_thread.is_started():
+		generation_thread.wait_to_finish()
+	generation_thread = Thread.new()
+	generation_thread.start(_generate_level_threaded.bind(level))
+
+func _generate_level_threaded(level: int) -> void:
+	# Runs on a background thread — do NOT touch any Node or UI from here
 	var config := LiquidSortLevelGenerator.generate_level(level)
+	# Hand the result back to the main thread safely via call_deferred
+	call_deferred("_on_generation_done", config)
+
+func _on_generation_done(config: LiquidSortLevelGenerator.LevelConfig) -> void:
+	# Back on the main thread — safe to modify the scene tree
+	if generation_thread and generation_thread.is_started():
+		generation_thread.wait_to_finish()
+	generation_thread = null
+
+	if loading_overlay:
+		loading_overlay.visible = false
+
 	_instantiate_bottles(config)
 
 func _instantiate_bottles(config: LiquidSortLevelGenerator.LevelConfig) -> void:
@@ -377,50 +474,57 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 	var units_to_pour := mini(units_available, space_available)
 	var color_val := LiquidColorPalette.get_color(pour_color)
 
-	# Decide pour direction (pour from left or right of target)
+	# Decide pour direction based on which side of the target the source is on
 	var vp_width := get_viewport_rect().size.x if is_inside_tree() else 720.0
 	var target_center_x := target.global_position.x + target.size.x * 0.5
 	var source_center_x := source.global_position.x + source.size.x * 0.5
 
 	var pour_from_left: bool
 	if target_center_x > vp_width * 0.65:
-		# Target is on the right side of the screen; pour from left to stay on screen
 		pour_from_left = true
 	elif target_center_x < vp_width * 0.35:
-		# Target is on the left side of the screen; pour from right to stay on screen
 		pour_from_left = false
 	elif abs(source_center_x - target_center_x) > 10.0:
-		# Prefer pouring from whichever side the source bottle is already on
 		pour_from_left = source_center_x < target_center_x
 	else:
-		# Same column: pour towards center of screen
 		pour_from_left = target_center_x <= vp_width * 0.5
 
-	# Tilt angle: Positive (clockwise) tilts mouth right; Negative (counter-clockwise) tilts mouth left
-	var tilt_deg := 76.0 if pour_from_left else -76.0
+	# Dynamic tilt based on how many layers remain in the source bottle after pouring.
+	# Nearly-empty bottle needs a steep tilt to drain the last bit.
+	# Fuller bottles pour naturally at a gentler angle.
+	var layers_remaining_after := source.layers.size() - units_to_pour
+	var capacity := source.capacity
+	# fill_ratio: 0.0 = will be empty after pour, 1.0 = still mostly full
+	var fill_ratio_after := float(layers_remaining_after) / float(capacity)
+	# Tilt range: 135° (steep, nearly empty) → 75° (gentle, more liquid left)
+	var tilt_deg_abs := lerpf(135.0, 75.0, clampf(fill_ratio_after, 0.0, 1.0))
+	var tilt_deg := tilt_deg_abs if pour_from_left else -tilt_deg_abs
 	var target_tilt_rad := deg_to_rad(tilt_deg)
 
-	# Target bottle neck position in global space
-	var target_mouth_local := Vector2(target.size.x * 0.5, target.size.y * 0.16)
-	var lip_offset := Vector2(-8.0 if pour_from_left else 8.0, -16.0)
-	var desired_lip_global := target.get_global_transform() * target_mouth_local + lip_offset
+	# The source bottle lip sits directly above the target neck opening.
+	# Shallower tilts need a slightly bigger horizontal nudge so the bottle body clears the target.
+	var nudge_amount := lerpf(source.size.x * 0.25, source.size.x * 0.55, clampf(fill_ratio_after, 0.0, 1.0))
+	var neck_global := target.get_neck_position_global()
+	var side_nudge := Vector2(-nudge_amount if pour_from_left else nudge_amount, 0.0)
+	# Lift source so it's above the target neck — just enough for the neck to be free
+	var desired_lip_global := neck_global + side_nudge + Vector2(0.0, -source.size.y * 0.18)
 	var desired_lip_in_parent := bottles_container.get_global_transform().affine_inverse() * desired_lip_global
 
-	# Calculate hover position for source so its rotated lip exactly reaches desired_lip_in_parent
+	# Calculate hover position so the rotated lip lands at desired_lip_in_parent
 	var source_lip_local := Vector2(source.size.x * (0.58 if pour_from_left else 0.42), source.size.y * 0.08)
 	var hover_pos := desired_lip_in_parent - source.pivot_offset - (source_lip_local - source.pivot_offset).rotated(target_tilt_rad)
 
-	# 1. Fly to position above target and tilt towards target
+	# 1. Fly source bottle to hover position above target, tilting mouth downward
 	source.z_index = 40
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(source, "position", hover_pos, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(source, "rotation", target_tilt_rad, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 
 	tween.chain().tween_callback(func():
-		# 2. Pour liquid stream
+		# 2. Pour: stream goes from source lip → through target neck → down to liquid surface inside
 		var lip_pt := source.get_lip_position_global()
-		var neck_pt := target.get_neck_position_global()
-		stream_renderer.set_flow_path(lip_pt, neck_pt, color_val)
+		var surface_pt := target.get_liquid_surface_global()
+		stream_renderer.set_flow_path(lip_pt, surface_pt, color_val)
 		if SoundManager: SoundManager.play_merge_tier(2)
 
 		var pour_duration := 0.45 + float(units_to_pour - 1) * 0.25

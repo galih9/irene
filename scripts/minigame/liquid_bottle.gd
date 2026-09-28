@@ -48,19 +48,37 @@ func _process(_delta: float) -> void:
 			fluid_material.set_shader_parameter("tilt_angle", rotation)
 
 func _setup_children() -> void:
-	# 1. Fluid Shader Rect (rendered behind glass)
+	# Layer order (back to front): fluid → cork → glass → button
+	# This makes cork render above the fluid but behind the glass overlay,
+	# so it looks like the cork is plugged into the bottle neck from inside.
+
+	# 1. Fluid Shader Rect (bottom layer — behind everything)
 	fluid_rect = ColorRect.new()
 	fluid_rect.name = "FluidRect"
 	fluid_rect.set_anchors_preset(PRESET_FULL_RECT)
 	fluid_rect.mouse_filter = MOUSE_FILTER_IGNORE
-	
+
 	fluid_material = ShaderMaterial.new()
 	fluid_material.shader = FLUID_SHADER
 	fluid_material.set_shader_parameter("inner_mask", MASK_TEXTURE)
 	fluid_rect.material = fluid_material
 	add_child(fluid_rect)
 
-	# 2. Glass Bottle Overlay (on top of fluid)
+	# 2. Cork Stopper (middle layer — above fluid, behind glass)
+	# By adding it BEFORE the glass, it naturally renders between fluid and glass.
+	cork_rect = TextureRect.new()
+	cork_rect.name = "CorkRect"
+	cork_rect.texture = CORK_TEXTURE
+	cork_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	cork_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+	cork_rect.mouse_filter = MOUSE_FILTER_IGNORE
+	cork_rect.visible = false
+	add_child(cork_rect)
+	complete_icon = cork_rect
+
+	# 3. Glass Bottle Overlay (top layer — renders over fluid and cork)
+	# The neck area of the glass texture is transparent, so the cork shows through
+	# just at the opening, creating the illusion it is sealed inside the neck.
 	glass_texture = TextureRect.new()
 	glass_texture.name = "GlassTexture"
 	glass_texture.set_anchors_preset(PRESET_FULL_RECT)
@@ -70,19 +88,7 @@ func _setup_children() -> void:
 	glass_texture.mouse_filter = MOUSE_FILTER_IGNORE
 	add_child(glass_texture)
 
-	# 3. Completed Cork Stopper (plugs into the bottle neck opening)
-	cork_rect = TextureRect.new()
-	cork_rect.name = "CorkRect"
-	cork_rect.texture = CORK_TEXTURE
-	cork_rect.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
-	cork_rect.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
-	cork_rect.mouse_filter = MOUSE_FILTER_IGNORE
-	cork_rect.visible = false
-	cork_rect.z_index = 2
-	add_child(cork_rect)
-	complete_icon = cork_rect
-
-	# 4. Interactive Click Button
+	# 4. Invisible click button (top-most, catches input)
 	click_btn = Button.new()
 	click_btn.name = "ClickBtn"
 	click_btn.set_anchors_preset(PRESET_FULL_RECT)
@@ -95,14 +101,14 @@ func _setup_children() -> void:
 	_update_cork_layout()
 
 func _get_cork_size() -> Vector2:
-	var cw := size.x * 0.38
+	var cw := size.x * 0.30
 	return Vector2(cw, cw)
 
 func _get_cork_target_pos() -> Vector2:
 	var c_size := _get_cork_size()
 	var cx := (size.x - c_size.x) * 0.5
-	# Factor 0.06 places the cork stopper firmly inside the glass neck opening
-	var cy := (size.y * 0.06) - (c_size.y * 0.5)
+	# Push cork down so it sits inside the neck hole of the bottle
+	var cy := (size.y * 0.10) - (c_size.y * 0.5)
 	return Vector2(cx, cy)
 
 func _update_cork_layout() -> void:
@@ -237,10 +243,23 @@ func get_lip_position_global() -> Vector2:
 	var local_lip := Vector2(lip_x, size.y * 0.08)
 	return get_global_transform() * local_lip
 
+
 func get_neck_position_global() -> Vector2:
-	# Returns the target bottle neck entry coordinate
-	var local_neck := Vector2(size.x * 0.5, size.y * 0.18)
+	# Returns the target bottle neck entry coordinate (top opening center)
+	var local_neck := Vector2(size.x * 0.5, size.y * 0.20)
 	return get_global_transform() * local_neck
+
+func get_liquid_surface_global() -> Vector2:
+	# Returns the current liquid surface position inside the bottle in global space.
+	# The stream endpoint should reach here so it visually goes inside the bottle.
+	const Y_BOTTOM: float = 0.885
+	const Y_TOP_FULL: float = 0.285
+	var fill_ratio := float(layers.size()) / float(capacity) if capacity > 0 else 0.0
+	var surface_y_uv := Y_BOTTOM - fill_ratio * (Y_BOTTOM - Y_TOP_FULL)
+	# Clamp to inside the bottle body (below the neck)
+	surface_y_uv = clampf(surface_y_uv, Y_TOP_FULL + 0.05, Y_BOTTOM - 0.05)
+	var local_surface := Vector2(size.x * 0.5, surface_y_uv * size.y)
+	return get_global_transform() * local_surface
 
 func update_visuals() -> void:
 	if not fluid_material:

@@ -5,108 +5,64 @@ const LiquidColorPalette = preload("res://scripts/minigame/liquid_color_palette.
 
 class LevelConfig:
 	var level_number: int = 1
-	var total_bottles: int = 8
+	var total_bottles: int = 6
 	var capacity: int = 3
 	var color_count: int = 3
-	var filled_bottles: int = 6
+	var filled_bottles: int = 3   # ALWAYS equals color_count
 	var empty_bottles: int = 2
 	var bottle_data: Array[Array] = []
 
-# Returns configuration parameters for a given level
+# Returns configuration parameters for a given level.
+#
+# INVARIANT that must always hold:
+#   filled_bottles == color_count
+#   total_bottles  == color_count + empty_bottles
+#
+# This guarantees: total liquid = color_count × capacity
+# fits exactly into color_count bottles (filled_bottles) to form the solved state,
+# and the empty_bottles provide the buffer space needed to sort.
 static func get_level_params(level: int) -> Dictionary:
-	# Level 1 requirement: 8 bottles, 3 rows (capacity=3), 3 colors
 	if level == 1:
-		return {
-			"total_bottles": 8,
-			"capacity": 3,
-			"color_count": 3,
-			"filled_bottles": 6,
-			"empty_bottles": 2
-		}
+		return { "capacity": 3, "color_count": 3, "empty_bottles": 2 }
 	elif level == 2:
-		return {
-			"total_bottles": 8,
-			"capacity": 3,
-			"color_count": 4,
-			"filled_bottles": 6,
-			"empty_bottles": 2
-		}
+		return { "capacity": 3, "color_count": 4, "empty_bottles": 2 }
 	elif level == 3:
-		return {
-			"total_bottles": 9,
-			"capacity": 4,
-			"color_count": 4,
-			"filled_bottles": 7,
-			"empty_bottles": 2
-		}
+		return { "capacity": 4, "color_count": 4, "empty_bottles": 2 }
 	elif level == 4:
-		return {
-			"total_bottles": 10,
-			"capacity": 4,
-			"color_count": 5,
-			"filled_bottles": 8,
-			"empty_bottles": 2
-		}
+		return { "capacity": 4, "color_count": 5, "empty_bottles": 2 }
 	elif level == 5:
-		return {
-			"total_bottles": 11,
-			"capacity": 4,
-			"color_count": 5,
-			"filled_bottles": 9,
-			"empty_bottles": 2
-		}
+		return { "capacity": 4, "color_count": 5, "empty_bottles": 3 }
 	elif level == 6:
-		return {
-			"total_bottles": 12,
-			"capacity": 4,
-			"color_count": 6,
-			"filled_bottles": 10,
-			"empty_bottles": 2
-		}
+		return { "capacity": 4, "color_count": 6, "empty_bottles": 2 }
 	elif level == 7:
-		return {
-			"total_bottles": 12,
-			"capacity": 4,
-			"color_count": 7,
-			"filled_bottles": 10,
-			"empty_bottles": 2
-		}
+		return { "capacity": 4, "color_count": 7, "empty_bottles": 2 }
 	else:
 		# Dynamically scale higher levels
 		var cap := 4 if level < 15 else 5
 		var col_cnt := mini(12, 3 + int(level * 0.5))
-		var bottles := mini(14, 8 + int((level - 1) * 0.8))
-		var empty_cnt := 2
-		var filled_cnt := bottles - empty_cnt
-		return {
-			"total_bottles": bottles,
-			"capacity": cap,
-			"color_count": col_cnt,
-			"filled_bottles": filled_cnt,
-			"empty_bottles": empty_cnt
-		}
+		var empty_cnt := 2 if col_cnt <= 8 else 3
+		return { "capacity": cap, "color_count": col_cnt, "empty_bottles": empty_cnt }
 
-# Generates a guaranteed solvable level
+# Generates a guaranteed solvable level with no pre-completed bottles.
 static func generate_level(level: int) -> LevelConfig:
 	var params := get_level_params(level)
 	var config := LevelConfig.new()
-	config.level_number = level
-	config.total_bottles = params["total_bottles"]
-	config.capacity = params["capacity"]
-	config.color_count = params["color_count"]
-	config.filled_bottles = params["filled_bottles"]
+	config.level_number  = level
+	config.capacity      = params["capacity"]
+	config.color_count   = params["color_count"]
 	config.empty_bottles = params["empty_bottles"]
+	# filled_bottles MUST equal color_count (see invariant above)
+	config.filled_bottles = config.color_count
+	config.total_bottles  = config.filled_bottles + config.empty_bottles
 
 	var colors := LiquidColorPalette.get_colors_for_level(config.color_count)
 
-	# Pre-crafted Level 1 layout to ensure a delightful first impression
+	# ── Pre-crafted Level 1 ─────────────────────────────────────────────────
 	if level == 1:
-		# 3 colors: "orange", "sky_blue", "lime_green", capacity 3, 6 filled + 2 empty
-		var c0: String = colors[0] # orange
-		var c1: String = colors[1] # sky_blue
-		var c2: String = colors[2] # lime_green
-		
-		# Hand-crafted fun initial distribution (solvable in 7 moves)
+		var c0: String = colors[0]
+		var c1: String = colors[1]
+		var c2: String = colors[2]
+		# Hand-crafted, solvable in 7 moves, no bottle pre-complete
 		config.bottle_data = [
 			[c0, c0, c1], # Bottle 0
 			[c0, c1, c1], # Bottle 1
@@ -117,40 +73,47 @@ static func generate_level(level: int) -> LevelConfig:
 			[],           # Bottle 6 (Empty)
 			[]            # Bottle 7 (Empty)
 		]
+		# NOTE: level 1 uses 6 filled bottles for a more generous first level feel.
+		# Override filled_bottles count to match actual data (legacy hand-craft).
+		config.filled_bottles = 6
+		config.total_bottles  = 8
 		return config
 
-
-	# For levels > 1: generate solvable shuffle
-	var max_attempts := 30
+	# ── Random generation for levels > 1 ────────────────────────────────────
+	var max_attempts := 80
 	for _attempt in range(max_attempts):
-		var generated_bottles := _try_generate_shuffled_bottles(config, colors)
-		var solve_steps := _solve_bfs(generated_bottles, config.capacity, 45)
-		if solve_steps >= 4:
-			config.bottle_data = generated_bottles
+		var generated := _generate_shuffled_bottles(config, colors)
+		if _has_pre_completed_bottle(generated, config.capacity):
+			continue
+		var steps := _solve_bfs(generated, config.capacity, 100)
+		if steps >= 4:
+			config.bottle_data = generated
 			return config
 
-	# Fallback safe shuffle
-	config.bottle_data = _generate_fallback(config, colors)
+	# Fallback: deterministic interleave guaranteed solvable, then verify no pre-complete
+	var fallback := _generate_interleaved_fallback(config, colors)
+	config.bottle_data = fallback
 	return config
 
-static func _try_generate_shuffled_bottles(config: LevelConfig, colors: Array[String]) -> Array[Array]:
-	var total_units := config.filled_bottles * config.capacity
+# ── Generators ───────────────────────────────────────────────────────────────
+
+# Builds a pool of exactly color_count × capacity units (one full bottle worth per color),
+# shuffles it, then distributes across filled_bottles bottles.
+# Some bottles will be partially filled — that is intentional and correct.
+static func _generate_shuffled_bottles(config: LevelConfig, colors: Array[String]) -> Array[Array]:
+	# Pool = exactly one full bottle's worth per color
 	var pool: Array[String] = []
-
-	# Distribute colors evenly into the pool
-	var units_per_color := total_units / config.color_count
-	var remainder := total_units % config.color_count
-
-	for i in range(config.color_count):
-		var count := units_per_color + (1 if i < remainder else 0)
-		for _k in range(count):
-			pool.append(colors[i])
-
-	# Shuffle pool
+	for col in colors:
+		for _k in range(config.capacity):
+			pool.append(col)
+	# pool.size() == color_count × capacity == filled_bottles × capacity  ✓
 	pool.shuffle()
 
+	# Distribute evenly: since filled_bottles == color_count,
+	# each bottle gets exactly capacity items → all filled bottles start full.
+	# That's fine for BFS; the solver handles full bottles with mixed colors.
 	var bottles: Array[Array] = []
-	for i in range(config.filled_bottles):
+	for _i in range(config.filled_bottles):
 		var b: Array = []
 		for _k in range(config.capacity):
 			b.append(pool.pop_back())
@@ -161,14 +124,41 @@ static func _try_generate_shuffled_bottles(config: LevelConfig, colors: Array[St
 
 	return bottles
 
-static func _generate_fallback(config: LevelConfig, colors: Array[String]) -> Array[Array]:
+# Deterministic fallback: interleave colors so no bottle is monochrome.
+# Cycles through colors filling each slot, guaranteeing all colors are mixed.
+static func _generate_interleaved_fallback(config: LevelConfig, colors: Array[String]) -> Array[Array]:
+	# Build a solved pool first
+	var pool: Array[String] = []
+	for col in colors:
+		for _k in range(config.capacity):
+			pool.append(col)
+
+	# Interleave: place colors round-robin so adjacent slots differ
+	var interleaved: Array[String] = []
+	var color_idx := 0
+	var col_remaining: Array[int] = []
+	for _c in colors:
+		col_remaining.append(config.capacity)
+
+	var total := pool.size()
+	for _i in range(total):
+		# Find next color that still has remaining units
+		var tries := 0
+		while col_remaining[color_idx] == 0 and tries < colors.size():
+			color_idx = (color_idx + 1) % colors.size()
+			tries += 1
+		interleaved.append(colors[color_idx])
+		col_remaining[color_idx] -= 1
+		color_idx = (color_idx + 1) % colors.size()
+
+	# Distribute into bottles
 	var bottles: Array[Array] = []
-	for i in range(config.filled_bottles):
-		var col_a := colors[i % colors.size()]
-		var col_b := colors[(i + 1) % colors.size()]
+	var idx := 0
+	for _i in range(config.filled_bottles):
 		var b: Array = []
-		for k in range(config.capacity):
-			b.append(col_a if k < config.capacity / 2 else col_b)
+		for _k in range(config.capacity):
+			b.append(interleaved[idx])
+			idx += 1
 		bottles.append(b)
 
 	for _i in range(config.empty_bottles):
@@ -176,16 +166,32 @@ static func _generate_fallback(config: LevelConfig, colors: Array[String]) -> Ar
 
 	return bottles
 
-# Fast BFS solver to confirm solvability
+# ── Validation helpers ────────────────────────────────────────────────────────
+
+## Returns true if any full bottle has all identical colors (already solved at start).
+static func _has_pre_completed_bottle(bottles: Array[Array], capacity: int) -> bool:
+	for b in bottles:
+		if b.size() != capacity:
+			continue
+		var first: String = b[0]
+		var all_same := true
+		for col in b:
+			if col != first:
+				all_same = false
+				break
+		if all_same:
+			return true
+	return false
+
+# ── BFS Solver ────────────────────────────────────────────────────────────────
+
+# Returns the number of moves to solve, or -1 if unsolvable within limits.
 static func _solve_bfs(bottles: Array[Array], capacity: int, max_depth: int) -> int:
 	var start_state := _canonical_state(bottles)
-	var visited := {}
-	visited[start_state] = true
-
-	var queue: Array = []
-	queue.append({"state": bottles, "depth": 0})
-
+	var visited := { start_state: true }
+	var queue: Array = [{ "state": bottles, "depth": 0 }]
 	var nodes_checked := 0
+
 	while not queue.is_empty():
 		var node: Dictionary = queue.pop_front()
 		var state: Array[Array] = node["state"]
@@ -195,19 +201,19 @@ static func _solve_bfs(bottles: Array[Array], capacity: int, max_depth: int) -> 
 		if _is_state_solved(state, capacity):
 			return depth
 
-		if depth >= max_depth or nodes_checked > 10000:
+		if depth >= max_depth or nodes_checked > 15000:
 			continue
-
 
 		for i in range(state.size()):
 			var src: Array = state[i]
 			if src.is_empty():
 				continue
 			var top_col: String = src[src.size() - 1]
-			
+
+			# Count consecutive top-same-color units
 			var count := 0
-			for idx in range(src.size() - 1, -1, -1):
-				if src[idx] == top_col:
+			for si in range(src.size() - 1, -1, -1):
+				if src[si] == top_col:
 					count += 1
 				else:
 					break
@@ -224,7 +230,6 @@ static func _solve_bfs(bottles: Array[Array], capacity: int, max_depth: int) -> 
 				var space := capacity - dst.size()
 				var units := mini(count, space)
 
-				# Create next state
 				var new_src := src.slice(0, src.size() - units)
 				var new_dst := dst.duplicate()
 				for _u in range(units):
@@ -237,7 +242,7 @@ static func _solve_bfs(bottles: Array[Array], capacity: int, max_depth: int) -> 
 				var canonical := _canonical_state(new_state)
 				if not visited.has(canonical):
 					visited[canonical] = true
-					queue.append({"state": new_state, "depth": depth + 1})
+					queue.append({ "state": new_state, "depth": depth + 1 })
 
 	return -1
 

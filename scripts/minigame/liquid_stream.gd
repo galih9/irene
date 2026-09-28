@@ -22,7 +22,7 @@ const STREAM_SHADER: Shader = preload("res://shaders/fluid_stream.gdshader")
 func _init() -> void:
 	line = Line2D.new()
 	line.name = "StreamLine"
-	line.width = 11.0
+	line.width = 14.0
 	line.texture_mode = Line2D.LINE_TEXTURE_STRETCH
 	line.round_precision = 16
 	line.begin_cap_mode = Line2D.LINE_CAP_ROUND
@@ -34,12 +34,13 @@ func _init() -> void:
 	img.fill(Color.WHITE)
 	line.texture = ImageTexture.create_from_image(img)
 
-	# Natural stream taper curve: broader at bottle lip, streamlined as it accelerates into the neck
+	# Liquid stream taper: wider at the bottle lip where it flows out, narrowing as it
+	# accelerates under gravity and drops into the neck. This matches the reference image.
 	var curve := Curve.new()
-	curve.add_point(Vector2(0.0, 1.15))
-	curve.add_point(Vector2(0.25, 1.00))
-	curve.add_point(Vector2(0.75, 0.88))
-	curve.add_point(Vector2(1.0, 0.82))
+	curve.add_point(Vector2(0.0, 1.20))   # broad at the spout exit
+	curve.add_point(Vector2(0.30, 1.00))  # slight widening at pour start
+	curve.add_point(Vector2(0.65, 0.70))  # narrows as it accelerates downward
+	curve.add_point(Vector2(1.0, 0.55))   # thin at entry into bottle neck
 	line.width_curve = curve
 
 	shader_material = ShaderMaterial.new()
@@ -67,7 +68,7 @@ func _update_stream_geometry(t_start: float, t_end: float) -> void:
 		line.clear_points()
 		return
 	var pts := PackedVector2Array()
-	var steps := 24
+	var steps := 32
 	for i in range(steps + 1):
 		var frac := float(i) / float(steps)
 		var t := lerpf(t_start, t_end, frac)
@@ -82,16 +83,22 @@ func set_flow_path(from_pt: Vector2, to_pt: Vector2, color_val: Color) -> void:
 	var local_to := to_local(to_pt)
 	stream_color = color_val
 
-	# Set control points for a smooth, natural pouring trajectory
+	# Cubic Bezier for inside-bottle pour:
+	# - p0 = source lip (slightly to side above neck)
+	# - p3 = liquid surface inside target bottle (below neck, inside body)
+	# The stream curves quickly from the lip to align with the neck, then falls straight down.
 	p0 = local_from
 	p3 = local_to
+
 	var dx := p3.x - p0.x
 	var dy := p3.y - p0.y
 
-	# ctrl1 moves slightly towards the destination and arcs downward
-	p1 = Vector2(p0.x + dx * 0.20, p0.y + maxf(6.0, dy * 0.28))
-	# ctrl2 has x aligned with p3 so the liquid enters vertically into the bottle neck
-	p2 = Vector2(p3.x, p0.y + dy * 0.75)
+	# ctrl1: exits lip tangentially, quickly sweeps toward the neck center x
+	p1 = Vector2(p0.x + dx * 0.60, p0.y + dy * 0.15)
+
+	# ctrl2: aligned with p3 x (neck/bottle center), just above the surface
+	# This keeps the lower portion of the stream perfectly vertical inside the bottle
+	p2 = Vector2(p3.x, p0.y + dy * 0.70)
 
 	visible = true
 	is_active = true
