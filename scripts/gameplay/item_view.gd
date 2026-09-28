@@ -1089,6 +1089,18 @@ func animate_merge_pop() -> void:
 	flash_tween.tween_property(sprite, "modulate", orig_color, 0.25)
 	SoundManager.play_merge(data)
 
+func animate_consume_pop() -> void:
+	z_index = 50
+	if _scale_tween and _scale_tween.is_valid():
+		_scale_tween.kill()
+	var tween := create_tween()
+	sprite.modulate = Color.WHITE * 2.0
+	tween.parallel().tween_property(visuals, "scale", Vector2(1.25, 1.25), 0.08).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.parallel().tween_property(sprite, "modulate", Color(1.5, 1.5, 1.5, 1.0), 0.08)
+	tween.chain().tween_property(visuals, "scale", Vector2.ZERO, 0.12).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_IN)
+	tween.parallel().tween_property(self, "modulate:a", 0.0, 0.12)
+	tween.chain().tween_callback(queue_free)
+
 func animate_spawner_tap() -> void:
 	# Mechanical button press
 	visuals.scale = Vector2(0.85, 0.85)

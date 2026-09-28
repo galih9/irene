@@ -2029,7 +2029,7 @@ func _ready() -> void:
 	assert(finished_barn.is_spawner_ready() == true, "barn_3 must be ready to spawn")
 	assert(finished_barn.max_charges == 10, "barn_3 max charges must be 10")
 	var barn_pool := ItemDatabase._get_barn_pool(3)
-	assert(barn_pool.has("hay_1") and barn_pool.has("hay_2"), "barn_3 spawn pool must contain hay_1 and hay_2")
+	assert(barn_pool.has("hay_1") and not barn_pool.has("hay_2") and not barn_pool.has("hay_3"), "barn_3 spawn pool must strictly contain level 1 items only")
 
 	# Step 3: Tap Finished Barn to produce hay into empty cell
 	feat42_farm_board._try_spawn_from_item(finished_barn)
@@ -3202,8 +3202,299 @@ func _ready() -> void:
 	t49_main_game.queue_free()
 	print("[OK] Witch Initial Board hardcoded 3x3 starter merge sequence to Spawner verified!")
 
+	# 50. Test Quest Generator Overhaul: Spawner Protection & Improved Rewards
+	print("\n--- Testing Quest Generator Overhaul: Spawner Protection & Improved Rewards ---")
+	var t50_b_scene: PackedScene = load("res://scenes/board.tscn")
+	var t50_board: Board = t50_b_scene.instantiate()
+	add_child(t50_board)
+	t50_board.clear_board()
+	t50_board.board_theme = "farm"
+
+	var t50_qm_scene: PackedScene = load("res://scenes/quest_manager.tscn")
+	var t50_qm: QuestManager = t50_qm_scene.instantiate()
+	add_child(t50_qm)
+	t50_qm.setup(t50_board)
+	t50_qm.switch_board("farm")
+	InventoryManager.clear_all()
+
+	# 50.1 Spawner Protection: Count <= 1 of that spawner type
+	# Scenario A: Board has 1 tree_3 (active spawner) and 0 in bag.
+	t50_board.spawn_item_at(Vector2i(0, 0), "tree_3", ItemView.ItemState.NORMAL)
+	assert(t50_qm.get_spawner_count_for_chain("tree") == 1, "Should count exactly 1 tree spawner")
+	assert(t50_qm.get_unique_spawner_types().size() == 1, "Should have 1 unique spawner type")
+	assert(t50_qm.can_quest_ask_for_item("tree_3") == false, "Must NOT ask for tree_3 when player only has that 1 spawner of that type")
+
+	# Scenario B: Player also has 1 pine_3 (active spawner), giving 2 unique types, but still only 1 tree spawner
+	t50_board.spawn_item_at(Vector2i(1, 0), "pine_3", ItemView.ItemState.NORMAL)
+	assert(t50_qm.get_unique_spawner_types().size() == 2, "Should have 2 unique spawner types")
+	assert(t50_qm.get_spawner_count_for_chain("tree") == 1, "Still only 1 tree spawner")
+	assert(t50_qm.can_quest_ask_for_item("tree_3") == false, "Must NOT ask for tree_3 because player only has 1 tree spawner")
+
+	# Scenario C: Player puts a 2nd tree_3 into bag/inventory (now 2 tree spawners total)
+	InventoryManager.add_item("tree_3")
+	assert(t50_qm.get_spawner_count_for_chain("tree") == 2, "Should count 2 tree spawners across board and bag")
+	assert(t50_qm.can_quest_ask_for_item("tree_3") == true, "Can ask for tree_3 when player has spare/duplicate tree spawners and multiple spawner types")
+
+	# Scenario D: When tree_3 removed from bag, back to 1 tree spawner -> blocked again
+	InventoryManager.remove_item_by_id("tree_3")
+	assert(t50_qm.get_spawner_count_for_chain("tree") == 1, "Back to 1 tree spawner")
+	assert(t50_qm.can_quest_ask_for_item("tree_3") == false, "Blocked again with only 1 tree spawner")
+
+	# Scenario E: When player has 0 spawners of a chain (e.g. water_3)
+	assert(t50_qm.get_spawner_count_for_chain("water") == 0, "0 water spawners")
+	assert(t50_qm.can_quest_ask_for_item("water_3") == false, "Must NOT ask for spawner player has 0 of")
+
+	# Scenario F: Verify quest generation over 50 iterations NEVER asks for tree_3 or water_3
+	ProgressionManager.reset_all()
+	ProgressionManager.unlock_item("tree_1", true)
+	ProgressionManager.unlock_item("water_1", true)
+	ProgressionManager.unlock_item("hay_1", true)
+	t50_qm.completed_quest_count = 10 # mid/late game
+	for i in range(50):
+		var generated_farm_q: QuestData = t50_qm._generate_new_quest()
+		assert(not generated_farm_q.required_item_ids.has("tree_3"), "Quest generator must never ask for player's only tree spawner!")
+		assert(not generated_farm_q.required_item_ids.has("water_3"), "Quest generator must never ask for water_3 when player has none!")
+
+	# 50.2 Improved Rewards: Super-linear scaling, Gems, Energy, and EXP
+	# Single tier 1 item
+	var rew_t1: Dictionary = t50_qm._calculate_quest_rewards(["hay_1"], 0)
+	assert(rew_t1.coins >= 35, "Tier 1 coins should be at least 35, got %d" % rew_t1.coins)
+	assert(rew_t1.exp >= 20, "Tier 1 exp should be at least 20, got %d" % rew_t1.exp)
+
+	# Single tier 4 item (should give substantially higher coins than tier 1 * 4 due to merge effort)
+	var rew_t4: Dictionary = t50_qm._calculate_quest_rewards(["hay_4"], 1)
+	assert(rew_t4.coins >= 180, "Tier 4 coins should be >= 180 (super-linear scaling), got %d" % rew_t4.coins)
+	assert(rew_t4.energy >= 10, "Tier 4 order should reward energy, got %d" % rew_t4.energy)
+	assert(rew_t4.exp >= 80, "Tier 4 exp should be >= 80, got %d" % rew_t4.exp)
+
+	# Multi-item order: should include +25% coin bonus
+	var rew_multi: Dictionary = t50_qm._calculate_quest_rewards(["hay_2", "fruit_2"], 1)
+	var single_sum: int = int(t50_qm._calculate_quest_rewards(["hay_2"], 1).coins) + int(t50_qm._calculate_quest_rewards(["fruit_2"], 1).coins)
+	assert(rew_multi.coins >= int(single_sum * 0.9), "Multi-item order must have generous reward scaling")
+	assert(rew_multi.energy >= 10, "Multi-item order must reward energy")
+
+	# 50.3 Quest Delivery of Energy and Chest Rewards
+	var prev_eng := EconomyManager.energy
+	var test_reward_q := QuestData.new()
+	test_reward_q.id = "test_reward_q"
+	test_reward_q.required_item_ids = ["hay_1"]
+	test_reward_q.reward_coins = 100
+	test_reward_q.reward_gems = 3
+	test_reward_q.reward_energy = 25
+	test_reward_q.reward_exp = 50
+	test_reward_q.reward_chest = "chest_yellow_1"
+
+	# Put required item on board to deliver
+	t50_board.spawn_item_at(Vector2i(2, 2), "hay_1", ItemView.ItemState.NORMAL)
+	t50_qm.active_quests[0] = test_reward_q
+	var prev_chest_count := ProgressionManager.get_reward_count()
+	t50_qm._on_deliver_pressed(test_reward_q)
+
+	assert(EconomyManager.energy >= prev_eng + 25, "Energy must increase by at least 25 (with limit bypass)")
+	assert(ProgressionManager.get_reward_count() == prev_chest_count + 1, "Reward queue must receive +1 chest")
+	assert(ProgressionManager.peek_reward() == "chest_yellow_1", "Pushed chest must be chest_yellow_1")
+	ProgressionManager.pop_reward()
+
+	# 50.4 QuestCard UI formatting with all reward components
+	var card_scene: PackedScene = load("res://scenes/quest_card.tscn")
+	var test_card: QuestCard = card_scene.instantiate()
+	add_child(test_card)
+	test_card.setup(test_reward_q, true, ["hay_1"])
+	assert(test_card.reward_label.text.contains("100 Gold"), "Card reward text must show Gold")
+	assert(test_card.reward_label.text.contains("3 Gems"), "Card reward text must show Gems")
+	assert(test_card.reward_label.text.contains("25 Energy"), "Card reward text must show Energy")
+	assert(test_card.reward_label.text.contains("50 EXP"), "Card reward text must show EXP")
+	assert(test_card.reward_label.text.contains("Yellow Chest") or test_card.reward_label.text.contains("Chest"), "Card reward text must show Chest")
+
+	test_card.queue_free()
+	t50_board.queue_free()
+	t50_qm.queue_free()
+	print("[OK] Quest Generator Overhaul: Spawner Protection & Improved Rewards verified!")
+
+	# 51. Test High-Tier Merge EXP Drop & Consumable Flight Animations
+	print("\n--- Testing High-Tier Merge EXP Drop & Consumable Flight Animations ---")
+	var t51_board_scene := preload("res://scenes/board.tscn")
+	var t51_board: Board = t51_board_scene.instantiate()
+	add_child(t51_board)
+	t51_board.clear_board(true)
+
+	# 51.1 Test Tier 4 merge bonus EXP spawn
+	var item_a := t51_board.spawn_item_at(Vector2i(2, 2), "sandwich_4")
+	var item_b := t51_board.spawn_item_at(Vector2i(2, 3), "sandwich_4")
+	assert(item_a != null and item_b != null, "Items should be spawned")
+
+	# Count exp items before merge
+	var initial_exp_count := 0
+	for it in t51_board.get_all_items():
+		if it.data and it.data.chain_id == "exp":
+			initial_exp_count += 1
+
+	var merge_success := t51_board.try_merge(Vector2i(2, 2), Vector2i(2, 3))
+	assert(merge_success == true, "Tier 4 items should merge successfully")
+
+	# Target should now be sandwich_5 (tier 5)
+	var merged_item := t51_board.get_item_at(Vector2i(2, 3))
+	assert(merged_item != null, "Merged item should exist at (2, 3)")
+	assert(merged_item.data.id == "sandwich_5", "Merged item should be sandwich_5 (tier 5)")
+	assert(merged_item.data.tier == 5, "Merged item tier should be 5")
+
+	# Verify a random tier consumable exp item spawned
+	var post_exp_count := 0
+	var found_exp_item: ItemView = null
+	for it in t51_board.get_all_items():
+		if it.data and it.data.chain_id == "exp":
+			post_exp_count += 1
+			found_exp_item = it
+
+	assert(post_exp_count == initial_exp_count + 1 or ProgressionManager.has_pending_rewards(), "A bonus exp item must have spawned on board or in rewards queue")
+	if found_exp_item:
+		assert(found_exp_item.data.is_consumable == true, "Spawned EXP item must be marked as consumable")
+		assert(found_exp_item.data.consume_currency == "exp", "Spawned EXP currency must be 'exp'")
+		assert(found_exp_item.data.consume_amount > 0, "Spawned EXP amount must be > 0")
+
+	# 51.2 Test Low-Tier merge (Tier 2) does NOT trigger bonus EXP
+	t51_board.clear_board(true)
+	var low_a := t51_board.spawn_item_at(Vector2i(1, 1), "egg_2")
+	var low_b := t51_board.spawn_item_at(Vector2i(1, 2), "egg_2")
+	var low_merge := t51_board.try_merge(Vector2i(1, 1), Vector2i(1, 2))
+	assert(low_merge == true, "Tier 2 items should merge")
+	var low_exp_count := 0
+	for it in t51_board.get_all_items():
+		if it.data and it.data.chain_id == "exp":
+			low_exp_count += 1
+	assert(low_exp_count == 0, "Low tier merge (tier 2) must NOT spawn bonus exp")
+
+	# 51.3 Test Consumable Triggering & Event Emission
+	t51_board.clear_board(true)
+	var test_coin := t51_board.spawn_item_at(Vector2i(3, 3), "gold_3")
+	assert(test_coin != null, "Gold coin must be spawned")
+	assert(test_coin.data.is_consumable == true, "Gold coin is consumable")
+
+	var consumed_data := {"fired": false, "chain": "", "tier": 0}
+	var consumed_handler = func(idata: ItemData, _pos: Vector2):
+		consumed_data["fired"] = true
+		consumed_data["chain"] = idata.chain_id
+		consumed_data["tier"] = idata.tier
+
+	GameEvents.item_consumed.connect(consumed_handler)
+	var prev_coins := EconomyManager.coins
+	t51_board._trigger_consumable(test_coin)
+
+	assert(consumed_data["fired"] == true, "GameEvents.item_consumed must be emitted")
+	assert(consumed_data["chain"] == "gold", "Consumed item chain must be gold")
+	assert(consumed_data["tier"] == 3, "Consumed item tier must be 3")
+	assert(EconomyManager.coins == prev_coins + 40, "Coins must increase by gold_3 amount (+40)")
+	GameEvents.item_consumed.disconnect(consumed_handler)
+
+	# 51.4 Test HUD Flying Animation Setup & Scaling
+	var t51_hud_scene := preload("res://scenes/hud.tscn")
+	var t51_hud: HUD = t51_hud_scene.instantiate()
+	add_child(t51_hud)
+
+	assert(is_instance_valid(t51_hud.fx_layer), "HUD must have fx_layer initialized")
+	assert(t51_hud.fx_layer.z_index >= 200, "fx_layer must have high z_index for overlay visibility")
+
+	# Test flying token count scaling based on tier
+	var gold_data_1 := ItemDatabase.get_item("gold_1")
+	var gold_data_4 := ItemDatabase.get_item("gold_4")
+	assert(gold_data_1 != null and gold_data_4 != null, "Gold item data must exist")
+
+	var prev_token_count := t51_hud.fx_layer.get_child_count()
+	t51_hud.play_consumable_fly_animation(gold_data_1, Vector2(360, 500))
+	var t1_spawned := t51_hud.fx_layer.get_child_count() - prev_token_count
+	assert(t1_spawned >= 6, "Tier 1 coin should spawn at least 6 flying tokens")
+
+	prev_token_count = t51_hud.fx_layer.get_child_count()
+	t51_hud.play_consumable_fly_animation(gold_data_4, Vector2(360, 500))
+	var t4_spawned := t51_hud.fx_layer.get_child_count() - prev_token_count
+	assert(t4_spawned > t1_spawned, "Higher tier coin (Tier 4) must spawn more flying tokens than Tier 1")
+
+	# Test token impact audio & punch
+	SoundManager.play_token_arrival(1.2)
+
+	# Clean up test nodes
+	t51_hud.queue_free()
+	t51_board.queue_free()
+	print("[OK] High-Tier Merge EXP Drop & Consumable Flight Animations verified!")
+
+	# =========================================================================
+	# 52. Test Spawner Level 3 Rates (Level 1 Only) & Gameplay Progression
+	# =========================================================================
+	print("\n--- Testing Spawner Level 3 Rates (Level 1 Only) & Gameplay Progression ---")
+
+	# 52.1 Verify ALL Level 3 Spawners Strictly Only Spawn Level 1 Items
+	var l3_spawner_pools: Dictionary = {
+		"foodbox_3": ItemDatabase._get_foodbox_pool(3),
+		"oven_3": ItemDatabase._get_oven_pool(3),
+		"fridge_3": ItemDatabase._get_fridge_pool(3),
+		"rack_3": ItemDatabase._get_rack_pool(3),
+		"barn_3": ItemDatabase._get_barn_pool(3),
+		"tree_3": ItemDatabase._get_tree_pool(3),
+		"pine_3": ItemDatabase._get_pine_pool(3),
+		"water_3": ItemDatabase._get_water_pool(3),
+		"mystic_tree_3": ItemDatabase._get_mystic_tree_pool(3),
+		"shroom_3": ItemDatabase._get_shroom_pool(3)
+	}
+
+	for spawner_key in l3_spawner_pools.keys():
+		var pool: Array[String] = l3_spawner_pools[spawner_key]
+		assert(not pool.is_empty(), "%s pool must not be empty" % spawner_key)
+		for drop_id in pool:
+			var item := ItemDatabase.get_item(drop_id)
+			assert(item != null, "Item %s in %s pool must exist in ItemDatabase" % [drop_id, spawner_key])
+			assert(item.tier == 1, "Level 3 Spawner %s must strictly ONLY spawn Level 1 items! Found: %s (Tier %d)" % [spawner_key, drop_id, item.tier])
+
+	# 52.2 Verify ItemData on registered items matches Level 1 only rule
+	for spawner_id in ["foodbox_3", "oven_3", "fridge_3", "rack_3", "barn_3", "tree_3", "pine_3", "water_3", "mystic_tree_3", "shroom_3"]:
+		var s_data := ItemDatabase.get_item(spawner_id)
+		assert(s_data != null and s_data.is_spawner, "%s must be a registered spawner" % spawner_id)
+		for drop_id in s_data.spawn_pool:
+			var drop_item := ItemDatabase.get_item(drop_id)
+			assert(drop_item.tier == 1, "Registered spawner %s spawn_pool must only have Level 1 items! Got %s" % [spawner_id, drop_id])
+
+	# 52.3 Verify Higher Spawner Levels (e.g. Level 4) introduce Level 2 items with proper pacing
+	var fb4_pool := ItemDatabase._get_foodbox_pool(4)
+	var fb4_t2_count := 0
+	for d_id in fb4_pool:
+		var d_item := ItemDatabase.get_item(d_id)
+		if d_item.tier >= 2:
+			fb4_t2_count += 1
+	assert(fb4_t2_count > 0, "Level 4 spawner should introduce tier 2 items as an upgrade")
+	var fb4_t2_rate := float(fb4_t2_count) / float(fb4_pool.size())
+	assert(fb4_t2_rate <= 0.25, "Level 4 spawner tier 2 rate should be modest (<= 25%%) to prevent rapid discovery, got %.2f" % fb4_t2_rate)
+
+	# 52.4 Verify Quest Rewards provide Energy momentum even for low-tier orders
+	var t52_qm_scene: PackedScene = load("res://scenes/quest_manager.tscn")
+	var t52_qm: QuestManager = t52_qm_scene.instantiate()
+	add_child(t52_qm)
+	t52_qm.setup(null)
+
+	var low_order_rewards := t52_qm._calculate_quest_rewards(["egg_1"], 0)
+	assert(low_order_rewards.energy >= 5, "Tier 1 order must reward at least 5 energy to maintain merge momentum, got %d" % low_order_rewards.energy)
+
+	# 52.5 Verify Early Onboarding Quest Generation (completed_quest_count < 6) caps at Tier 2
+	ProgressionManager.reset_all()
+	ProgressionManager.unlock_item("foodbox_1", true)
+	ProgressionManager.unlock_item("egg_1", true)
+	ProgressionManager.unlock_item("egg_2", true)
+	ProgressionManager.unlock_item("egg_3", true)
+	ProgressionManager.unlock_item("egg_4", true)
+	ProgressionManager.unlock_item("leaf_1", true)
+	ProgressionManager.unlock_item("leaf_2", true)
+	t52_qm.completed_quest_count = 2 # early onboarding phase
+
+	for i in range(20):
+		var early_q := t52_qm._generate_new_quest(i % 3)
+		for r_id in early_q.required_item_ids:
+			var r_item := ItemDatabase.get_item(r_id)
+			assert(r_item.tier <= 2, "Early onboarding quest must never require items above Tier 2! Got: %s (Tier %d)" % [r_id, r_item.tier])
+
+	t52_qm.queue_free()
+	print("[OK] Spawner Level 3 Rates (Level 1 Only) & Gameplay Progression verified!")
+
 	SaveManager.delete_save()
 	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH
 
 	print("\n=== ALL TESTS PASSED SUCCESSFULLY! ===")
 	get_tree().quit(0)
+

@@ -5,6 +5,7 @@ signal progression_pressed()
 signal inventory_pressed()
 signal shop_pressed()
 signal map_pressed()
+signal minigame_pressed()
 signal reward_slot_pressed()
 
 @export var reward_slot_on_left: bool = true:
@@ -16,8 +17,10 @@ signal reward_slot_pressed()
 @onready var progression_btn: Button = $HBoxContainer/ProgressionBtn
 @onready var inventory_btn: Button = $HBoxContainer/InventoryBtn
 @onready var shop_btn: Button = $HBoxContainer/ShopBtn
+@onready var minigame_btn: Button = $HBoxContainer/MinigameBtn
 @onready var map_btn: Button = $HBoxContainer/MapBtn
 @onready var reward_btn: Button = $HBoxContainer/RewardBtn
+
 
 @onready var inventory_icon: TextureRect = $HBoxContainer/InventoryBtn/Margin/HBox/Icon
 @onready var inventory_title: Label = $HBoxContainer/InventoryBtn/Margin/HBox/VBox/Title
@@ -51,6 +54,8 @@ func _ready() -> void:
 	shop_btn.pressed.connect(_on_shop_pressed)
 	if is_instance_valid(map_btn):
 		map_btn.pressed.connect(_on_map_pressed)
+	if is_instance_valid(minigame_btn):
+		minigame_btn.pressed.connect(_on_minigame_pressed)
 	if is_instance_valid(reward_btn):
 		reward_btn.pressed.connect(_on_reward_slot_pressed)
 
@@ -72,6 +77,8 @@ func _ready() -> void:
 
 	_setup_nav_button_hover(progression_btn)
 	_setup_nav_button_hover(shop_btn)
+	if is_instance_valid(minigame_btn):
+		_setup_nav_button_hover(minigame_btn)
 	if is_instance_valid(map_btn):
 		_setup_nav_button_hover(map_btn)
 	if is_instance_valid(inventory_btn):
@@ -115,18 +122,19 @@ func set_layout_vertical(vertical: bool) -> void:
 		hbox.add_theme_constant_override("separation", 14)
 	if vertical:
 		custom_minimum_size = Vector2(200, 300)
-		for btn in [progression_btn, inventory_btn, shop_btn, map_btn, reward_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn, minigame_btn, map_btn, reward_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 				btn.custom_minimum_size = Vector2(70, 70)
 	else:
 		custom_minimum_size = Vector2(664, 116)
-		for btn in [progression_btn, inventory_btn, shop_btn, map_btn, reward_btn]:
+		for btn in [progression_btn, inventory_btn, shop_btn, minigame_btn, map_btn, reward_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 				btn.custom_minimum_size = Vector2(70, 70)
+
 
 func update_milestone_locks() -> void:
 	var inv_unlocked := is_inventory_unlocked()
@@ -276,6 +284,14 @@ func _on_map_pressed() -> void:
 	SoundManager.play_click()
 	map_pressed.emit()
 	GameEvents.request_map_open.emit()
+
+func _on_minigame_pressed() -> void:
+	if is_instance_valid(SoundManager):
+		SoundManager.play_click()
+	minigame_pressed.emit()
+	GameEvents.request_minigame_select_open.emit()
+
+
 
 # =============================================================================
 # Temporary Reward Slot Management

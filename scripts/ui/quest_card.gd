@@ -73,12 +73,29 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 	customer_avatar.add_theme_stylebox_override("panel", av_style)
 
 	# Rewards
-	var rewards_text: String = "+%d Gold" % quest.reward_coins
+	var reward_parts: Array[String] = []
+	reward_parts.append("+%d Gold" % quest.reward_coins)
 	if quest.reward_gems > 0:
-		rewards_text += "  +%d Gems" % quest.reward_gems
+		reward_parts.append("+%d Gems" % quest.reward_gems)
+	if quest.reward_energy > 0:
+		reward_parts.append("+%d Energy" % quest.reward_energy)
 	if quest.reward_exp > 0:
-		rewards_text += "  +%d EXP" % quest.reward_exp
-	reward_label.text = rewards_text
+		reward_parts.append("+%d EXP" % quest.reward_exp)
+	if not quest.reward_chest.is_empty():
+		var chest_item := ItemDatabase.get_item(quest.reward_chest)
+		var c_name := chest_item.display_name if chest_item else "Chest"
+		reward_parts.append("+%s" % c_name)
+
+	reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	if reward_parts.size() >= 4:
+		reward_label.add_theme_font_size_override("font_size", 11)
+	elif reward_parts.size() == 3:
+		reward_label.add_theme_font_size_override("font_size", 12)
+	else:
+		reward_label.add_theme_font_size_override("font_size", 13)
+
+	reward_label.text = "  ".join(reward_parts)
 
 	# Requirements
 	for child in requirements_container.get_children():

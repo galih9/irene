@@ -215,9 +215,10 @@ func _init_kitchen_starter_quests() -> void:
 	q1.customer_name = "Chef Luigi"
 	q1.customer_color = Color(0.85, 0.35, 0.3)
 	q1.required_item_ids = ["egg_1", "leaf_1"]
-	q1.reward_coins = 35
-	q1.reward_gems = 0
-	q1.reward_exp = 15
+	q1.reward_coins = 45
+	q1.reward_gems = 1
+	q1.reward_energy = 10
+	q1.reward_exp = 20
 	active_quests[0] = q1
 
 	# Quest 2: Boiled Snack (Boiled Egg)
@@ -226,9 +227,10 @@ func _init_kitchen_starter_quests() -> void:
 	q2.customer_name = "Grandma Rose"
 	q2.customer_color = Color(0.9, 0.55, 0.2)
 	q2.required_item_ids = ["egg_2"]
-	q2.reward_coins = 40
+	q2.reward_coins = 55
 	q2.reward_gems = 1
-	q2.reward_exp = 20
+	q2.reward_energy = 10
+	q2.reward_exp = 25
 	_pending_starter_quests.append(q2)
 
 	# Quest 3: Garden Omelet (Boiled Egg + Herb Bunch)
@@ -237,9 +239,10 @@ func _init_kitchen_starter_quests() -> void:
 	q3.customer_name = "Mayor Bob"
 	q3.customer_color = Color(0.25, 0.6, 0.9)
 	q3.required_item_ids = ["egg_2", "leaf_2"]
-	q3.reward_coins = 55
-	q3.reward_gems = 1
-	q3.reward_exp = 25
+	q3.reward_coins = 85
+	q3.reward_gems = 2
+	q3.reward_energy = 15
+	q3.reward_exp = 35
 	_pending_starter_quests.append(q3)
 
 func _init_farm_starter_quests() -> void:
@@ -256,9 +259,10 @@ func _init_farm_starter_quests() -> void:
 	q1.customer_name = "Ivan the Farmer"
 	q1.customer_color = Color(0.25, 0.7, 0.35)
 	q1.required_item_ids = ["hay_1"]
-	q1.reward_coins = 35
+	q1.reward_coins = 45
 	q1.reward_gems = 1
-	q1.reward_exp = 15
+	q1.reward_energy = 10
+	q1.reward_exp = 20
 	active_quests[0] = q1
 
 	# Farm Quest 2: Fresh Bales
@@ -267,9 +271,10 @@ func _init_farm_starter_quests() -> void:
 	q2.customer_name = "Daisy the Cowherd"
 	q2.customer_color = Color(0.85, 0.6, 0.2)
 	q2.required_item_ids = ["hay_2"]
-	q2.reward_coins = 45
+	q2.reward_coins = 60
 	q2.reward_gems = 1
-	q2.reward_exp = 20
+	q2.reward_energy = 10
+	q2.reward_exp = 25
 	_pending_starter_quests.append(q2)
 
 	# Farm Quest 3: Livestock Feed
@@ -278,9 +283,10 @@ func _init_farm_starter_quests() -> void:
 	q3.customer_name = "Old MacDonald"
 	q3.customer_color = Color(0.9, 0.45, 0.25)
 	q3.required_item_ids = ["hay_2", "hay_1"]
-	q3.reward_coins = 60
+	q3.reward_coins = 90
 	q3.reward_gems = 2
-	q3.reward_exp = 25
+	q3.reward_energy = 15
+	q3.reward_exp = 35
 	_pending_starter_quests.append(q3)
 
 func _init_witch_starter_quests() -> void:
@@ -297,9 +303,10 @@ func _init_witch_starter_quests() -> void:
 	q1.customer_name = "Morgana the Sorceress"
 	q1.customer_color = Color(0.65, 0.35, 0.85)
 	q1.required_item_ids = ["shroom_1"]
-	q1.reward_coins = 40
+	q1.reward_coins = 50
 	q1.reward_gems = 1
-	q1.reward_exp = 15
+	q1.reward_energy = 10
+	q1.reward_exp = 20
 	active_quests[0] = q1
 
 	# Witch Quest 2: Magic Wand
@@ -308,9 +315,10 @@ func _init_witch_starter_quests() -> void:
 	q2.customer_name = "Circe the Alchemist"
 	q2.customer_color = Color(0.85, 0.4, 0.75)
 	q2.required_item_ids = ["wand_1"]
-	q2.reward_coins = 50
+	q2.reward_coins = 65
 	q2.reward_gems = 1
-	q2.reward_exp = 20
+	q2.reward_energy = 10
+	q2.reward_exp = 25
 	_pending_starter_quests.append(q2)
 
 	# Witch Quest 3: Forest Spores
@@ -319,9 +327,10 @@ func _init_witch_starter_quests() -> void:
 	q3.customer_name = "Merlin the Elder"
 	q3.customer_color = Color(0.35, 0.55, 0.85)
 	q3.required_item_ids = ["shroom_2", "wand_1"]
-	q3.reward_coins = 65
+	q3.reward_coins = 100
 	q3.reward_gems = 2
-	q3.reward_exp = 25
+	q3.reward_energy = 15
+	q3.reward_exp = 35
 	_pending_starter_quests.append(q3)
 
 func _rebuild_cards() -> void:
@@ -376,7 +385,7 @@ func _arrive_quest_for_slot(slot_idx: int) -> void:
 	if not _pending_starter_quests.is_empty():
 		q = _pending_starter_quests.pop_front()
 	else:
-		q = _generate_new_quest()
+		q = _generate_new_quest(slot_idx)
 
 	active_quests[slot_idx] = q
 	if slot_idx < _cards.size() and is_instance_valid(_cards[slot_idx]):
@@ -398,9 +407,11 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	if quest.reward_gems > 0:
 		EconomyManager.add_gems(quest.reward_gems)
 	if quest.reward_energy > 0:
-		EconomyManager.add_energy(quest.reward_energy)
+		EconomyManager.add_energy(quest.reward_energy, true)
 	if quest.reward_exp > 0:
 		ProgressionManager.add_exp(quest.reward_exp)
+	if not quest.reward_chest.is_empty():
+		ProgressionManager.push_reward(quest.reward_chest)
 
 	completed_quest_count += 1
 	GameEvents.quest_count_changed.emit(completed_quest_count)
@@ -415,8 +426,12 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	var reward_str: String = "+%d Gold!" % quest.reward_coins
 	if quest.reward_gems > 0:
 		reward_str += " +%d Gems!" % quest.reward_gems
+	if quest.reward_energy > 0:
+		reward_str += " +%d Energy!" % quest.reward_energy
 	if quest.reward_exp > 0:
 		reward_str += " +%d EXP!" % quest.reward_exp
+	if not quest.reward_chest.is_empty():
+		reward_str += " +Chest!"
 	GameEvents.show_floating_text.emit("Order Complete!\n" + reward_str, global_position + Vector2(332, 100), Color(0.3, 1.0, 0.4))
 
 	# Handle Ultimate Quest completion
@@ -434,8 +449,18 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 	var idx := active_quests.find(quest)
 	if idx >= 0:
 		active_quests[idx] = null
-		# 4s during early onboarding tutorial, 14s for regular play
-		var cd: float = 4.0 if completed_quest_count < 2 else 14.0
+		# Slot-specific pacing: fast turnover on slot 0, moderate on 1, bounty on 2
+		var cd: float = 6.0
+		if completed_quest_count < 2:
+			cd = 4.0
+		elif idx == 0:
+			cd = 8.0
+		elif idx == 1:
+			cd = 12.0
+		elif idx == 2:
+			cd = 16.0
+		else:
+			cd = 14.0
 		_slot_cooldowns[idx] = cd
 		_slot_total_cooldowns[idx] = cd
 		if idx < _cards.size() and is_instance_valid(_cards[idx]):
@@ -530,69 +555,288 @@ func check_ultimate_quest_trigger() -> void:
 	GameEvents.show_floating_text.emit(arrival_msg, global_position + Vector2(330, 80), Color(1.0, 0.85, 0.2))
 	SoundManager.play_quest()
 
-func _generate_new_quest() -> QuestData:
+const KITCHEN_PRODUCER_CHAINS: Array[String] = ["foodbox", "oven", "fridge", "rack"]
+const FARM_PRODUCER_CHAINS: Array[String] = ["barn", "tree", "pine", "water"]
+const WITCH_PRODUCER_CHAINS: Array[String] = ["mystic_tree", "shroom", "candle", "spellbook", "cauldron"]
+
+## Returns the producer chain IDs for the given theme.
+func _get_producer_chains_for_theme(theme_id: String) -> Array[String]:
+	match theme_id:
+		"farm":
+			return FARM_PRODUCER_CHAINS
+		"witch":
+			return WITCH_PRODUCER_CHAINS
+		_:
+			return KITCHEN_PRODUCER_CHAINS
+
+## Returns count of active spawners belonging to a specific chain on the board or in the bag.
+func get_spawner_count_for_chain(chain_id: String) -> int:
+	var count := 0
+	if is_instance_valid(board_ref):
+		for item in board_ref.get_all_items_on_board(true):
+			if item and item.data and item.data.is_spawner and item.data.chain_id == chain_id:
+				count += 1
+	for inv_id in InventoryManager.get_all_item_ids():
+		var it := ItemDatabase.get_item(inv_id)
+		if it and it.is_spawner and it.chain_id == chain_id:
+			count += 1
+	return count
+
+## Returns count of all items (any tier) in a producer chain on the board or in the bag.
+func get_total_producer_items_for_chain(chain_id: String) -> int:
+	var count := 0
+	if is_instance_valid(board_ref):
+		for item in board_ref.get_all_items_on_board(true):
+			if item and item.data and item.data.chain_id == chain_id:
+				count += 1
+	for inv_id in InventoryManager.get_all_item_ids():
+		var it := ItemDatabase.get_item(inv_id)
+		if it and it.chain_id == chain_id:
+			count += 1
+	return count
+
+## Returns all unique spawner types (chain_ids) currently owned by the player on the board or in the bag.
+func get_unique_spawner_types() -> Array[String]:
+	var types: Array[String] = []
+	if is_instance_valid(board_ref):
+		for item in board_ref.get_all_items_on_board(true):
+			if item and item.data and item.data.is_spawner:
+				if not types.has(item.data.chain_id):
+					types.append(item.data.chain_id)
+	for inv_id in InventoryManager.get_all_item_ids():
+		var it := ItemDatabase.get_item(inv_id)
+		if it and it.is_spawner:
+			if not types.has(it.chain_id):
+				types.append(it.chain_id)
+	return types
+
+## Validates whether a candidate item can be requested by a quest.
+## Enforces that a spawner cannot be requested if:
+## 1. The player only has that one spawner of that type on the board or in the bag (count <= 1).
+## 2. The player only has that one type of spawner overall on the board or in the bag (unique types <= 1).
+## 3. The candidate is a low-tier producer component and player has no active spawner and <= 1 piece.
+func can_quest_ask_for_item(item_id: String) -> bool:
+	var it := ItemDatabase.get_item(item_id)
+	if not it:
+		return false
+
+	var producer_chains := _get_producer_chains_for_theme(current_board_theme)
+	var is_producer_chain := it.chain_id in producer_chains
+
+	# 1. Active Spawner Protection
+	if it.is_spawner:
+		# Check condition 1: player only has 1 (or 0) spawner of that chain
+		var chain_spawners := get_spawner_count_for_chain(it.chain_id)
+		if chain_spawners <= 1:
+			return false
+
+		# Check condition 2: player only has that one type of spawner overall
+		var unique_types := get_unique_spawner_types()
+		if unique_types.size() <= 1:
+			return false
+
+	# 2. Producer Component Protection (e.g. foodbox_1, tree_1)
+	elif is_producer_chain:
+		var chain_spawners := get_spawner_count_for_chain(it.chain_id)
+		var total_chain_items := get_total_producer_items_for_chain(it.chain_id)
+		if chain_spawners == 0 and total_chain_items <= 1:
+			return false
+
+	return true
+
+## Returns the highest unlocked tier in a chain discovered by the player.
+func _get_highest_unlocked_tier_in_chain(chain_id: String) -> int:
+	var max_tier := 1
+	var chain_items: Array = ItemDatabase.get_chain(chain_id)
+	for it in chain_items:
+		if ProgressionManager.is_unlocked(it.id):
+			max_tier = maxi(max_tier, it.tier)
+	return max_tier
+
+## Picks an item favoring lower/intermediate tiers to maintain pleasant gameplay pacing and avoid high-tier bottlenecks.
+func _pick_weighted_quest_item(items: Array) -> String:
+	if items.is_empty():
+		return ""
+	if items.size() == 1:
+		return str(items[0])
+
+	# Exponential drop-off per tier ensures manageable merges dominate common orders
+	var weights: Array[float] = []
+	var total_weight := 0.0
+	for id in items:
+		var it := ItemDatabase.get_item(id)
+		var t := it.tier if it else 1
+		var w: float = 1.0 / pow(1.8, maxf(0.0, float(t - 1)))
+		weights.append(w)
+		total_weight += w
+
+	var roll := randf() * total_weight
+	var accum := 0.0
+	for i in range(items.size()):
+		accum += weights[i]
+		if roll <= accum:
+			return str(items[i])
+	return str(items[items.size() - 1])
+
+## Calculates balanced, exciting rewards scaling super-linearly with merge effort.
+func _calculate_quest_rewards(required_ids: Array[String], slot_idx: int = -1) -> Dictionary:
+	var total_tier := 0
+	var max_tier := 0
+	for item_id in required_ids:
+		var it := ItemDatabase.get_item(item_id)
+		var t := it.tier if it else 1
+		total_tier += t
+		max_tier = maxi(max_tier, t)
+
+	# 1. Coins with super-linear scaling per tier effort
+	# Tier 1 = ~43, Tier 2 = ~75, Tier 3 = ~160, Tier 4 = ~340, Tier 5 = ~700, Tier 6 = ~1400
+	var coins := 25
+	for item_id in required_ids:
+		var it := ItemDatabase.get_item(item_id)
+		var t := it.tier if it else 1
+		var item_coin_val := int(round(18.0 * pow(2.1, t - 1)))
+		var variance := randi() % maxi(1, int(item_coin_val * 0.08))
+		coins += item_coin_val + variance
+
+	# Multi-item bonus (+25% bonus for 2+ items)
+	if required_ids.size() >= 2:
+		coins = int(coins * 1.25)
+
+	# 2. Gems
+	var gems := 0
+	if total_tier >= 7:
+		gems = 4 + (randi() % 3)
+	elif total_tier >= 5:
+		gems = 2 + (randi() % 2)
+	elif total_tier >= 3:
+		gems = 1 if randf() < 0.75 else 2
+	elif total_tier >= 2:
+		gems = 1 if randf() < 0.45 else 0
+	else:
+		gems = 1 if randf() < 0.25 else 0
+
+	# 3. Energy Reward (provides energetic momentum so players keep playing!)
+	var energy := 0
+	if total_tier >= 6:
+		energy = 30 + (randi() % 3) * 5
+	elif total_tier >= 4:
+		energy = 20 + (randi() % 2) * 5
+	elif total_tier >= 3 or required_ids.size() >= 2:
+		energy = 10 + (randi() % 2) * 5
+	else:
+		# Early / small quests: always reward 5-10 energy to keep player momentum!
+		energy = 10 if randf() < 0.5 else 5
+
+	# 4. EXP Reward
+	var exp_val := 15
+	for item_id in required_ids:
+		var it := ItemDatabase.get_item(item_id)
+		var t := it.tier if it else 1
+		exp_val += int(round(12.0 * pow(1.85, t - 1)))
+
+	# 5. Bonus Chest Reward for hard/bounty quests
+	var chest_reward := ""
+	if (slot_idx == 2 and total_tier >= 4) or total_tier >= 5:
+		if randf() < 0.75:
+			if max_tier >= 5:
+				chest_reward = "chest_purple_1" if randf() < 0.5 else "chest_green_1"
+			elif max_tier >= 4:
+				chest_reward = "chest_yellow_1" if randf() < 0.6 else "chest_blue_1"
+			else:
+				chest_reward = "chest_1"
+	elif slot_idx == 2 and randf() < 0.35:
+		chest_reward = "chest_1"
+
+	# Slot bonuses for Slot 2 (Bounty / Challenge slot)
+	if slot_idx == 2:
+		coins = int(coins * 1.15)
+		exp_val = int(exp_val * 1.15)
+		if gems == 0 and randf() < 0.5:
+			gems = 1
+
+	return {
+		"coins": coins,
+		"gems": gems,
+		"energy": energy,
+		"exp": exp_val,
+		"chest": chest_reward
+	}
+
+func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 	var q := QuestData.new()
 	q.id = "quest_%d" % randi()
 	var is_witch := (current_board_theme == "witch")
 	var is_farm := (current_board_theme == "farm")
 	var names_pool: Array[String] = WITCH_CUSTOMERS if is_witch else (FARM_CUSTOMERS if is_farm else KITCHEN_CUSTOMERS)
 	var colors_pool: Array[Color] = WITCH_CUSTOMER_COLORS if is_witch else (FARM_CUSTOMER_COLORS if is_farm else KITCHEN_CUSTOMER_COLORS)
-	q.customer_name = names_pool[randi() % names_pool.size()]
+
+	# Pick a customer name that isn't already used on an active card
+	var active_names: Array[String] = []
+	for aq in active_quests:
+		if aq is QuestData:
+			active_names.append((aq as QuestData).customer_name)
+	var available_names := names_pool.filter(func(n): return not active_names.has(n))
+	if available_names.is_empty():
+		available_names = names_pool
+	q.customer_name = available_names[randi() % available_names.size()]
 	q.customer_color = colors_pool[randi() % colors_pool.size()]
 
-	# Randomly choose between 1 or 2 items
-	var count := 1 if randf() < 0.4 else 2
-	var reqs: Array[String] = []
-	var total_tier := 0
-
+	# Candidate product pools for each board theme
 	var possible_pools: Array[Array] = []
 	if is_witch:
 		possible_pools = [
-			["shroom_1", "shroom_2", "shroom_3", "shroom_4"],
-			["wand_1", "wand_2", "wand_3", "wand_4"],
-			["mystic_tree_1", "mystic_tree_2", "mystic_tree_3"],
-			["staff_1", "staff_2", "staff_3"],
-			["broom_1", "broom_2", "broom_3"],
+			["wand_1", "wand_2", "wand_3", "wand_4", "wand_5", "wand_6"],
+			["staff_1", "staff_2", "staff_3", "staff_4", "staff_5", "staff_6"],
+			["broom_1", "broom_2", "broom_3", "broom_4", "broom_5"],
 			["candle_1", "candle_2", "candle_3", "candle_4"],
 			["spellbook_1", "spellbook_2", "spellbook_3", "spellbook_4"],
+			["shroom_1", "shroom_2", "shroom_3", "shroom_4"],
+			["mystic_tree_1", "mystic_tree_2", "mystic_tree_3"],
 			["cauldron_1", "cauldron_2", "cauldron_3"]
 		]
 	elif is_farm:
 		possible_pools = [
-			["hay_1", "hay_2", "hay_3", "hay_4"],
-			["fruit_1", "fruit_2", "fruit_3", "fruit_4"],
-			["pine_1", "pine_2", "pine_3", "pine_4"],
-			["milk_1", "milk_2", "milk_3", "milk_4"],
+			["hay_1", "hay_2", "hay_3", "hay_4", "hay_5", "hay_6"],
+			["fruit_1", "fruit_2", "fruit_3", "fruit_4", "fruit_5", "fruit_6"],
+			["milk_1", "milk_2", "milk_3", "milk_4", "milk_5", "milk_6"],
 			["wool_1", "wool_2", "wool_3", "wool_4"],
+			["tool_1", "tool_2", "tool_3", "tool_4", "tool_5", "tool_6"],
+			["pine_1", "pine_2", "pine_3", "pine_4"],
 			["tree_1", "tree_2", "tree_3"],
-			["tool_1", "tool_2", "tool_3"],
 			["water_1", "water_2", "water_3"]
 		]
 	else:
 		possible_pools = [
-			["egg_1", "egg_2", "egg_3", "egg_4"],
-			["leaf_1", "leaf_2", "leaf_3", "leaf_4"],
-			["beef_1", "beef_2", "beef_3", "beef_4"],
-			["cake_1", "cake_2", "cake_3", "cake_4"],
-			["sandwich_1", "sandwich_2", "sandwich_3", "sandwich_4"],
-			["drink_1", "drink_2", "drink_3", "drink_4"],
-			["util_1", "util_2", "util_3", "util_4"]
+			["egg_1", "egg_2", "egg_3", "egg_4", "egg_5", "egg_6"],
+			["leaf_1", "leaf_2", "leaf_3", "leaf_4", "leaf_5"],
+			["beef_1", "beef_2", "beef_3", "beef_4", "beef_5", "beef_6", "beef_7"],
+			["cake_1", "cake_2", "cake_3", "cake_4", "cake_5", "cake_6"],
+			["sandwich_1", "sandwich_2", "sandwich_3", "sandwich_4", "sandwich_5", "sandwich_6"],
+			["drink_1", "drink_2", "drink_3", "drink_4", "drink_5"],
+			["util_1", "util_2", "util_3", "util_4", "util_5", "util_6", "util_7", "util_8"]
 		]
 
-	# Filter out any pool whose chain the player hasn't unlocked yet
+	# Filter out pools whose chain the player hasn't unlocked yet,
+	# and filter items within the pool using can_quest_ask_for_item()
 	var unlocked_pools: Array[Array] = []
 	for pool in possible_pools:
 		var starter_id: String = pool[0]
 		var item_data := ItemDatabase.get_item(starter_id)
 		var chain_id := item_data.chain_id if item_data else starter_id.split("_")[0]
 		if ProgressionManager.is_unlocked(starter_id) or ProgressionManager.get_chain_unlocked_count(chain_id) > 0:
-			unlocked_pools.append(pool)
+			var valid_items: Array[String] = []
+			for id in pool:
+				if can_quest_ask_for_item(id):
+					valid_items.append(id)
+			if not valid_items.is_empty():
+				unlocked_pools.append(valid_items)
 
+	# Fallback if no pools unlocked yet
 	if unlocked_pools.is_empty():
 		if is_witch:
 			unlocked_pools = [
-				["shroom_1", "shroom_2"],
-				["wand_1", "wand_2"]
+				["wand_1", "wand_2"],
+				["shroom_1", "shroom_2"]
 			]
 		elif is_farm:
 			unlocked_pools = [
@@ -605,53 +849,130 @@ func _generate_new_quest() -> QuestData:
 				["leaf_1", "leaf_2", "leaf_3", "leaf_4"]
 			]
 
-	if completed_quest_count < 5:
+	# Early onboarding (completed_quest_count < 6): keep requests simple (tier 1-2)
+	if completed_quest_count < 6:
 		var low_tier_unlocked: Array[Array] = []
 		for pool in unlocked_pools:
 			var low_pool: Array = []
 			for id in pool:
 				var it := ItemDatabase.get_item(id)
-				if it and it.tier <= 2:
+				if it and it.tier <= 2 and can_quest_ask_for_item(id):
 					low_pool.append(id)
 			if not low_pool.is_empty():
 				low_tier_unlocked.append(low_pool)
 		if low_tier_unlocked.is_empty():
 			if is_witch:
-				low_tier_unlocked = [["shroom_1", "shroom_2"], ["wand_1", "wand_2"]]
+				low_tier_unlocked = [["wand_1", "wand_2"], ["shroom_1", "shroom_2"]]
 			elif is_farm:
 				low_tier_unlocked = [["hay_1", "hay_2"]]
 			else:
 				low_tier_unlocked = [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
 
 		var chosen_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
-		var starter_reqs: Array[String] = [chosen_pool[randi() % chosen_pool.size()]]
-		if randf() < 0.4:
-			var second_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
-			starter_reqs.append(second_pool[randi() % second_pool.size()])
+		var starter_reqs: Array[String] = [_pick_weighted_quest_item(chosen_pool)]
+		if slot_idx == 2 and randf() < 0.4 and low_tier_unlocked.size() > 1:
+			var other_pools := low_tier_unlocked.filter(func(p): return p != chosen_pool)
+			var second_pool: Array = other_pools[randi() % other_pools.size()] if not other_pools.is_empty() else chosen_pool
+			var second_item: String = _pick_weighted_quest_item(second_pool)
+			if not starter_reqs.has(second_item):
+				starter_reqs.append(second_item)
 
 		q.required_item_ids = starter_reqs
-		var early_tier := 0
-		for item_id in q.required_item_ids:
-			var it := ItemDatabase.get_item(item_id)
-			if it:
-				early_tier += it.tier
-		q.reward_coins = 25 + early_tier * 15
-		q.reward_gems = 1
-		q.reward_exp = 15 + early_tier * 5
+		var rewards := _calculate_quest_rewards(starter_reqs, slot_idx)
+		q.reward_coins = rewards.coins
+		q.reward_gems = rewards.gems
+		q.reward_energy = rewards.energy
+		q.reward_exp = rewards.exp
+		q.reward_chest = rewards.chest
 		return q
 
+	# Normal quest generation: scale tiers smoothly with player's discovery
+	var count := 1
+	if slot_idx == 0:
+		count = 1
+	elif slot_idx == 1:
+		if completed_quest_count < 10:
+			count = 1
+		else:
+			count = 1 if randf() < 0.65 else 2
+	elif slot_idx == 2:
+		if completed_quest_count < 10:
+			count = 1
+		elif completed_quest_count < 16:
+			count = 1 if randf() < 0.5 else 2
+		else:
+			count = 2 if randf() < 0.6 else 1
+	else:
+		count = 1 if randf() < 0.55 else 2
+
+	var reqs: Array[String] = []
+	var available_pools := unlocked_pools.duplicate()
+	available_pools.shuffle()
+
 	for i in range(count):
-		var pool: Array = unlocked_pools[randi() % unlocked_pools.size()]
-		var chosen_id: String = pool[randi() % pool.size()]
-		reqs.append(chosen_id)
-		var it := ItemDatabase.get_item(chosen_id)
-		if it:
-			total_tier += it.tier
+		if available_pools.is_empty():
+			available_pools = unlocked_pools.duplicate()
+			available_pools.shuffle()
+		var pool: Array = available_pools.pop_front() if not available_pools.is_empty() else unlocked_pools[0]
+
+		# Pick an item from this pool calibrated to player's highest unlocked tier
+		var starter_id: String = pool[0]
+		var item_data := ItemDatabase.get_item(starter_id)
+		var chain_id := item_data.chain_id if item_data else starter_id.split("_")[0]
+		var highest_tier := _get_highest_unlocked_tier_in_chain(chain_id)
+
+		# Cap tier based on discovery, quest completion count, and slot role
+		var cap_tier := highest_tier
+		if slot_idx == 0:
+			# Slot 0 is the quick flow pacing slot (max tier 2 early, max tier 3 mid/late)
+			cap_tier = mini(2 if completed_quest_count < 10 else 3, highest_tier)
+		elif slot_idx == 1:
+			# Slot 1 is the standard progression slot
+			if completed_quest_count < 8:
+				cap_tier = mini(2, highest_tier)
+			elif completed_quest_count < 14:
+				cap_tier = mini(3, highest_tier)
+			else:
+				cap_tier = mini(5, highest_tier)
+		elif slot_idx == 2:
+			# Slot 2 is the bounty/milestone slot
+			if completed_quest_count < 8:
+				cap_tier = mini(2, highest_tier)
+			elif completed_quest_count < 14:
+				cap_tier = mini(3, highest_tier)
+			else:
+				var allow_stretch := (randf() < 0.25 and highest_tier <= 4 and completed_quest_count >= 16)
+				cap_tier = mini(highest_tier + (1 if allow_stretch else 0), item_data.max_tier if item_data else 6)
+		else:
+			cap_tier = highest_tier
+
+		var suitable_items: Array[String] = []
+		for id in pool:
+			var it := ItemDatabase.get_item(id)
+			if it and it.tier <= cap_tier and can_quest_ask_for_item(id):
+				suitable_items.append(id)
+
+		if suitable_items.is_empty():
+			for id in pool:
+				if can_quest_ask_for_item(id):
+					suitable_items.append(id)
+		if suitable_items.is_empty():
+			suitable_items = pool
+
+		var chosen_id: String = _pick_weighted_quest_item(suitable_items)
+		if not reqs.has(chosen_id):
+			reqs.append(chosen_id)
+
+	if reqs.is_empty() and not unlocked_pools.is_empty():
+		reqs.append(unlocked_pools[0][0])
 
 	q.required_item_ids = reqs
-	q.reward_coins = 20 + total_tier * 18 + randi() % 10
-	q.reward_gems = 2 if total_tier >= 4 else (1 if randf() < 0.35 else 0)
-	q.reward_exp = 10 + total_tier * 6
+	var rewards := _calculate_quest_rewards(reqs, slot_idx)
+	q.reward_coins = rewards.coins
+	q.reward_gems = rewards.gems
+	q.reward_energy = rewards.energy
+	q.reward_exp = rewards.exp
+	q.reward_chest = rewards.chest
 
 	return q
 
@@ -723,7 +1044,8 @@ func _serialize_quest_array(arr: Array) -> Array[Dictionary]:
 				"reward_coins": qd.reward_coins,
 				"reward_gems": qd.reward_gems,
 				"reward_energy": qd.reward_energy,
-				"reward_exp": qd.reward_exp
+				"reward_exp": qd.reward_exp,
+				"reward_chest": qd.reward_chest
 			})
 		else:
 			result.append({})
@@ -759,6 +1081,7 @@ func _dict_to_quest(entry: Dictionary) -> QuestData:
 	q.reward_gems = int(entry.get("reward_gems", 0))
 	q.reward_energy = int(entry.get("reward_energy", 0))
 	q.reward_exp = int(entry.get("reward_exp", 15))
+	q.reward_chest = str(entry.get("reward_chest", ""))
 	return q
 
 func load_quests(quests_data: Variant, completed_count: int = -1) -> void:

@@ -2,6 +2,12 @@ class_name MainGame
 extends Node2D
 
 @export var floating_text_scene: PackedScene = preload("res://scenes/floating_text.tscn")
+@export var minigame_scene: PackedScene = preload("res://scenes/minigame/thread_roller_minigame.tscn")
+@export var liquid_sort_scene: PackedScene = preload("res://scenes/minigame/liquid_sort_minigame.tscn")
+
+var minigame_instance: Control = null
+var is_minigame_active: bool = false
+var active_minigame_id: String = ""
 
 @onready var hud: HUD = $CanvasLayer/UI/HUD
 @onready var quest_manager: QuestManager = $CanvasLayer/UI/QuestContainer/QuestManager
@@ -21,6 +27,7 @@ extends Node2D
 @onready var option_modal: OptionModal = $CanvasLayer/Modals/OptionModal
 @onready var irene_modal: IrenePopupModal = $CanvasLayer/Modals/IrenePopupModal
 @onready var level_selection_modal: Control = $CanvasLayer/Modals/LevelSelectionModal
+@onready var minigame_selection_modal: Control = $CanvasLayer/Modals/MinigameSelectionModal
 @onready var loading_screen: Control = $CanvasLayer/LoadingScreen
 @onready var irene_toast: IreneToast = $CanvasLayer/UI/IreneToast
 @onready var floating_layer: Node2D = $CanvasLayer/FloatingLayer
@@ -74,8 +81,14 @@ func _ready() -> void:
 	if is_instance_valid(bottom_nav_bar):
 		bottom_nav_bar.reward_slot_pressed.connect(_on_reward_slot_pressed)
 
+	# Minigame toggle and selection events
+	GameEvents.request_minigame_toggle.connect(toggle_minigame)
+	GameEvents.request_liquid_sort_open.connect(func(): open_specific_minigame("liquid_sort"))
+	GameEvents.request_minigame_select_open.connect(_on_request_minigame_select_open)
+
 	# Listen to floating text signal
 	GameEvents.show_floating_text.connect(_on_show_floating_text)
+
 
 	# Level transition signal
 	GameEvents.level_change_requested.connect(_on_level_change_requested)
@@ -196,6 +209,62 @@ func apply_orientation(landscape: bool) -> void:
 	# 7. Irene toast on top
 	if is_instance_valid(irene_toast):
 		irene_toast.set_landscape(landscape)
+
+	# 8. Minigame board
+	if is_instance_valid(minigame_instance) and minigame_instance.visible and minigame_instance.has_method("apply_orientation"):
+		minigame_instance.apply_orientation(landscape)
+
+func _on_request_minigame_select_open() -> void:
+	if is_minigame_active:
+		show_minigame(false)
+	elif is_instance_valid(minigame_selection_modal):
+		minigame_selection_modal.open_modal()
+
+func toggle_minigame() -> void:
+	show_minigame(not is_minigame_active, "thread_roller")
+
+func open_specific_minigame(game_id: String) -> void:
+	if is_minigame_active and active_minigame_id != game_id:
+		show_minigame(false)
+	show_minigame(true, game_id)
+
+func show_minigame(enable: bool, game_type: String = "thread_roller") -> void:
+	is_minigame_active = enable
+	if enable:
+		if is_instance_valid(minigame_selection_modal) and minigame_selection_modal.visible:
+			minigame_selection_modal.visible = false
+		if is_instance_valid(minigame_instance) and active_minigame_id != game_type:
+			minigame_instance.queue_free()
+			minigame_instance = null
+		active_minigame_id = game_type
+		if minigame_instance == null:
+			var target_scene := liquid_sort_scene if game_type == "liquid_sort" else minigame_scene
+			minigame_instance = target_scene.instantiate()
+			$CanvasLayer/UI.add_child(minigame_instance)
+			if minigame_instance.has_signal("exit_requested"):
+				minigame_instance.exit_requested.connect(func(): show_minigame(false))
+		minigame_instance.visible = true
+		board.visible = false
+		if is_instance_valid(quest_container):
+			quest_container.visible = false
+		if is_instance_valid(bottom_bar):
+			bottom_bar.visible = false
+		if is_instance_valid(bottom_nav_bar):
+			bottom_nav_bar.move_to_front()
+		if is_instance_valid(OrientationManager) and minigame_instance.has_method("apply_orientation"):
+			minigame_instance.apply_orientation(OrientationManager.is_landscape)
+	else:
+		if is_instance_valid(minigame_instance):
+			minigame_instance.visible = false
+		board.visible = true
+		if is_instance_valid(quest_container):
+			quest_container.visible = true
+		if is_instance_valid(bottom_bar):
+			bottom_bar.visible = true
+		if is_instance_valid(bottom_nav_bar):
+			bottom_nav_bar.move_to_front()
+		GameEvents.minigame_closed.emit()
+
 
 func _exit_tree() -> void:
 	if SaveManager:

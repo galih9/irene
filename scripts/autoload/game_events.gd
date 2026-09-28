@@ -48,3 +48,10 @@ signal tutorial_step_changed(step: int)
 signal map_unlocked()
 signal request_map_open()
 signal level_change_requested(target_level_id: String)
+
+# Minigame
+signal request_minigame_select_open()
+signal request_minigame_toggle()
+signal request_liquid_sort_open()
+signal minigame_closed()
+

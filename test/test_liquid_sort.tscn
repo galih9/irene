@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://djkonheaid3kt"]
+
+[ext_resource type="Script" path="res://test/test_liquid_sort.gd" id="1_test_script"]
+
+[node name="TestLiquidSort" type="Node"]
+script = ExtResource("1_test_script")

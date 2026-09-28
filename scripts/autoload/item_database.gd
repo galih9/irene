@@ -997,16 +997,17 @@ func _get_barn_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		3:
-			# Tier 3 Finished Barn: Pure Hay (100% Hay)
-			pool = ["hay_1", "hay_1", "hay_2"]
+			# Tier 3 Finished Barn (Starter Spawner): Strictly Level 1 items only (100% Hay Lv.1)
+			pool = ["hay_1"]
 		4:
-			# Tier 4 Bigger Barn: 75% Hay, 15% Bird, 10% Cage (Trees moved to forest; rare cage_1 drop)
+			# Tier 4 Bigger Barn: 85% Hay (65% Lv.1, 20% Lv.2), 10% Bird Lv.1, 5% Cage Lv.1
 			pool = [
 				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
 				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
-				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
-				"bird_1", "bird_1", "bird_1",
-				"cage_1", "cage_1"
+				"hay_1", "hay_1", "hay_1",
+				"hay_2", "hay_2", "hay_2", "hay_2",
+				"bird_1", "bird_1",
+				"cage_1"
 			]
 		5:
 			# Tier 5 Grand Farm Barn: 85% Hay, 10% Animals, 5% Cage (Trees moved to forest; rare cage_1 drop)
@@ -1014,10 +1015,11 @@ func _get_barn_pool(tier: int) -> Array[String]:
 			pool = [
 				# Hay (34/40 = 85%)
 				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
-				"hay_1", "hay_1", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
-				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
+				"hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1", "hay_1",
+				"hay_1", "hay_1",
+				"hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2", "hay_2",
 				"hay_2", "hay_2", "hay_2", "hay_2",
-				"hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3", "hay_3",
+				"hay_3", "hay_3", "hay_3", "hay_3",
 				# Animals (4/40 = 10% total, 2.5% each)
 				"bird_1", "cow_1", "sheep_1", "pig_1",
 				# Rare Cage Lv.1 (2/40 = 5% rare chance)
@@ -1047,9 +1049,14 @@ func _get_tree_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		3:
-			pool = ["fruit_1", "fruit_1", "fruit_2"]
+			# Tier 3 Fruit Tree: Strictly Level 1 items only (100% Fruit Lv.1)
+			pool = ["fruit_1"]
 		4:
-			pool = ["fruit_1", "fruit_2", "fruit_3"]
+			# Tier 4 Fruit Tree: 85% Fruit Lv.1, 15% Fruit Lv.2
+			pool = [
+				"fruit_1", "fruit_1", "fruit_1", "fruit_1", "fruit_1", "fruit_1",
+				"fruit_2"
+			]
 		_:
 			pool = ["fruit_1"]
 	return pool
@@ -1058,14 +1065,23 @@ func _get_pine_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		3:
-			# Forest Lv.3 produces Tools and Fruit Tree Seeds
-			pool = ["tool_1", "tool_1", "tool_2", "tree_1"]
+			# Forest Lv.3 produces Tools and Fruit Tree Seeds (both strictly Level 1)
+			pool = ["tool_1", "tool_1", "tool_1", "tree_1"]
 		4:
-			# Forest Lv.4 produces Tools, Pine Cones, and Fruit Tree Seeds
-			pool = ["tool_1", "tool_2", "tool_3", "pine_1", "tree_1"]
+			# Forest Lv.4 produces Tools Lv.1 (70%), Tools Lv.2 (15%), Pine Cones Lv.1 (7.5%), Fruit Tree Seeds Lv.1 (7.5%)
+			pool = [
+				"tool_1", "tool_1", "tool_1", "tool_1", "tool_1", "tool_1", "tool_1",
+				"tool_2", "tool_2",
+				"pine_1", "tree_1"
+			]
 		5:
-			# Dense Pine Forest Lv.5 produces Tools, Pine Cones, and Tree Seeds
-			pool = ["tool_2", "tool_3", "tool_4", "pine_1", "tree_1", "tree_1"]
+			# Dense Pine Forest Lv.5 produces Tools Lv.1-3, Pine Cones, and Tree Seeds
+			pool = [
+				"tool_1", "tool_1", "tool_1", "tool_1", "tool_1",
+				"tool_2", "tool_2", "tool_2",
+				"tool_3",
+				"pine_1", "tree_1", "tree_1"
+			]
 		_:
 			pool = ["tool_1"]
 	return pool
@@ -1074,13 +1090,29 @@ func _get_water_pool(tier: int) -> Array[String]:
 	var pool: Array[String] = []
 	match tier:
 		3:
-			pool = ["watering_1", "watering_1"]
+			# Well Lv.3 (Starter Spawner): Strictly Level 1 items only (100% Watering Can Lv.1)
+			pool = ["watering_1"]
 		4:
-			pool = ["watering_1", "watering_2"]
+			# Well Lv.4: 85% Lv.1, 15% Lv.2
+			pool = [
+				"watering_1", "watering_1", "watering_1", "watering_1", "watering_1", "watering_1",
+				"watering_2"
+			]
 		5:
-			pool = ["watering_2", "watering_2", "watering_3"]
+			# Spring Lv.5: 60% Lv.1, 30% Lv.2, 10% Lv.3
+			pool = [
+				"watering_1", "watering_1", "watering_1", "watering_1", "watering_1", "watering_1",
+				"watering_2", "watering_2", "watering_2",
+				"watering_3"
+			]
 		6:
-			pool = ["watering_2", "watering_3", "watering_4"]
+			# River Basin Lv.6: 35% Lv.1, 35% Lv.2, 20% Lv.3, 10% Lv.4
+			pool = [
+				"watering_1", "watering_1", "watering_1", "watering_1",
+				"watering_2", "watering_2", "watering_2", "watering_2",
+				"watering_3", "watering_3",
+				"watering_4"
+			]
 		_:
 			pool = ["watering_1"]
 	return pool
@@ -1396,26 +1428,59 @@ func _register_witch_items() -> void:
 func _get_mystic_tree_pool(tier: int) -> Array[String]:
 	match tier:
 		3:
-			return ["shroom_1", "shroom_1", "wand_1", "wand_1"]
+			# Mystic Tree Lv.3 (Starter Spawner): Strictly Level 1 items only (Shroom Lv.1 & Wand Lv.1)
+			return ["shroom_1", "wand_1"]
 		4:
-			return ["shroom_1", "shroom_2", "wand_1", "wand_2"]
+			# Mystic Tree Lv.4: 85% Lv.1, 15% Lv.2
+			return [
+				"shroom_1", "shroom_1", "shroom_1", "shroom_1",
+				"wand_1", "wand_1", "wand_1", "wand_1",
+				"shroom_2", "wand_2"
+			]
 		5:
-			return ["shroom_1", "shroom_2", "wand_1", "wand_2", "staff_1"]
+			# Mystic Tree Lv.5: 65% Lv.1, 25% Lv.2, 10% Staff Lv.1
+			return [
+				"shroom_1", "shroom_1", "shroom_1", "wand_1", "wand_1", "wand_1",
+				"shroom_2", "shroom_2", "wand_2", "wand_2",
+				"staff_1"
+			]
 		6:
-			return ["shroom_2", "shroom_3", "wand_2", "wand_3", "staff_1", "broom_1"]
+			# Mystic Tree Lv.6: 40% Lv.1, 30% Lv.2, 20% Lv.3, 5% Staff, 5% Broom
+			return [
+				"shroom_1", "shroom_1", "wand_1", "wand_1",
+				"shroom_2", "shroom_2", "wand_2", "wand_2",
+				"shroom_3", "wand_3", "staff_1", "broom_1"
+			]
 		_:
 			return ["shroom_1", "wand_1"]
 
 func _get_shroom_pool(tier: int) -> Array[String]:
 	match tier:
 		3:
-			return ["candle_1", "candle_1"]
+			# Shroom Lv.3 (Starter Spawner): Strictly Level 1 items only (Candle Lv.1)
+			return ["candle_1"]
 		4:
-			return ["candle_1", "candle_2", "spellbook_1"]
+			# Shroom Lv.4: 80% Candle Lv.1, 10% Candle Lv.2, 10% Spellbook Lv.1
+			return [
+				"candle_1", "candle_1", "candle_1", "candle_1", "candle_1",
+				"candle_1", "candle_1", "candle_1",
+				"candle_2", "spellbook_1"
+			]
 		5:
-			return ["candle_2", "candle_3", "spellbook_1"]
+			# Shroom Lv.5: 50% Lv.1, 30% Lv.2, 10% Lv.3, 10% Spellbook
+			return [
+				"candle_1", "candle_1", "candle_1", "candle_1", "candle_1",
+				"candle_2", "candle_2", "candle_2", "candle_3",
+				"spellbook_1"
+			]
 		6:
-			return ["candle_3", "candle_4", "spellbook_1", "spellbook_2"]
+			# Shroom Lv.6: 30% Lv.2, 30% Lv.3, 20% Lv.4, 10% Spellbook 1, 10% Spellbook 2
+			return [
+				"candle_2", "candle_2", "candle_2",
+				"candle_3", "candle_3", "candle_3",
+				"candle_4", "candle_4",
+				"spellbook_1", "spellbook_2"
+			]
 		_:
 			return ["candle_1"]
 
@@ -1554,7 +1619,7 @@ func _get_purple_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["exp_1", "exp_1", "exp_1", "exp_2", "exp_2"]
+			pool = ["exp_1", "exp_1", "exp_1", "exp_1"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1"])
 			elif is_farm:
@@ -1562,7 +1627,7 @@ func _get_purple_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["exp_2", "exp_2", "exp_3", "exp_3"]
+			pool = ["exp_1", "exp_1", "exp_2", "exp_2"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
 			elif is_farm:
@@ -1570,7 +1635,7 @@ func _get_purple_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["exp_3", "exp_3", "exp_4", "exp_4"]
+			pool = ["exp_2", "exp_2", "exp_3", "exp_3"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1578,7 +1643,7 @@ func _get_purple_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["exp_4", "exp_4", "exp_5", "exp_5", "exp_6"]
+			pool = ["exp_3", "exp_3", "exp_4", "exp_4", "exp_5"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1591,7 +1656,7 @@ func _get_green_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fa
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["energy_1", "energy_1", "energy_1", "energy_2", "energy_2"]
+			pool = ["energy_1", "energy_1", "energy_1", "energy_1"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1"])
 			elif is_farm:
@@ -1599,7 +1664,7 @@ func _get_green_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fa
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["energy_2", "energy_2", "energy_3", "energy_3"]
+			pool = ["energy_1", "energy_1", "energy_2", "energy_2"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
 			elif is_farm:
@@ -1607,7 +1672,7 @@ func _get_green_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fa
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["energy_3", "energy_3", "energy_4", "energy_4"]
+			pool = ["energy_2", "energy_2", "energy_3", "energy_3"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1615,7 +1680,7 @@ func _get_green_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fa
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["energy_4", "energy_4", "energy_5", "energy_5", "energy_6"]
+			pool = ["energy_3", "energy_3", "energy_4", "energy_4", "energy_5"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1628,7 +1693,7 @@ func _get_yellow_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["gold_1", "gold_1", "gold_1", "gold_2", "gold_2"]
+			pool = ["gold_1", "gold_1", "gold_1", "gold_1"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1"])
 			elif is_farm:
@@ -1636,7 +1701,7 @@ func _get_yellow_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["gold_2", "gold_2", "gold_3", "gold_3"]
+			pool = ["gold_1", "gold_1", "gold_2", "gold_2"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
 			elif is_farm:
@@ -1644,7 +1709,7 @@ func _get_yellow_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["gold_3", "gold_3", "gold_4", "gold_4"]
+			pool = ["gold_2", "gold_2", "gold_3", "gold_3"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1652,7 +1717,7 @@ func _get_yellow_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = f
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["gold_4", "gold_4", "gold_5", "gold_5", "gold_6"]
+			pool = ["gold_3", "gold_3", "gold_4", "gold_4", "gold_5"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1665,7 +1730,7 @@ func _get_blue_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fal
 	var pool: Array[String] = []
 	match tier:
 		1:
-			pool = ["diamond_1", "diamond_1", "diamond_1", "diamond_2", "diamond_2"]
+			pool = ["diamond_1", "diamond_1", "diamond_1", "diamond_1"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1"])
 			elif is_farm:
@@ -1673,7 +1738,7 @@ func _get_blue_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fal
 			else:
 				pool.append_array(["foodbox_1", "oven_1"])
 		2:
-			pool = ["diamond_2", "diamond_2", "diamond_3", "diamond_3"]
+			pool = ["diamond_1", "diamond_1", "diamond_2", "diamond_2"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1"])
 			elif is_farm:
@@ -1681,7 +1746,7 @@ func _get_blue_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fal
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1"])
 		3:
-			pool = ["diamond_3", "diamond_3", "diamond_4", "diamond_4"]
+			pool = ["diamond_2", "diamond_2", "diamond_3", "diamond_3"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1689,7 +1754,7 @@ func _get_blue_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fal
 			else:
 				pool.append_array(["foodbox_1", "oven_1", "fridge_1", "rack_1"])
 		_:
-			pool = ["diamond_4", "diamond_4", "diamond_5", "diamond_5"]
+			pool = ["diamond_3", "diamond_3", "diamond_4", "diamond_4", "diamond_5"]
 			if is_witch:
 				pool.append_array(["mystic_tree_1", "cauldron_1", "shroom_1", "wand_1"])
 			elif is_farm:
@@ -1699,97 +1764,148 @@ func _get_blue_chest_pool(tier: int, is_farm: bool = false, is_witch: bool = fal
 	return pool
 
 func _get_foodbox_pool(tier: int) -> Array[String]:
-	var pool: Array[String] = ["egg_1", "egg_1", "leaf_1", "leaf_1"]
-	if tier >= 2:
-		pool.append("egg_2")
-	if tier >= 3:
-		pool.append("leaf_2")
-		pool.append("gold_1")
-	if tier >= 4:
-		pool.append("egg_2")
-		pool.append("leaf_2")
-		pool.append("exp_1")
-	if tier >= 5:
-		pool.append("egg_3")
-		pool.append("leaf_3")
-		pool.append("energy_1")
-	if tier >= 6:
-		pool.append("egg_3")
-		pool.append("leaf_3")
-		pool.append("exp_2")
-	return pool
+	match tier:
+		3:
+			# Tier 3 Pantry Box (Starter Spawner): Strictly Level 1 items only (100% Level 1)
+			return [
+				"egg_1", "egg_1", "egg_1", "egg_1",
+				"leaf_1", "leaf_1", "leaf_1", "leaf_1"
+			]
+		4:
+			# Tier 4 Chef's Produce Box: 85% Level 1, 15% Level 2
+			return [
+				"egg_1", "egg_1", "egg_1", "egg_1", "egg_1", "egg_1", "egg_1", "egg_1",
+				"leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1",
+				"egg_2", "leaf_2", "egg_2"
+			]
+		5:
+			# Tier 5 Gourmet Harvest Crate: 70% Level 1, 25% Level 2, 5% Level 3
+			return [
+				"egg_1", "egg_1", "egg_1", "egg_1", "egg_1", "egg_1", "egg_1",
+				"leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1",
+				"egg_2", "egg_2", "egg_2", "leaf_2", "leaf_2",
+				"egg_3"
+			]
+		6:
+			# Tier 6 Master Harvest Vault: 50% Level 1, 35% Level 2, 15% Level 3
+			return [
+				"egg_1", "egg_1", "egg_1", "egg_1", "egg_1",
+				"leaf_1", "leaf_1", "leaf_1", "leaf_1", "leaf_1",
+				"egg_2", "egg_2", "egg_2", "egg_2", "leaf_2", "leaf_2", "leaf_2",
+				"egg_3", "egg_3", "leaf_3"
+			]
+		_:
+			return ["egg_1", "leaf_1"]
 
 func _get_oven_pool(tier: int) -> Array[String]:
-	var pool: Array[String] = ["beef_1", "cake_1", "sandwich_1"]
-	if tier >= 2:
-		pool.append("beef_1")
-		pool.append("cake_1")
-		pool.append("sandwich_1")
-	if tier >= 3:
-		pool.append("beef_2")
-		pool.append("cake_2")
-		pool.append("sandwich_2")
-		pool.append("gold_1")
-	if tier >= 4:
-		pool.append("beef_2")
-		pool.append("cake_2")
-		pool.append("sandwich_2")
-		pool.append("exp_1")
-	if tier >= 5:
-		pool.append("beef_3")
-		pool.append("cake_3")
-		pool.append("sandwich_3")
-	if tier >= 6:
-		pool.append("beef_3")
-		pool.append("cake_3")
-		pool.append("sandwich_3")
-		pool.append("exp_2")
-	return pool
+	match tier:
+		3:
+			# Tier 3 Brick Baker (Starter Spawner): Strictly Level 1 items only (100% Level 1)
+			return ["beef_1", "cake_1", "sandwich_1"]
+		4:
+			# Tier 4 Stainless Oven: 85% Level 1, 15% Level 2
+			return [
+				"beef_1", "beef_1", "beef_1", "beef_1", "beef_1", "beef_1",
+				"cake_1", "cake_1", "cake_1", "cake_1", "cake_1", "cake_1",
+				"sandwich_1", "sandwich_1", "sandwich_1", "sandwich_1", "sandwich_1",
+				"beef_2", "cake_2", "sandwich_2"
+			]
+		5:
+			# Tier 5 Pastry Range: 70% Level 1, 25% Level 2, 5% Level 3
+			return [
+				"beef_1", "beef_1", "beef_1", "beef_1", "beef_1",
+				"cake_1", "cake_1", "cake_1", "cake_1", "cake_1",
+				"sandwich_1", "sandwich_1", "sandwich_1", "sandwich_1",
+				"beef_2", "beef_2", "cake_2", "cake_2", "sandwich_2",
+				"cake_3"
+			]
+		6:
+			# Tier 6 Grand Master Oven: 50% Level 1, 35% Level 2, 15% Level 3
+			return [
+				"beef_1", "beef_1", "beef_1", "beef_1",
+				"cake_1", "cake_1", "cake_1",
+				"sandwich_1", "sandwich_1", "sandwich_1",
+				"beef_2", "beef_2", "cake_2", "cake_2", "sandwich_2", "sandwich_2", "beef_2",
+				"beef_3", "cake_3", "sandwich_3"
+			]
+		_:
+			return ["beef_1", "cake_1", "sandwich_1"]
 
 func _get_fridge_pool(tier: int) -> Array[String]:
-	var pool: Array[String] = ["drink_1", "drink_1", "drink_1"]
-	if tier >= 2:
-		pool.append("drink_1")
-		pool.append("drink_2")
-	if tier >= 3:
-		pool.append("drink_2")
-		pool.append("gold_1")
-	if tier >= 4:
-		pool.append("drink_2")
-		pool.append("drink_3")
-		pool.append("energy_1")
-	if tier >= 5:
-		pool.append("drink_3")
-		pool.append("exp_1")
-	if tier >= 6:
-		pool.append("drink_3")
-		pool.append("drink_4")
-		pool.append("exp_2")
-	return pool
+	match tier:
+		3:
+			# Tier 3 Kitchen Refrigerator: Strictly Level 1 items only (100% Level 1)
+			return ["drink_1"]
+		4:
+			# Tier 4 Double-Door Chiller: 85% Level 1, 15% Level 2
+			return [
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_1", "drink_1",
+				"drink_2", "drink_2", "drink_2"
+			]
+		5:
+			# Tier 5 Beverage Dispenser: 70% Level 1, 25% Level 2, 5% Level 3
+			return [
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_2", "drink_2", "drink_2", "drink_2", "drink_2",
+				"drink_3"
+			]
+		6:
+			# Tier 6 Master Cryo Chiller: 50% Level 1, 35% Level 2, 15% Level 3
+			return [
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_1", "drink_1", "drink_1", "drink_1", "drink_1",
+				"drink_2", "drink_2", "drink_2", "drink_2", "drink_2", "drink_2", "drink_2",
+				"drink_3", "drink_3", "drink_3"
+			]
+		_:
+			return ["drink_1"]
 
 func _get_rack_pool(tier: int) -> Array[String]:
-	var pool: Array[String] = ["util_1", "util_1", "util_2"]
-	if tier >= 2:
-		pool.append("util_2")
-	if tier >= 3:
-		pool.append("util_2")
-		pool.append("util_3")
-		pool.append("gold_1")
-	if tier >= 4:
-		pool.append("util_3")
-		pool.append("exp_1")
-	if tier >= 5:
-		pool.append("util_3")
-		pool.append("util_4")
-		pool.append("energy_1")
-	if tier >= 6:
-		pool.append("util_4")
-		pool.append("util_5")
-		pool.append("exp_2")
-	if tier >= 7:
-		pool.append("util_5")
-		pool.append("diamond_1")
-	return pool
+	match tier:
+		3:
+			# Tier 3 Metal Tool Rack: Strictly Level 1 items only (100% Level 1)
+			return ["util_1"]
+		4:
+			# Tier 4 Chef's Cutlery Caddy: 85% Level 1, 15% Level 2
+			return [
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_1", "util_1",
+				"util_2", "util_2", "util_2"
+			]
+		5:
+			# Tier 5 Magnetic Tool Bar: 70% Level 1, 25% Level 2, 5% Level 3
+			return [
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_1", "util_1", "util_1", "util_1",
+				"util_2", "util_2", "util_2", "util_2", "util_2",
+				"util_3"
+			]
+		6:
+			# Tier 6 Master Prep Station: 50% Level 1, 35% Level 2, 12% Level 3, 3% Level 4
+			return [
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_2", "util_2", "util_2", "util_2", "util_2", "util_2", "util_2",
+				"util_3", "util_3", "util_3"
+			]
+		7:
+			# Tier 7 Grand Kitchen Arsenal: 40% Level 1, 35% Level 2, 15% Level 3, 10% Level 4
+			return [
+				"util_1", "util_1", "util_1", "util_1", "util_1", "util_1", "util_1", "util_1",
+				"util_2", "util_2", "util_2", "util_2", "util_2", "util_2", "util_2",
+				"util_3", "util_3", "util_3",
+				"util_4", "util_4"
+			]
+		_:
+			return ["util_1"]
 
 func _register_item(id: String, chain_id: String, chain_name: String, tier: int, max_tier: int,
 		display_name: String, description: String, color: Color, texture: Texture2D = null) -> ItemData:

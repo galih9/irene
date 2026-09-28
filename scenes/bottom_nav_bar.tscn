@@ -7,6 +7,7 @@
 [ext_resource type="Texture2D" uid="uid://dkn11axd0qoys" path="res://assets/items/rewards/chest/yellow/4.png" id="5_chest_icon"]
 [ext_resource type="Shader" uid="uid://4b1eck8aapka" path="res://shaders/shine_gleam.gdshader" id="6_shine"]
 [ext_resource type="Texture2D" path="res://assets/icon/icon_home.png" id="7_map_icon"]
+[ext_resource type="Texture2D" path="res://assets/items/farm/wool/6.png" id="8_mini_icon"]
 
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_shine"]
 shader = ExtResource("6_shine")
@@ -353,6 +354,74 @@ corner_radius_top_right = 16
 corner_radius_bottom_right = 16
 corner_radius_bottom_left = 16
 
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_normal"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.22, 0.14, 0.26, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.85, 0.45, 0.95, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.8, 0.35, 0.9, 0.25)
+shadow_size = 6
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_pressed"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.16, 0.10, 0.20, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.75, 0.35, 0.85, 0.9)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_hover"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.28, 0.18, 0.34, 1)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.95, 0.55, 1, 1)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+shadow_color = Color(0.85, 0.4, 0.95, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_disabled"]
+content_margin_left = 6.0
+content_margin_top = 6.0
+content_margin_right = 6.0
+content_margin_bottom = 6.0
+bg_color = Color(0.15, 0.13, 0.16, 0.65)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.32, 0.28, 0.34, 0.4)
+corner_radius_top_left = 16
+corner_radius_top_right = 16
+corner_radius_bottom_right = 16
+corner_radius_bottom_left = 16
+
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_badge"]
 bg_color = Color(0.96, 0.45, 0.12, 1)
 corner_radius_top_left = 10
@@ -629,6 +698,52 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=2083285876]
+visible = false
+layout_mode = 2
+text = ""
+
+[node name="MinigameBtn" type="Button" parent="HBoxContainer" unique_id=1987654321]
+custom_minimum_size = Vector2(70, 70)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+tooltip_text = "Thread Minigame"
+mouse_filter = 1
+theme_override_styles/normal = SubResource("StyleBoxFlat_mini_normal")
+theme_override_styles/pressed = SubResource("StyleBoxFlat_mini_pressed")
+theme_override_styles/hover = SubResource("StyleBoxFlat_mini_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_mini_disabled")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+
+[node name="Margin" type="MarginContainer" parent="HBoxContainer/MinigameBtn" unique_id=1482910483]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 6
+theme_override_constants/margin_top = 6
+theme_override_constants/margin_right = 6
+theme_override_constants/margin_bottom = 6
+
+[node name="HBox" type="HBoxContainer" parent="HBoxContainer/MinigameBtn/Margin" unique_id=1384910284]
+layout_mode = 2
+mouse_filter = 2
+alignment = 1
+
+[node name="Icon" type="TextureRect" parent="HBoxContainer/MinigameBtn/Margin/HBox" unique_id=1748291040]
+custom_minimum_size = Vector2(44, 44)
+layout_mode = 2
+size_flags_horizontal = 4
+size_flags_vertical = 4
+mouse_filter = 2
+texture = ExtResource("8_mini_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Title" type="Label" parent="HBoxContainer/MinigameBtn/Margin/HBox" unique_id=1849201949]
 visible = false
 layout_mode = 2
 text = ""

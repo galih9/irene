@@ -1109,6 +1109,10 @@ func _trigger_consumable(item: ItemView) -> void:
 	var amt := item.data.consume_amount
 	var curr := item.data.consume_currency
 	var pos := item.global_position
+	var item_data := item.data
+
+	# Emit consumable event so HUD can trigger flying token animation towards appropriate currency counter
+	GameEvents.item_consumed.emit(item_data, pos)
 
 	if curr == "coins":
 		EconomyManager.add_coins(amt)
@@ -1126,7 +1130,8 @@ func _trigger_consumable(item: ItemView) -> void:
 
 	SoundManager.play_consume()
 	remove_item(item)
-	item.queue_free()
+	clear_selection()
+	item.animate_consume_pop()
 	GameEvents.board_changed.emit()
 
 func _can_merge(a: Variant, b: Variant) -> bool:
@@ -2002,6 +2007,8 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 		return
 
 	var was_locked := target.is_locked()
+	var source_id := source.data.id if (source and source.data) else ""
+	var source_tier := source.data.tier if (source and source.data) else 0
 
 	_clear_source_slot(source)
 	source.queue_free()
@@ -2031,10 +2038,34 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	)
 	ProgressionManager.unlock_item(next_id)
 	select_item(target)
-	GameEvents.item_merged.emit(source.data.id, target.data.id, next_id, target.global_position)
+	GameEvents.item_merged.emit(source_id, target.data.id, next_id, target.global_position)
 	GameEvents.board_changed.emit()
 	GameEvents.inventory_changed.emit()
 	check_pending_auto_spawns()
+
+	# Bonus EXP drop: Every time the user merges item higher than tier 4 (resulting in tier 5+)
+	if source_tier >= 4:
+		_spawn_merge_bonus_exp(target.global_position, target.grid_coord, source_tier)
+
+func _spawn_merge_bonus_exp(from_pos: Vector2, target_coord: Vector2i, merge_tier: int) -> void:
+	var max_exp_tier: int = clampi(merge_tier - 1, 1, 6)
+	var exp_tier: int = randi_range(1, max_exp_tier)
+	var exp_id := "exp_%d" % exp_tier
+	var exp_data := ItemDatabase.get_item(exp_id)
+	if not exp_data:
+		exp_id = "exp_1"
+		exp_data = ItemDatabase.get_item(exp_id)
+
+	var empty_cell := get_nearby_or_empty_cell(target_coord)
+	if is_valid_coord(empty_cell):
+		spawn_item_flight(from_pos, empty_cell, exp_id)
+		SoundManager.play_quest()
+		var exp_name: String = exp_data.display_name if exp_data else "EXP Spark"
+		GameEvents.show_floating_text.emit("✨ EXP Bonus! (+%s)" % exp_name, from_pos + Vector2(0, -75), Color(0.85, 0.55, 1.0))
+	else:
+		ProgressionManager.push_reward(exp_id)
+		SoundManager.play_quest()
+		GameEvents.show_floating_text.emit("✨ EXP sent to rewards!", from_pos + Vector2(0, -75), Color(0.85, 0.55, 1.0))
 
 func _execute_swap(item_a: ItemView, item_b: ItemView) -> void:
 	var a_coord := item_a.grid_coord
