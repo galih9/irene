@@ -3,17 +3,17 @@
 [ext_resource type="Script" uid="uid://ny5y0an8lbbk" path="res://scripts/ui/inventory_modal.gd" id="1_inv"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.97, 0.96, 0.94, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.72, 0.82, 0.92, 0.95)
+bg_color = Color(0.985, 0.973, 0.935, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.82, 0.72, 1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0.08, 0.06, 0.04, 0.2)
+shadow_color = Color(0.08, 0.16, 0.12, 0.25)
 shadow_size = 18
 shadow_offset = Vector2(0, 6)
 
@@ -59,7 +59,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.55)
+color = Color(0.06, 0.12, 0.09, 0.66)
 
 [node name="Panel" type="Panel" parent="." unique_id=760947982]
 custom_minimum_size = Vector2(480, 540)
@@ -102,7 +102,7 @@ size_flags_horizontal = 3
 layout_mode = 2
 theme_override_colors/font_color = Color(0.16, 0.2, 0.28, 1)
 theme_override_font_sizes/font_size = 20
-text = "BACKPACK INVENTORY"
+text = "Your backpack"
 
 [node name="CapacityLabel" type="Label" parent="Panel/VBox/Header/VBox" unique_id=1822975125]
 layout_mode = 2
@@ -111,13 +111,16 @@ theme_override_font_sizes/font_size = 13
 text = "Capacity: 0 / 8 slots used"
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox/Header" unique_id=1455195327]
-custom_minimum_size = Vector2(38, 38)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.25, 0.22, 0.2, 1)
+theme_override_colors/font_color = Color(0.25, 0.31, 0.26, 1)
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
 text = "X"
+theme_override_colors/font_hover_color = Color(0.25, 0.31, 0.26, 1)
+theme_override_colors/font_focus_color = Color(0.25, 0.31, 0.26, 1)
+theme_override_colors/font_pressed_color = Color(0.25, 0.31, 0.26, 1)
 
 [node name="Scroll" type="ScrollContainer" parent="Panel/VBox" unique_id=201093337]
 layout_mode = 2

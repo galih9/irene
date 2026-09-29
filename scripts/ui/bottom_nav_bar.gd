@@ -99,7 +99,7 @@ func _ready() -> void:
 func _setup_nav_button_hover(btn: Button) -> void:
 	if not is_instance_valid(btn):
 		return
-	btn.pivot_offset = Vector2(35, 35)
+	btn.pivot_offset = btn.size * 0.5
 	btn.mouse_entered.connect(func():
 		if not btn.disabled:
 			if btn == progression_btn and _progression_highlighted:
@@ -119,21 +119,21 @@ func set_layout_vertical(vertical: bool) -> void:
 	if is_instance_valid(hbox):
 		hbox.vertical = vertical
 		hbox.alignment = BoxContainer.ALIGNMENT_CENTER
-		hbox.add_theme_constant_override("separation", 14)
+		hbox.add_theme_constant_override("separation", 10)
 	if vertical:
 		custom_minimum_size = Vector2(200, 300)
 		for btn in [progression_btn, inventory_btn, shop_btn, minigame_btn, map_btn, reward_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				btn.custom_minimum_size = Vector2(70, 70)
+				btn.custom_minimum_size = Vector2(92, 82) if vertical else Vector2(92, 94)
 	else:
 		custom_minimum_size = Vector2(664, 116)
 		for btn in [progression_btn, inventory_btn, shop_btn, minigame_btn, map_btn, reward_btn]:
 			if is_instance_valid(btn):
 				btn.size_flags_horizontal = Control.SIZE_SHRINK_CENTER
 				btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
-				btn.custom_minimum_size = Vector2(70, 70)
+				btn.custom_minimum_size = Vector2(92, 82) if vertical else Vector2(92, 94)
 
 
 func update_milestone_locks() -> void:
@@ -143,17 +143,17 @@ func update_milestone_locks() -> void:
 	# Backpack button gating
 	if is_instance_valid(inventory_btn):
 		inventory_btn.disabled = not inv_unlocked
-		inventory_btn.tooltip_text = "Backpack" if inv_unlocked else "Backpack (Unlock at 3 Quests)"
+		inventory_btn.tooltip_text = "Backpack" if inv_unlocked else "Complete %d orders to unlock Backpack" % MILESTONE_BACKPACK
 	if is_instance_valid(inventory_icon):
 		inventory_icon.modulate = Color.WHITE if inv_unlocked else Color(0.45, 0.45, 0.45, 0.65)
 	if is_instance_valid(inventory_title):
-		inventory_title.text = "Backpack" if inv_unlocked else "Locked"
+		inventory_title.text = "Backpack"
 	if is_instance_valid(inventory_capacity_label):
 		if inv_unlocked:
 			update_inventory_display()
 		else:
-			inventory_capacity_label.text = "[3 Quests]"
-			inventory_capacity_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+			inventory_capacity_label.text = "%d orders" % MILESTONE_BACKPACK
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.35, 0.40, 0.33))
 
 	# Shop button gating
 	if is_instance_valid(shop_btn):
@@ -162,7 +162,7 @@ func update_milestone_locks() -> void:
 	if is_instance_valid(shop_icon):
 		shop_icon.modulate = Color.WHITE if shop_unlocked else Color(0.45, 0.45, 0.45, 0.65)
 	if is_instance_valid(shop_title):
-		shop_title.text = "Shop" if shop_unlocked else "Locked (5)"
+		shop_title.text = "Shop" if shop_unlocked else "Shop · 5"
 
 	# Map button gating
 	if is_instance_valid(map_btn):
@@ -172,19 +172,19 @@ func update_milestone_locks() -> void:
 func update_inventory_display() -> void:
 	if not is_inventory_unlocked():
 		if is_instance_valid(inventory_capacity_label):
-			inventory_capacity_label.text = "[3 Quests]"
-			inventory_capacity_label.add_theme_color_override("font_color", Color(0.7, 0.7, 0.7))
+			inventory_capacity_label.text = "%d orders" % MILESTONE_BACKPACK
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.35, 0.40, 0.33))
 		return
 	if is_instance_valid(inventory_capacity_label):
 		var used := InventoryManager.get_used_count()
 		var max_slots := InventoryManager.get_max_slots()
 		inventory_capacity_label.text = "[%d / %d]" % [used, max_slots]
 		if used >= max_slots:
-			inventory_capacity_label.add_theme_color_override("font_color", Color(1.0, 0.48, 0.48))
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.68, 0.23, 0.19))
 		elif used > 0:
-			inventory_capacity_label.add_theme_color_override("font_color", Color(0.55, 0.85, 1.0))
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.20, 0.40, 0.31))
 		else:
-			inventory_capacity_label.add_theme_color_override("font_color", Color(0.82, 0.78, 0.72))
+			inventory_capacity_label.add_theme_color_override("font_color", Color(0.35, 0.40, 0.33))
 
 func update_progression_display() -> void:
 	if not is_instance_valid(badge_panel) or not is_instance_valid(badge_label):
@@ -265,7 +265,7 @@ func _on_progression_pressed() -> void:
 func _on_inventory_pressed() -> void:
 	if not is_inventory_unlocked():
 		SoundManager.play_error()
-		GameEvents.show_floating_text.emit("Complete 3 Quests to Unlock Backpack!", global_position + Vector2(size.x * 0.5, -40), Color(1.0, 0.5, 0.5))
+		GameEvents.show_floating_text.emit("Complete %d orders to unlock Backpack!" % MILESTONE_BACKPACK, global_position + Vector2(size.x * 0.5, -40), Color(1.0, 0.5, 0.5))
 		return
 	SoundManager.play_click()
 	inventory_pressed.emit()

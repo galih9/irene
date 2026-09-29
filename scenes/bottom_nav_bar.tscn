@@ -12,416 +12,6 @@
 [sub_resource type="ShaderMaterial" id="ShaderMaterial_shine"]
 shader = ExtResource("6_shine")
 
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_normal"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.18, 0.22, 0.28, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.82, 0.35, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(1, 0.78, 0.2, 0.35)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_pressed"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.13, 0.15, 0.2, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.9, 0.75, 0.25, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_hover"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.24, 0.28, 0.38, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.92, 0.5, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(1, 0.85, 0.3, 0.5)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tile_disabled"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.14, 0.16, 0.2, 0.7)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.25, 0.28, 0.35, 0.5)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_btn_focus"]
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_normal"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.14, 0.22, 0.18, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.42, 0.85, 0.58, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.3, 0.8, 0.5, 0.25)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_pressed"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.1, 0.16, 0.13, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.35, 0.72, 0.48, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_hover"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.18, 0.28, 0.23, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.55, 0.95, 0.7, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.35, 0.88, 0.6, 0.4)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_prog_disabled"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.13, 0.15, 0.15, 0.65)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.28, 0.32, 0.3, 0.4)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_normal"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.13, 0.19, 0.28, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.38, 0.75, 0.96, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.3, 0.7, 0.95, 0.25)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_pressed"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.09, 0.14, 0.21, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.62, 0.82, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_hover"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.17, 0.25, 0.37, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 0.88, 1, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.35, 0.78, 1, 0.4)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_inv_disabled"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.13, 0.15, 0.18, 0.65)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.28, 0.3, 0.35, 0.4)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_normal"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.22, 0.18, 0.12, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.98, 0.78, 0.32, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.95, 0.75, 0.2, 0.25)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_pressed"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.16, 0.13, 0.08, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.82, 0.65, 0.24, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_hover"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.28, 0.24, 0.16, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(1, 0.88, 0.45, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(1, 0.8, 0.25, 0.4)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_shop_disabled"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.15, 0.14, 0.13, 0.65)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.32, 0.3, 0.28, 0.4)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_normal"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.13, 0.22, 0.22, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.38, 0.86, 0.8, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.3, 0.82, 0.76, 0.25)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_pressed"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.09, 0.16, 0.16, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.3, 0.72, 0.66, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_hover"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.17, 0.28, 0.28, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.5, 0.98, 0.92, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.35, 0.9, 0.85, 0.4)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_map_disabled"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.13, 0.15, 0.15, 0.65)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.28, 0.32, 0.32, 0.4)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_normal"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.22, 0.14, 0.26, 0.95)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.85, 0.45, 0.95, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.8, 0.35, 0.9, 0.25)
-shadow_size = 6
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_pressed"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.16, 0.10, 0.20, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.75, 0.35, 0.85, 0.9)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_hover"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.28, 0.18, 0.34, 1)
-border_width_left = 2
-border_width_top = 2
-border_width_right = 2
-border_width_bottom = 2
-border_color = Color(0.95, 0.55, 1, 1)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-shadow_color = Color(0.85, 0.4, 0.95, 0.4)
-shadow_size = 8
-
-[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_mini_disabled"]
-content_margin_left = 6.0
-content_margin_top = 6.0
-content_margin_right = 6.0
-content_margin_bottom = 6.0
-bg_color = Color(0.15, 0.13, 0.16, 0.65)
-border_width_left = 1
-border_width_top = 1
-border_width_right = 1
-border_width_bottom = 1
-border_color = Color(0.32, 0.28, 0.34, 0.4)
-corner_radius_top_left = 16
-corner_radius_top_right = 16
-corner_radius_bottom_right = 16
-corner_radius_bottom_left = 16
-
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_reward_badge"]
 bg_color = Color(0.96, 0.45, 0.12, 1)
 corner_radius_top_left = 10
@@ -461,17 +51,14 @@ theme_override_constants/separation = 14
 alignment = 1
 
 [node name="RewardBtn" type="Button" parent="HBoxContainer" unique_id=754411710]
-custom_minimum_size = Vector2(70, 70)
+custom_minimum_size = Vector2(92, 94)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 tooltip_text = "Claim Reward"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_tile_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_tile_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_tile_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_tile_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+theme_type_variation = &"NavButton"
+mouse_default_cursor_shape = 2
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/RewardBtn" unique_id=1523644759]
 layout_mode = 1
@@ -487,7 +74,7 @@ theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 6
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/RewardBtn/Margin" unique_id=1339070041]
-custom_minimum_size = Vector2(48, 48)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -531,17 +118,14 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="ProgressionBtn" type="Button" parent="HBoxContainer" unique_id=1872546336]
-custom_minimum_size = Vector2(70, 70)
+custom_minimum_size = Vector2(92, 94)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 tooltip_text = "Progress"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_prog_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_prog_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_prog_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_prog_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+theme_type_variation = &"NavButton"
+mouse_default_cursor_shape = 2
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/ProgressionBtn" unique_id=1581260678]
 layout_mode = 1
@@ -556,13 +140,14 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin" unique_id=1285391623]
+[node name="HBox" type="VBoxContainer" parent="HBoxContainer/ProgressionBtn/Margin" unique_id=1285391623]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
+theme_override_constants/separation = 2
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=1991458174]
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -572,9 +157,12 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ProgressionBtn/Margin/HBox" unique_id=582060568]
-visible = false
 layout_mode = 2
-text = ""
+text = "Discover"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.20, 0.30, 0.24, 1)
+theme_override_constants/shadow_offset_y = 0
 
 [node name="Badge" type="PanelContainer" parent="HBoxContainer/ProgressionBtn" unique_id=1063669346]
 visible = false
@@ -601,17 +189,14 @@ horizontal_alignment = 1
 vertical_alignment = 1
 
 [node name="InventoryBtn" type="Button" parent="HBoxContainer" unique_id=1461955712]
-custom_minimum_size = Vector2(70, 70)
+custom_minimum_size = Vector2(92, 94)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 tooltip_text = "Backpack"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_inv_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_inv_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_inv_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_inv_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+theme_type_variation = &"NavButton"
+mouse_default_cursor_shape = 2
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/InventoryBtn" unique_id=623402999]
 layout_mode = 1
@@ -626,13 +211,14 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="HBoxContainer/InventoryBtn/Margin" unique_id=600821673]
+[node name="HBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin" unique_id=600821673]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
+theme_override_constants/separation = 2
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/InventoryBtn/Margin/HBox" unique_id=906762838]
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -642,32 +228,32 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="VBox" type="VBoxContainer" parent="HBoxContainer/InventoryBtn/Margin/HBox" unique_id=89237419]
-visible = false
 layout_mode = 2
 mouse_filter = 2
 
 [node name="Title" type="Label" parent="HBoxContainer/InventoryBtn/Margin/HBox/VBox" unique_id=794071516]
-visible = false
 layout_mode = 2
-text = ""
+text = "Backpack"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.20, 0.30, 0.24, 1)
+theme_override_constants/shadow_offset_y = 0
 
 [node name="CapacityLabel" type="Label" parent="HBoxContainer/InventoryBtn/Margin/HBox/VBox" unique_id=363956078]
-visible = false
 layout_mode = 2
 text = ""
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 10
 
 [node name="ShopBtn" type="Button" parent="HBoxContainer" unique_id=1174259924]
-custom_minimum_size = Vector2(70, 70)
+custom_minimum_size = Vector2(92, 94)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 tooltip_text = "Shop"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_shop_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_shop_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_shop_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_shop_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+theme_type_variation = &"NavButton"
+mouse_default_cursor_shape = 2
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/ShopBtn" unique_id=1528112408]
 layout_mode = 1
@@ -682,13 +268,14 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="HBoxContainer/ShopBtn/Margin" unique_id=1777440650]
+[node name="HBox" type="VBoxContainer" parent="HBoxContainer/ShopBtn/Margin" unique_id=1777440650]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
+theme_override_constants/separation = 2
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=470514787]
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -698,22 +285,22 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/ShopBtn/Margin/HBox" unique_id=2083285876]
-visible = false
 layout_mode = 2
-text = ""
+text = "Shop"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.20, 0.30, 0.24, 1)
+theme_override_constants/shadow_offset_y = 0
 
 [node name="MinigameBtn" type="Button" parent="HBoxContainer" unique_id=1987654321]
-custom_minimum_size = Vector2(70, 70)
+custom_minimum_size = Vector2(92, 94)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 tooltip_text = "Thread Minigame"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_mini_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_mini_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_mini_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_mini_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+theme_type_variation = &"NavButton"
+mouse_default_cursor_shape = 2
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/MinigameBtn" unique_id=1482910483]
 layout_mode = 1
@@ -728,13 +315,14 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="HBoxContainer/MinigameBtn/Margin" unique_id=1384910284]
+[node name="HBox" type="VBoxContainer" parent="HBoxContainer/MinigameBtn/Margin" unique_id=1384910284]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
+theme_override_constants/separation = 2
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/MinigameBtn/Margin/HBox" unique_id=1748291040]
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -744,23 +332,23 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/MinigameBtn/Margin/HBox" unique_id=1849201949]
-visible = false
 layout_mode = 2
-text = ""
+text = "Activities"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.20, 0.30, 0.24, 1)
+theme_override_constants/shadow_offset_y = 0
 
 [node name="MapBtn" type="Button" parent="HBoxContainer" unique_id=1938472911]
 visible = false
-custom_minimum_size = Vector2(70, 70)
+custom_minimum_size = Vector2(92, 94)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
 tooltip_text = "Map"
 mouse_filter = 1
-theme_override_styles/normal = SubResource("StyleBoxFlat_map_normal")
-theme_override_styles/pressed = SubResource("StyleBoxFlat_map_pressed")
-theme_override_styles/hover = SubResource("StyleBoxFlat_map_hover")
-theme_override_styles/disabled = SubResource("StyleBoxFlat_map_disabled")
-theme_override_styles/focus = SubResource("StyleBoxEmpty_btn_focus")
+theme_type_variation = &"NavButton"
+mouse_default_cursor_shape = 2
 
 [node name="Margin" type="MarginContainer" parent="HBoxContainer/MapBtn" unique_id=1482910482]
 layout_mode = 1
@@ -775,13 +363,14 @@ theme_override_constants/margin_top = 6
 theme_override_constants/margin_right = 6
 theme_override_constants/margin_bottom = 6
 
-[node name="HBox" type="HBoxContainer" parent="HBoxContainer/MapBtn/Margin" unique_id=1384910283]
+[node name="HBox" type="VBoxContainer" parent="HBoxContainer/MapBtn/Margin" unique_id=1384910283]
 layout_mode = 2
 mouse_filter = 2
 alignment = 1
+theme_override_constants/separation = 2
 
 [node name="Icon" type="TextureRect" parent="HBoxContainer/MapBtn/Margin/HBox" unique_id=1748291039]
-custom_minimum_size = Vector2(44, 44)
+custom_minimum_size = Vector2(40, 40)
 layout_mode = 2
 size_flags_horizontal = 4
 size_flags_vertical = 4
@@ -791,7 +380,10 @@ expand_mode = 1
 stretch_mode = 5
 
 [node name="Title" type="Label" parent="HBoxContainer/MapBtn/Margin/HBox" unique_id=1849201948]
-visible = false
 layout_mode = 2
-text = ""
+text = "Travel"
+horizontal_alignment = 1
+theme_override_font_sizes/font_size = 12
+theme_override_colors/font_color = Color(0.20, 0.30, 0.24, 1)
+theme_override_constants/shadow_offset_y = 0
 

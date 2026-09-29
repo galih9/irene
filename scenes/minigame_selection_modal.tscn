@@ -6,17 +6,17 @@
 [ext_resource type="Texture2D" path="res://assets/items/farm/wool/4.png" id="4_soon_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
-bg_color = Color(0.97, 0.96, 0.94, 0.98)
-border_width_left = 3
-border_width_top = 3
-border_width_right = 3
-border_width_bottom = 3
-border_color = Color(0.88, 0.76, 0.52, 0.95)
+bg_color = Color(0.985, 0.973, 0.935, 1)
+border_width_left = 1
+border_width_top = 1
+border_width_right = 1
+border_width_bottom = 1
+border_color = Color(0.78, 0.82, 0.72, 1)
 corner_radius_top_left = 20
 corner_radius_top_right = 20
 corner_radius_bottom_right = 20
 corner_radius_bottom_left = 20
-shadow_color = Color(0.08, 0.06, 0.04, 0.2)
+shadow_color = Color(0.08, 0.16, 0.12, 0.25)
 shadow_size = 20
 shadow_offset = Vector2(0, 8)
 
@@ -119,7 +119,7 @@ anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
-color = Color(0, 0, 0, 0.6)
+color = Color(0.06, 0.12, 0.09, 0.66)
 
 [node name="Panel" type="Panel" parent="."]
 custom_minimum_size = Vector2(580, 680)
@@ -158,17 +158,20 @@ layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.24, 0.18, 0.12, 1)
 theme_override_font_sizes/font_size = 24
-text = "Select Mini Game"
+text = "Take a little break"
 vertical_alignment = 1
 
 [node name="CloseBtn" type="Button" parent="Panel/VBox/Header"]
-custom_minimum_size = Vector2(36, 36)
+custom_minimum_size = Vector2(44, 44)
 layout_mode = 2
-theme_override_colors/font_color = Color(0.35, 0.3, 0.25, 1)
+theme_override_colors/font_color = Color(0.25, 0.31, 0.26, 1)
 theme_override_font_sizes/font_size = 18
 theme_override_styles/normal = SubResource("StyleBoxFlat_close_btn")
 theme_override_styles/hover = SubResource("StyleBoxFlat_close_btn_hover")
 text = "X"
+theme_override_colors/font_hover_color = Color(0.25, 0.31, 0.26, 1)
+theme_override_colors/font_focus_color = Color(0.25, 0.31, 0.26, 1)
+theme_override_colors/font_pressed_color = Color(0.25, 0.31, 0.26, 1)
 
 [node name="ScrollContainer" type="ScrollContainer" parent="Panel/VBox"]
 layout_mode = 2
@@ -277,7 +280,7 @@ alignment = 1
 layout_mode = 2
 theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
 theme_override_font_sizes/font_size = 20
-text = "Sort the Liquid"
+text = "Liquid Sort"
 
 [node name="Desc" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/LiquidSortCard/Margin/HBox/InfoVBox"]
 layout_mode = 2

@@ -1,6 +1,8 @@
 class_name CageModal
 extends Control
 
+const DialogMotion = preload("res://scripts/ui/modal_presenter.gd")
+
 var board_ref: Board = null
 var current_cage: ItemView = null
 
@@ -12,6 +14,7 @@ var current_cage: ItemView = null
 
 func _ready() -> void:
 	visible = false
+	DialogMotion.install(self, close_btn, close_modal)
 	close_btn.pressed.connect(close_modal)
 	GameEvents.request_cage_open.connect(open_modal)
 	GameEvents.board_changed.connect(_on_board_changed)
@@ -22,20 +25,12 @@ func open_modal(cage: ItemView = null) -> void:
 	if not is_instance_valid(current_cage) or not current_cage.is_cage():
 		return
 
-	visible = true
-	scale = Vector2(0.9, 0.9)
-	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
+	DialogMotion.show_dialog(self)
 	_update_slots()
 
 func close_modal() -> void:
 	SoundManager.play_drop()
-	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
-	tween.finished.connect(func():
-		visible = false
-		current_cage = null
-	)
+	DialogMotion.hide_dialog(self, func(): current_cage = null)
 
 func _on_board_changed() -> void:
 	if visible:

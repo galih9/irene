@@ -18,7 +18,7 @@
 [ext_resource type="PackedScene" uid="uid://c7m1x4lvlsel8" path="res://scenes/level_selection_modal.tscn" id="17_level_modal"]
 [ext_resource type="PackedScene" uid="uid://b8v4l0ad1nhas" path="res://scenes/loading_screen.tscn" id="18_loading_screen"]
 [ext_resource type="PackedScene" path="res://scenes/cage_modal.tscn" id="19_cage_modal"]
-[ext_resource type="PackedScene" path="res://scenes/minigame_selection_modal.tscn" id="20_minigame_modal"]
+[ext_resource type="PackedScene" uid="uid://dqi1spsmhkehu" path="res://scenes/minigame_selection_modal.tscn" id="20_minigame_modal"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_infoarea"]
 bg_color = Color(0.97, 0.96, 0.93, 0.98)
@@ -74,7 +74,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0.04, 0.06, 0.09, 0.22)
+color = Color(0.07, 0.14, 0.1, 0.42)
 
 [node name="CanvasLayer" type="CanvasLayer" parent="." unique_id=1076762585]
 

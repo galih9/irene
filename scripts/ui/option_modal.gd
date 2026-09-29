@@ -1,6 +1,8 @@
 class_name OptionModal
 extends Control
 
+const DialogMotion = preload("res://scripts/ui/modal_presenter.gd")
+
 const AppVersion = preload("res://scripts/core/app_version.gd")
 
 signal closed()
@@ -21,6 +23,7 @@ var _is_closing: bool = false
 
 func _ready() -> void:
 	visible = false
+	DialogMotion.install(self, close_btn, close_modal)
 	close_btn.pressed.connect(close_modal)
 	resume_btn.pressed.connect(close_modal)
 	save_btn.pressed.connect(_on_save_pressed)
@@ -30,6 +33,7 @@ func _ready() -> void:
 		orientation_btn.pressed.connect(_on_orientation_pressed)
 	menu_btn.pressed.connect(_on_menu_pressed)
 	debug_btn.pressed.connect(_on_debug_pressed)
+	debug_btn.visible = OS.has_feature("editor")
 
 	GameEvents.request_options_open.connect(open_modal)
 	_update_bgm_button()
@@ -63,7 +67,7 @@ func _setup_button_hover(btn: Button) -> void:
 
 func open_modal() -> void:
 	_is_closing = false
-	visible = true
+	DialogMotion.show_dialog(self)
 	status_label.text = ""
 	_update_bgm_button()
 	_update_sfx_button()
@@ -75,23 +79,16 @@ func open_modal() -> void:
 	if is_instance_valid(save_btn):
 		save_btn.visible = true
 	if is_instance_valid(title_label):
-		title_label.text = "GAME PAUSED" if (SaveManager and SaveManager.is_gameplay_active) else "OPTIONS & SETTINGS"
+		title_label.text = "Take a little break" if (SaveManager and SaveManager.is_gameplay_active) else "Make yourself at home"
 	if is_instance_valid(resume_btn):
 		resume_btn.text = "  RESUME GAME" if (SaveManager and SaveManager.is_gameplay_active) else "  BACK"
-	pivot_offset = size * 0.5
-	scale = Vector2(0.92, 0.92)
-	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
 
 func close_modal() -> void:
 	if _is_closing or not visible:
 		return
 	_is_closing = true
 	SoundManager.play_drop()
-	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
-	tween.finished.connect(func():
-		visible = false
+	DialogMotion.hide_dialog(self, func():
 		_is_closing = false
 		closed.emit()
 	)

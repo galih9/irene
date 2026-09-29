@@ -9,26 +9,26 @@
 [ext_resource type="Texture2D" uid="uid://di7oct0i1cts5" path="res://assets/icon/icon_gear.png" id="7_gear_icon"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_pill"]
-bg_color = Color(0.19, 0.17, 0.2, 0.92)
+bg_color = Color(0.13, 0.24, 0.19, 0.97)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.36, 0.32, 0.38, 0.6)
+border_color = Color(0.46, 0.56, 0.42, 0.65)
 corner_radius_top_left = 14
 corner_radius_top_right = 14
 corner_radius_bottom_right = 14
 corner_radius_bottom_left = 14
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_bg"]
-bg_color = Color(0.15, 0.12, 0.2, 0.85)
+bg_color = Color(0.08, 0.16, 0.12, 1)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
 corner_radius_bottom_left = 3
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_exp_fill"]
-bg_color = Color(0.72, 0.42, 0.98, 1)
+bg_color = Color(0.76, 0.83, 0.46, 1)
 corner_radius_top_left = 3
 corner_radius_top_right = 3
 corner_radius_bottom_right = 3
@@ -51,12 +51,12 @@ atlas = ExtResource("5_diamond")
 region = Rect2(40, 85, 336, 291)
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_hud_btn"]
-bg_color = Color(0.2, 0.18, 0.22, 0.95)
+bg_color = Color(0.19, 0.32, 0.25, 1)
 border_width_left = 1
 border_width_top = 1
 border_width_right = 1
 border_width_bottom = 1
-border_color = Color(0.36, 0.32, 0.38, 0.6)
+border_color = Color(0.46, 0.56, 0.42, 0.65)
 corner_radius_top_left = 8
 corner_radius_top_right = 8
 corner_radius_bottom_right = 8

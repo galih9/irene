@@ -1,6 +1,8 @@
 class_name ProgressionModal
 extends Control
 
+const DialogMotion = preload("res://scripts/ui/modal_presenter.gd")
+
 @onready var close_btn: Button = $Panel/VBox/Header/CloseBtn
 @onready var progress_label: Label = $Panel/VBox/Header/VBox/ProgressLabel
 @onready var progress_bar: ProgressBar = $Panel/VBox/Header/VBox/ProgressBar
@@ -89,6 +91,7 @@ var _tab_buttons: Dictionary = {} # tab_id -> Button
 
 func _ready() -> void:
 	visible = false
+	DialogMotion.install(self, close_btn, close_modal)
 	close_btn.pressed.connect(close_modal)
 	GameEvents.request_progression_open.connect(open_modal)
 	GameEvents.progression_changed.connect(_on_progression_changed)
@@ -96,10 +99,7 @@ func _ready() -> void:
 	_setup_tabs()
 
 func open_modal() -> void:
-	visible = true
-	scale = Vector2(0.9, 0.9)
-	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
+	DialogMotion.show_dialog(self)
 	_is_touching = false
 	_is_swiping = false
 	_scroll_velocity_y = 0.0
@@ -187,9 +187,7 @@ func _end_touch() -> void:
 
 func close_modal() -> void:
 	SoundManager.play_drop()
-	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
-	tween.finished.connect(func(): visible = false)
+	DialogMotion.hide_dialog(self)
 
 func focus_chain(chain_id: String) -> void:
 	var target_tab := "kitchen"

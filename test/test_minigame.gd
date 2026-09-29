@@ -248,7 +248,7 @@ func _ready() -> void:
 	assert(up_modal.visible == true, "Upgrade modal must be visible")
 	assert(coin_lbl.text.contains("200"), "Coin label must show 200 coins")
 	assert(sc_curr.text.contains("1"), "Slot label must show current slots 1")
-	assert(cc_curr.text.contains("3s"), "Capacity label must show current capacity 3s")
+	assert(cc_curr.text.contains("3 ➔ 4 cells"), "Capacity label must show the cell capacity")
 
 	# Test purchasing Slot upgrade (cost 50 coins)
 	var prev_coins := EconomyManager.coins

@@ -1,6 +1,8 @@
 class_name InventoryModal
 extends Control
 
+const DialogMotion = preload("res://scripts/ui/modal_presenter.gd")
+
 var board_ref: Board = null
 
 @onready var close_btn: Button = $Panel/VBox/Header/CloseBtn
@@ -10,22 +12,18 @@ var board_ref: Board = null
 
 func _ready() -> void:
 	visible = false
+	DialogMotion.install(self, close_btn, close_modal)
 	close_btn.pressed.connect(close_modal)
 	GameEvents.request_inventory_open.connect(open_modal)
 	GameEvents.inventory_changed.connect(_on_inventory_changed)
 
 func open_modal() -> void:
-	visible = true
-	scale = Vector2(0.9, 0.9)
-	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
+	DialogMotion.show_dialog(self)
 	_update_slots()
 
 func close_modal() -> void:
 	SoundManager.play_drop()
-	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
-	tween.finished.connect(func(): visible = false)
+	DialogMotion.hide_dialog(self)
 
 func _on_inventory_changed() -> void:
 	if visible:

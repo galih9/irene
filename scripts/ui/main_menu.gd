@@ -69,20 +69,9 @@ func _ready() -> void:
 		SoundManager.play_bgm(SoundManager.BGM_MENU)
 
 	_update_save_state()
+	tap_to_play_area.grab_focus.call_deferred()
 	_animate_title()
 	_animate_tap_prompt()
-
-func _unhandled_input(event: InputEvent) -> void:
-	if option_modal and option_modal.visible:
-		return
-	if _is_starting:
-		return
-	if event is InputEventMouseButton and event.pressed and event.button_index == MOUSE_BUTTON_LEFT:
-		_on_tap_to_play()
-	elif event is InputEventScreenTouch and event.pressed:
-		_on_tap_to_play()
-	elif event.is_action_pressed("ui_accept"):
-		_on_tap_to_play()
 
 func _setup_button_hover(btn: Button) -> void:
 	if not is_instance_valid(btn):
@@ -102,13 +91,15 @@ func _on_orientation_changed(is_landscape: bool) -> void:
 	if is_instance_valid(background_rect):
 		background_rect.texture = BG_LANDSCAPE if is_landscape else BG_PORTRAIT
 
+	tap_to_play_area.anchor_top = 0.60 if is_landscape else 0.56
+	tap_to_play_area.anchor_bottom = tap_to_play_area.anchor_top
 	if is_landscape:
 		if is_instance_valid(title_area):
-			title_area.anchor_top = 0.26
-			title_area.anchor_bottom = 0.26
+			title_area.anchor_top = 0.30
+			title_area.anchor_bottom = 0.30
 		if is_instance_valid(tap_prompt_area):
-			tap_prompt_area.anchor_top = 0.60
-			tap_prompt_area.anchor_bottom = 0.60
+			tap_prompt_area.anchor_top = 0.73
+			tap_prompt_area.anchor_bottom = 0.73
 		if is_instance_valid(bottom_area):
 			bottom_area.offset_top = -110.0
 			bottom_area.offset_bottom = -30.0
@@ -117,63 +108,32 @@ func _on_orientation_changed(is_landscape: bool) -> void:
 			title_area.anchor_top = 0.28
 			title_area.anchor_bottom = 0.28
 		if is_instance_valid(tap_prompt_area):
-			tap_prompt_area.anchor_top = 0.62
-			tap_prompt_area.anchor_bottom = 0.62
+			tap_prompt_area.anchor_top = 0.67
+			tap_prompt_area.anchor_bottom = 0.67
 		if is_instance_valid(bottom_area):
 			bottom_area.offset_top = -140.0
 			bottom_area.offset_bottom = -40.0
 
 func _update_save_state() -> void:
-	if not is_instance_valid(save_info_label):
-		return
 	var has_save := SaveManager.has_save()
+	tap_to_play_area.text = "Continue your story" if has_save else "Start your story"
+	tap_label.text = "Welcome back. Settle in and keep merging." if has_save else "A little merge. A lovely new discovery."
 	if has_save:
 		var info := SaveManager.get_save_info()
-		var time_str: String = str(info.get("timestamp", ""))
-		if time_str.is_empty():
-			save_info_label.text = "%d Gold  •  %d Gems  •  %d Energy" % [
-				info.get("coins", 0),
-				info.get("gems", 0),
-				info.get("energy", 0)
-			]
-		else:
-			save_info_label.text = "Saved: %s  •  %d Gold  •  %d Gems" % [
-				time_str,
-				info.get("coins", 0),
-				info.get("gems", 0)
-			]
-		save_info_label.add_theme_color_override("font_color", Color(0.9, 0.86, 0.78, 0.85))
+		save_info_label.text = "%d gold  ·  %d gems  ·  Progress saved" % [info.get("coins", 0), info.get("gems", 0)]
 	else:
-		save_info_label.text = "Tap anywhere to begin your cozy adventure!"
-		save_info_label.add_theme_color_override("font_color", Color(0.8, 0.76, 0.7, 0.75))
+		save_info_label.text = "Discover recipes, fulfill orders, and grow your world."
+	save_info_label.add_theme_color_override("font_color", Color(0.93, 0.94, 0.85))
 
 func _animate_title() -> void:
-	if not title_badge:
-		return
-	title_badge.pivot_offset = title_badge.size * 0.5
-	title_badge.resized.connect(func():
-		title_badge.pivot_offset = title_badge.size * 0.5
-	)
-	if _title_tween and _title_tween.is_valid():
-		_title_tween.kill()
-	_title_tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_title_tween.tween_property(title_badge, "scale", Vector2(1.03, 1.03), 1.6)
-	_title_tween.tween_property(title_badge, "scale", Vector2(0.98, 0.98), 1.6)
+	title_badge.modulate.a = 0.0
+	_title_tween = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+	_title_tween.tween_property(title_badge, "modulate:a", 1.0, 0.45)
 
 func _animate_tap_prompt() -> void:
-	if not is_instance_valid(tap_prompt_container):
-		return
-	tap_prompt_container.pivot_offset = tap_prompt_container.size * 0.5
-	tap_prompt_container.resized.connect(func():
-		tap_prompt_container.pivot_offset = tap_prompt_container.size * 0.5
-	)
-	if _pulse_tween and _pulse_tween.is_valid():
-		_pulse_tween.kill()
-	_pulse_tween = create_tween().set_loops().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
-	_pulse_tween.tween_property(tap_prompt_container, "scale", Vector2(1.05, 1.05), 0.9)
-	_pulse_tween.parallel().tween_property(tap_prompt_container, "modulate:a", 0.65, 0.9)
-	_pulse_tween.tween_property(tap_prompt_container, "scale", Vector2.ONE, 0.9)
-	_pulse_tween.parallel().tween_property(tap_prompt_container, "modulate:a", 1.0, 0.9)
+	tap_prompt_container.modulate.a = 0.0
+	_pulse_tween = create_tween()
+	_pulse_tween.tween_property(tap_prompt_container, "modulate:a", 1.0, 0.45).set_delay(0.15)
 
 func _on_tap_to_play() -> void:
 	if _is_starting:
@@ -181,6 +141,8 @@ func _on_tap_to_play() -> void:
 	if option_modal and option_modal.visible:
 		return
 	_is_starting = true
+	tap_to_play_area.disabled = true
+	tap_to_play_area.text = "Opening your world…"
 
 	if is_instance_valid(SoundManager):
 		SoundManager.play_click()
@@ -213,6 +175,10 @@ func _on_options_pressed() -> void:
 	if option_modal:
 		menu_container.visible = false
 		option_modal.open_modal()
+		var settings_panel := option_modal.get_node("Panel") as Control
+		settings_panel.custom_minimum_size.y = 560.0
+		settings_panel.offset_top = -280.0
+		settings_panel.offset_bottom = 280.0
 		if option_modal.has_node("Panel/Margin/VBox/Content/MenuBtn"):
 			option_modal.get_node("Panel/Margin/VBox/Content/MenuBtn").visible = false
 		if option_modal.has_node("Panel/Margin/VBox/Content/SaveBtn"):
@@ -222,6 +188,7 @@ func _on_options_pressed() -> void:
 
 func _on_options_closed() -> void:
 	menu_container.visible = true
+	options_btn.grab_focus()
 
 func _on_quit_pressed() -> void:
 	if is_instance_valid(SoundManager):

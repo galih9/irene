@@ -20,7 +20,8 @@ var current_spool: RollerSpool = null
 var current_cloth: Node = null  # BigCloth (or legacy ClothBlock)
 
 # Thread drawing parameters
-var _thread_points: PackedVector2Array = []
+var rolling_columns: Array[int] = []
+var _thread_paths: Array[PackedVector2Array] = []
 var _thread_color: Color = Color.WHITE
 var _thread_timer: float = 0.0
 
@@ -40,26 +41,32 @@ func _process(delta: float) -> void:
 		_thread_timer += delta * 35.0
 		_update_thread_geometry()
 		queue_redraw()
-	elif _thread_points.size() > 0:
-		_thread_points.clear()
+	elif not _thread_paths.is_empty():
+		_thread_paths.clear()
 		queue_redraw()
 
 func _update_thread_geometry() -> void:
+	_thread_paths.clear()
 	if not is_instance_valid(current_cloth):
-		_thread_points.clear()
 		return
+	if current_cloth is BigCloth and not rolling_columns.is_empty():
+		for column in rolling_columns:
+			_thread_paths.append(_make_thread_path(current_cloth.get_attachment_point(column)))
+	else:
+		_thread_paths.append(_make_thread_path(current_cloth.get_attachment_point()))
 
+func _make_thread_path(attachment: Vector2) -> PackedVector2Array:
+	var points := PackedVector2Array()
 	var start_pt := Vector2(size.x * 0.5, size.y * 0.5)
 	# Target in slot local coordinates
-	var target_pt: Vector2 = current_cloth.get_attachment_point() - global_position
+	var target_pt: Vector2 = attachment - global_position
 
 	var dist := start_pt.distance_to(target_pt)
 	if dist <= 5.0:
-		_thread_points.clear()
-		return
+		return points
 
 	var segs := 10
-	_thread_points.resize(segs + 1)
+	points.resize(segs + 1)
 	var dir := (target_pt - start_pt).normalized()
 	var normal := Vector2(-dir.y, dir.x)
 
@@ -68,7 +75,8 @@ func _update_thread_geometry() -> void:
 		var base_pos := start_pt.lerp(target_pt, t)
 		# Sine wave vibration that diminishes at endpoints
 		var wave_amp := sin(t * PI) * 3.5 * sin(_thread_timer + t * 4.0)
-		_thread_points[i] = base_pos + normal * wave_amp
+		points[i] = base_pos + normal * wave_amp
+	return points
 
 func _draw() -> void:
 	var center := size * 0.5
@@ -90,10 +98,11 @@ func _draw() -> void:
 		draw_circle(center, 3.0, Color(0.7, 0.75, 0.85, 0.5))
 
 	# 2. Thread line if currently rolling
-	if is_rolling and _thread_points.size() > 1:
-		for i in range(_thread_points.size() - 1):
-			draw_line(_thread_points[i], _thread_points[i + 1], _thread_color, 3.2, true)
-			draw_line(_thread_points[i], _thread_points[i + 1], Color.WHITE, 1.2, true)
+	if is_rolling:
+		for points in _thread_paths:
+			for i in range(points.size() - 1):
+				draw_line(points[i], points[i + 1], _thread_color, 3.2, true)
+				draw_line(points[i], points[i + 1], Color.WHITE, 1.2, true)
 
 ## Places a spool into this slot and animates entrance flight.
 ## Rolling cannot start until docking is fully finished.
@@ -151,7 +160,7 @@ func receive_spool(spool: RollerSpool, from_global_pos: Vector2 = Vector2.ZERO) 
 
 	queue_redraw()
 
-## Begins unrolling thread cell-by-cell (1 second per cell) from cloth into this slot's spool.
+## Unified cloth rolls one exposed cell per cycle; legacy blocks roll sequentially.
 func start_rolling(cloth: Node, cells_to_roll: int = 1, on_finished: Callable = Callable()) -> void:
 	if not is_occupied or is_rolling or is_docking or not is_instance_valid(current_spool) or not is_instance_valid(cloth):
 		return
@@ -159,11 +168,8 @@ func start_rolling(cloth: Node, cells_to_roll: int = 1, on_finished: Callable = 
 	var available_capacity := current_spool.get_available_capacity()
 	var actual_cells := mini(cells_to_roll, available_capacity)
 	actual_cells = mini(actual_cells, cloth.remaining_cells)
-	if cloth.has_method("get_consecutive_color_count") and cloth.has_method("find_matching_exposed_col"):
-		var match_col: int = cloth.find_matching_exposed_col(current_spool.color_id)
-		if match_col >= 0:
-			var max_match: int = cloth.get_consecutive_color_count(match_col, current_spool.color_id)
-			actual_cells = mini(actual_cells, max_match)
+	if cloth is BigCloth:
+		actual_cells = cloth.get_matching_exposed_columns(current_spool.color_id, actual_cells).size()
 
 	if actual_cells <= 0:
 		return
@@ -174,6 +180,15 @@ func start_rolling(cloth: Node, cells_to_roll: int = 1, on_finished: Callable = 
 	_thread_timer = 0.0
 
 	current_spool.start_spinning()
+	if cloth is BigCloth:
+		rolling_columns = cloth.start_exposed_roll(
+			current_spool.color_id, actual_cells, global_position + size * 0.5,
+			func():
+				if is_instance_valid(current_spool):
+					current_spool.add_fill(1),
+			func(): _finish_rolling(on_finished)
+		)
+		return
 
 	cloth.roll_cells(
 		actual_cells,
@@ -189,7 +204,8 @@ func start_rolling(cloth: Node, cells_to_roll: int = 1, on_finished: Callable = 
 
 func _finish_rolling(on_finished: Callable) -> void:
 	is_rolling = false
-	_thread_points.clear()
+	_thread_paths.clear()
+	rolling_columns.clear()
 	queue_redraw()
 
 	var rolled_cloth := current_cloth
@@ -245,5 +261,6 @@ func clear_slot() -> void:
 	is_rolling = false
 	is_docking = false
 	current_cloth = null
-	_thread_points.clear()
+	_thread_paths.clear()
+	rolling_columns.clear()
 	queue_redraw()

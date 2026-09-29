@@ -82,7 +82,7 @@ func get_consecutive_color_count(c: int, color_id: String) -> int:
 ## Used by ThreadRollerMinigame and RollerStation.
 func get_exposed_blocks() -> Array[BigCloth]:
 	var exposed: Array[BigCloth] = []
-	if not is_instance_valid(cloth) or cloth.is_cleared or cloth.is_rolling:
+	if not is_instance_valid(cloth) or cloth.is_cleared:
 		return exposed
 	for c in range(cols):
 		var color := cloth.get_bottom_cell_color(c)
@@ -99,7 +99,7 @@ func get_exposed_cells() -> Array:
 
 ## Returns the BigCloth if any exposed column bottom matches color_id.
 func find_matching_exposed_block(color_id: String) -> BigCloth:
-	if not is_instance_valid(cloth) or cloth.is_cleared or cloth.is_rolling:
+	if not is_instance_valid(cloth) or cloth.is_cleared:
 		return null
 	var col := cloth.find_matching_exposed_col(color_id)
 	if col >= 0:

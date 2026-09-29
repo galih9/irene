@@ -4,7 +4,7 @@ extends Control
 ## Upgrade menu for the thread roller minigame.
 ## Allows players to spend in-game coins to:
 ## 1. Increase roller slots (1 -> 2 -> 3 -> 4 -> 5)
-## 2. Increase roller capacity (3s -> 4s -> 5s -> 6s -> 7s -> 8s)
+## 2. Increase roller capacity (3 through 8 cells)
 
 signal slot_upgrade_purchased(new_slots: int)
 signal capacity_upgrade_purchased(new_capacity: int)
@@ -19,7 +19,7 @@ const SLOT_COSTS: Dictionary = {
 }
 const MAX_SLOTS: int = 5
 
-# Capacity upgrade costs: 3s -> 4s is 40, 4s -> 5s is 80, etc.
+# Capacity upgrade costs: 3 -> 4 cells is 40, 4 -> 5 cells is 80, etc.
 const CAPACITY_COSTS: Dictionary = {
 	3: 40,
 	4: 80,
@@ -112,9 +112,9 @@ func _refresh_ui() -> void:
 	# 3. Capacity Card
 	if is_instance_valid(cap_curr_label):
 		if current_capacity < MAX_CAPACITY:
-			cap_curr_label.text = "Capacity: %ds  ➔  %ds" % [current_capacity, current_capacity + 1]
+			cap_curr_label.text = "Capacity: %d ➔ %d cells" % [current_capacity, current_capacity + 1]
 		else:
-			cap_curr_label.text = "Capacity: %ds (MAX)" % current_capacity
+			cap_curr_label.text = "Capacity: %d cells (MAX)" % current_capacity
 
 	if is_instance_valid(cap_buy_btn):
 		if current_capacity >= MAX_CAPACITY:

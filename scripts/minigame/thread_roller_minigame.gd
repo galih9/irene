@@ -3,7 +3,7 @@ extends Control
 
 ## Main Controller for the Thread Rolling Minigame.
 ## Features modular cloth grid (multi-cell clothes), upgradeable roller station,
-## capacity-based spools (default: 3 cells/seconds), in-game coin upgrades,
+## capacity-based spools (default: 3 cells), in-game coin upgrades,
 ## JSON cloth levels, gold unlocks, and orientation adaptability.
 
 signal exit_requested()
@@ -51,7 +51,7 @@ var is_game_active: bool = false
 
 # Progression upgrades (persist across levels during minigame play)
 var purchased_slots: int = 3
-var roller_capacity: int = 3 # Default: 3 seconds / 3 cells of the same color
+var roller_capacity: int = 3 # Default: 3 cells of the same color
 
 func _ready() -> void:
 	# Connect UI buttons
@@ -274,14 +274,10 @@ func _check_and_roll() -> void:
 			_eject_full_spool(slot)
 			continue
 		var match_cloth: BigCloth = cloth_grid.find_matching_exposed_block(spool_color)
-		if match_cloth != null and not match_cloth.is_rolling:
+		if match_cloth != null:
 			var available_cap := slot.current_spool.get_available_capacity()
-			var target_col := cloth_grid.find_matching_col(spool_color)
-			var matching_cells := match_cloth.get_consecutive_color_count(target_col, spool_color) if target_col >= 0 else 0
-			var cells_to_take := mini(available_cap, matching_cells)
-
-			if cells_to_take > 0:
-				_start_slot_rolling(slot, match_cloth, target_col, cells_to_take)
+			if available_cap > 0:
+				_start_slot_rolling(slot, match_cloth, available_cap)
 
 	# Dispatch an exposed color that is not already docked, avoiding duplicate
 	# idle rollers and colors that were exhausted by a capacity upgrade.
@@ -303,8 +299,8 @@ func _check_and_roll() -> void:
 	elif is_instance_valid(jam_toast) and jam_toast.visible:
 		jam_toast.visible = false
 
-## Starts rolling cells from a BigCloth column into a slot's spool.
-func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cells_to_take: int) -> void:
+## Rolls one matching exposed cell; completion schedules the next row-scan step.
+func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, cells_to_take: int) -> void:
 	var spool_color := slot.current_spool.color_id
 	var round_id := _round_id
 
@@ -318,7 +314,7 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cel
 	if is_instance_valid(SoundManager):
 		SoundManager.play_spawn()
 
-	# Per-cell callback — called every 1 second as each cell is consumed
+	# One completed second of rolling contributes one unit of spool fill.
 	var on_cell := func():
 		if round_id != _round_id:
 			return
@@ -334,7 +330,8 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cel
 			return
 		if is_instance_valid(slot):
 			slot.is_rolling = false
-			slot._thread_points.clear()
+			slot.rolling_columns.clear()
+			slot._thread_paths.clear()
 			slot.current_cloth = null
 			slot.queue_redraw()
 		if is_instance_valid(slot) and is_instance_valid(slot.current_spool):
@@ -352,7 +349,7 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cel
 				_check_and_roll()
 		)
 
-	cloth.start_column_roll(target_col, cells_to_take, slot.global_position + slot.size * 0.5, on_cell, on_done)
+	slot.rolling_columns = cloth.start_exposed_roll(spool_color, cells_to_take, slot.global_position + slot.size * 0.5, on_cell, on_done)
 
 ## Handles the arc-throw animation when a full spool is ejected from a slot.
 func _eject_full_spool(slot: RollerSlot) -> void:

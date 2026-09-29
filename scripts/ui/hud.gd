@@ -62,6 +62,7 @@ func _ready() -> void:
 	shop_btn.pressed.connect(_on_shop_pressed)
 	options_btn.pressed.connect(_on_options_pressed)
 	debug_btn.pressed.connect(_on_debug_pressed)
+	debug_btn.visible = OS.has_feature("editor")
 
 	_update_all_labels()
 	_update_level_ui()

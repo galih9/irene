@@ -78,7 +78,7 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
-color = Color(0, 0, 0, 0.65)
+color = Color(0.06, 0.12, 0.09, 0.66)
 
 [node name="CenterContainer" type="CenterContainer" parent="."]
 layout_mode = 1
@@ -199,7 +199,6 @@ theme_override_colors/font_color = Color(1, 0.98, 0.92, 1)
 theme_override_colors/font_outline_color = Color(0.35, 0.25, 0.05, 0.95)
 theme_override_constants/outline_size = 2
 theme_override_font_sizes/font_size = 15
-theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
 theme_override_styles/hover = SubResource("StyleBoxTexture_btn_hover")
 theme_override_styles/pressed = SubResource("StyleBoxTexture_btn_pressed")
 theme_override_styles/normal = SubResource("StyleBoxTexture_btn_normal")

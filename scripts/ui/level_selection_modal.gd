@@ -1,6 +1,8 @@
 class_name LevelSelectionModal
 extends Control
 
+const DialogMotion = preload("res://scripts/ui/modal_presenter.gd")
+
 @onready var dimmer: ColorRect = $Dimmer
 @onready var panel: Panel = $Panel
 @onready var close_btn: Button = $Panel/VBox/Header/CloseBtn
@@ -10,6 +12,7 @@ extends Control
 
 func _ready() -> void:
 	visible = false
+	DialogMotion.install(self, close_btn, close_modal)
 	close_btn.pressed.connect(close_modal)
 	kitchen_btn.pressed.connect(_on_kitchen_selected)
 	farm_btn.pressed.connect(_on_farm_selected)
@@ -18,17 +21,11 @@ func _ready() -> void:
 
 func open_modal() -> void:
 	update_view()
-	visible = true
-	scale = Vector2(0.9, 0.9)
-	pivot_offset = size * 0.5
-	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	tween.tween_property(self, "scale", Vector2.ONE, 0.2)
+	DialogMotion.show_dialog(self)
 
 func close_modal() -> void:
 	SoundManager.play_drop()
-	var tween := create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
-	tween.tween_property(self, "scale", Vector2(0.9, 0.9), 0.15)
-	tween.finished.connect(func(): visible = false)
+	DialogMotion.hide_dialog(self)
 
 func update_view() -> void:
 	var cur_level := SaveManager.current_board_id

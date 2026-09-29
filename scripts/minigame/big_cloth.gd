@@ -2,8 +2,8 @@ class_name BigCloth
 extends Control
 
 ## A single unified cloth piece drawn as one big grid of rows x columns.
-## Each cell has its own color_id. Cells are consumed column-by-column from
-## the bottom row upward, mimicking thread being unrolled off the cloth.
+## Each cell has its own color_id. Each roller pulls one exposed cell at a time,
+## sweeping across the bottom row; different rollers can work concurrently.
 ## Compatible drop-in interface replacement for ClothBlock for RollerSlot use.
 
 signal rolling_started(cloth: BigCloth)
@@ -36,6 +36,12 @@ var rolled_cells: int = 0
 
 ## Which column is currently being unrolled (bottom row first approach).
 var _active_col: int = -1
+
+# Each color continues its exposed-row sweep across spool changes. Columns are
+# reserved synchronously so concurrent rollers cannot consume the same cell.
+var _scan_columns: Dictionary = {}
+var _reserved_columns: Dictionary = {}
+var _active_batches: int = 0
 
 var _roll_tween: Tween = null
 var _fall_tween: Tween = null
@@ -80,6 +86,9 @@ func setup(p_grid: Array, p_size: Vector2) -> void:
 	is_rolling = false
 	is_cleared = false
 	_active_col = -1
+	_scan_columns.clear()
+	_reserved_columns.clear()
+	_active_batches = 0
 	custom_minimum_size = p_size
 	size = p_size
 	pivot_offset = p_size * 0.5
@@ -108,10 +117,66 @@ func get_exposed_cells() -> Array:
 ## Returns color of the first available exposed cell matching the given color_id.
 ## Returns -1 if not found.
 func find_matching_exposed_col(p_color_id: String) -> int:
-	for c in range(cols):
-		if get_bottom_cell_color(c) == p_color_id:
-			return c
-	return -1
+	var matches := get_matching_exposed_columns(p_color_id, 1)
+	return matches[0] if not matches.is_empty() else -1
+
+## Snapshot one exposed row sweep, without revisiting newly dropped cells.
+## Finish the tail of a sweep before wrapping back to the left edge.
+func get_matching_exposed_columns(p_color_id: String, limit: int) -> Array[int]:
+	var matches: Array[int] = []
+	if is_cleared or limit <= 0 or p_color_id == "":
+		return matches
+	var start: int = _scan_columns.get(p_color_id, 0)
+	for c in range(start, cols):
+		if not _reserved_columns.has(c) and get_bottom_cell_color(c) == p_color_id:
+			matches.append(c)
+			if matches.size() == limit:
+				return matches
+	if not matches.is_empty():
+		return matches
+	for c in range(0, start):
+		if not _reserved_columns.has(c) and get_bottom_cell_color(c) == p_color_id:
+			matches.append(c)
+			if matches.size() == limit:
+				break
+	return matches
+
+## Reserve one exposed cell for a one-second rolling cycle. Capacity is the
+## spool's remaining space, not the number of cells it can pull simultaneously.
+## Independent rollers may run concurrently without sharing a target cell.
+func start_exposed_roll(p_color_id: String, capacity: int, target_global_pos: Vector2, on_cell: Callable = Callable(), on_complete: Callable = Callable()) -> Array[int]:
+	var columns := get_matching_exposed_columns(p_color_id, mini(capacity, 1))
+	if columns.is_empty():
+		return columns
+	for c in columns:
+		_reserved_columns[c] = true
+	_scan_columns[p_color_id] = (columns.back() + 1) % cols
+	_active_batches += 1
+	is_rolling = true
+	rolling_started.emit(self)
+	var pull_dir := (target_global_pos - (global_position + size * 0.5)).normalized()
+	var tween := create_tween()
+	tween.tween_interval(1.0)
+	tween.tween_callback(func():
+		for c in columns:
+			_consume_bottom_cell_in_col(c, p_color_id)
+			remaining_cells -= 1
+			rolled_cells += 1
+			cell_rolled.emit(self, remaining_cells)
+			if on_cell.is_valid():
+				on_cell.call()
+		for c in columns:
+			_reserved_columns.erase(c)
+		_active_batches -= 1
+		is_rolling = _active_batches > 0
+		_refresh_color_id()
+		queue_redraw()
+		if remaining_cells == 0:
+			_animate_full_clear(pull_dir, on_complete)
+		elif on_complete.is_valid():
+			on_complete.call()
+	)
+	return columns
 
 ## Returns how many cells remain in a specific column.
 func get_col_remaining(c: int) -> int:
@@ -161,12 +226,13 @@ func _get_cell_rect(r: int, c: int) -> Rect2:
 ## Returns the global center of the bottom non-empty cell in the active rolling column.
 ## Includes column offsets so the thread follows cells during the column-drop animation.
 ## Falls back to cloth center-bottom if no active column is set.
-func get_attachment_point() -> Vector2:
-	if _active_col >= 0 and _active_col < cols:
+func get_attachment_point(column: int = -1) -> Vector2:
+	var attachment_col := column if column >= 0 else _active_col
+	if attachment_col >= 0 and attachment_col < cols:
 		# Find the bottom-most non-empty cell in the active column
 		for r in range(rows - 1, -1, -1):
-			if _cells[r][_active_col] != "":
-				var cell_rect := _get_cell_rect(r, _active_col)
+			if _cells[r][attachment_col] != "":
+				var cell_rect := _get_cell_rect(r, attachment_col)
 				return global_position + cell_rect.get_center()
 	# Fallback: bottom-center of the cloth
 	return global_position + Vector2(size.x * 0.5, size.y * 0.9)

@@ -73,15 +73,15 @@ func _apply_theme_styling() -> void:
 		tile_hover_merge_color = Color(0.30, 0.80, 0.45, 0.95)
 	else:
 		# Kitchen Board Styling (slate blue cozy kitchen)
-		board_bg_color = Color(0.1, 0.12, 0.16, 0.95)
-		board_border_color = Color(0.2, 0.25, 0.32, 0.8)
-		tile_bg_color = Color(0.18, 0.21, 0.27, 0.9)
-		tile_bg_alt_color = Color(0.24, 0.28, 0.35, 0.9)
-		tile_border_color = Color(0.28, 0.32, 0.4, 0.5)
-		tile_locked_bg_color = Color(0.10, 0.11, 0.14, 0.95)
-		tile_locked_bg_alt_color = Color(0.13, 0.14, 0.18, 0.95)
+		board_bg_color = Color(0.22, 0.31, 0.25, 0.98)
+		board_border_color = Color(0.60, 0.67, 0.52, 1)
+		tile_bg_color = Color(0.91, 0.89, 0.79, 1)
+		tile_bg_alt_color = Color(0.83, 0.85, 0.73, 1)
+		tile_border_color = Color(0.69, 0.73, 0.60, 0.6)
+		tile_locked_bg_color = Color(0.32, 0.38, 0.31, 1)
+		tile_locked_bg_alt_color = Color(0.36, 0.42, 0.34, 1)
 		tile_locked_border_color = Color(0.20, 0.22, 0.26, 0.6)
-		tile_hover_empty_color = Color(0.28, 0.38, 0.52, 0.95)
+		tile_hover_empty_color = Color(0.96, 0.94, 0.77, 1)
 		tile_hover_merge_color = Color(0.25, 0.65, 0.38, 0.95)
 
 	if is_inside_tree():
@@ -102,12 +102,12 @@ var tile_margin: float:
 		cell_spacing = val
 
 @export_group("Board Styling")
-@export var board_bg_color: Color = Color(0.1, 0.12, 0.16, 0.95):
+@export var board_bg_color: Color = Color(0.22, 0.31, 0.25, 0.98):
 	set(val):
 		board_bg_color = val
 		_apply_board_styling()
 
-@export var board_border_color: Color = Color(0.2, 0.25, 0.32, 0.8):
+@export var board_border_color: Color = Color(0.60, 0.67, 0.52, 1):
 	set(val):
 		board_border_color = val
 		_apply_board_styling()
@@ -128,27 +128,27 @@ var tile_margin: float:
 		use_chess_pattern = val
 		_apply_cells_styling()
 
-@export var tile_bg_color: Color = Color(0.18, 0.21, 0.27, 0.9):
+@export var tile_bg_color: Color = Color(0.91, 0.89, 0.79, 1):
 	set(val):
 		tile_bg_color = val
 		_apply_cells_styling()
 
-@export var tile_bg_alt_color: Color = Color(0.24, 0.28, 0.35, 0.9):
+@export var tile_bg_alt_color: Color = Color(0.83, 0.85, 0.73, 1):
 	set(val):
 		tile_bg_alt_color = val
 		_apply_cells_styling()
 
-@export var tile_locked_bg_color: Color = Color(0.10, 0.11, 0.14, 0.95):
+@export var tile_locked_bg_color: Color = Color(0.32, 0.38, 0.31, 1):
 	set(val):
 		tile_locked_bg_color = val
 		_apply_cells_styling()
 
-@export var tile_locked_bg_alt_color: Color = Color(0.13, 0.14, 0.18, 0.95):
+@export var tile_locked_bg_alt_color: Color = Color(0.36, 0.42, 0.34, 1):
 	set(val):
 		tile_locked_bg_alt_color = val
 		_apply_cells_styling()
 
-@export var tile_border_color: Color = Color(0.28, 0.32, 0.4, 0.5):
+@export var tile_border_color: Color = Color(0.69, 0.73, 0.60, 0.6):
 	set(val):
 		tile_border_color = val
 		_apply_cells_styling()
@@ -158,7 +158,7 @@ var tile_margin: float:
 		tile_locked_border_color = val
 		_apply_cells_styling()
 
-@export var tile_hover_empty_color: Color = Color(0.28, 0.38, 0.52, 0.95):
+@export var tile_hover_empty_color: Color = Color(0.96, 0.94, 0.77, 1):
 	set(val):
 		tile_hover_empty_color = val
 		_apply_cells_styling()

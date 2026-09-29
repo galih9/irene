@@ -21,8 +21,10 @@ var is_cooldown_mode: bool = false
 @onready var cooldown_bar: ProgressBar = $Background/VBox/CooldownBox/CooldownBar
 
 var _highlight_tween: Tween = null
+var _default_background: StyleBox
 
 func _ready() -> void:
+	_default_background = background.get_theme_stylebox("panel")
 	deliver_btn.pressed.connect(_on_deliver_pressed)
 
 func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) -> void:
@@ -61,7 +63,7 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 		ult_style.shadow_size = 10
 		background.add_theme_stylebox_override("panel", ult_style)
 	else:
-		background.remove_theme_stylebox_override("panel")
+		background.add_theme_stylebox_override("panel", _default_background)
 
 	# Avatar color
 	var av_style := StyleBoxFlat.new()
@@ -117,7 +119,7 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 
 	# Deliver button state
 	deliver_btn.disabled = not is_ready_to_deliver
-	deliver_btn.text = "DELIVER!" if is_ready_to_deliver else "Incomplete"
+	deliver_btn.text = "Deliver order" if is_ready_to_deliver else "Collect ingredients"
 
 func setup_cooldown(_remaining: float = 0.0, _total: float = 0.0) -> void:
 	is_cooldown_mode = true

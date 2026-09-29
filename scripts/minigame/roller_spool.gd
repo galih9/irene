@@ -1,7 +1,7 @@
 class_name RollerSpool
 extends Control
 
-## Represents a colored thread spool/roller with a specific capacity (default: 3 cells / 3 seconds).
+## Represents a colored thread spool/roller with a specific capacity (default: 3 cells).
 ## As cells of the same color are rolled, current_fill increases.
 ## Once full (current_fill >= capacity), it plays an arcing throwing-out ejection animation.
 

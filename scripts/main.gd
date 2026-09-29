@@ -179,9 +179,9 @@ func apply_orientation(landscape: bool) -> void:
 		bottom_nav_bar.set_layout_vertical(landscape)
 		if landscape:
 			bottom_nav_bar.offset_left = vp_width - 240.0
-			bottom_nav_bar.offset_top = 140.0
+			bottom_nav_bar.offset_top = 110.0
 			bottom_nav_bar.offset_right = vp_width - 40.0
-			bottom_nav_bar.offset_bottom = 560.0
+			bottom_nav_bar.offset_bottom = 662.0
 		else:
 			bottom_nav_bar.offset_left = 28.0
 			bottom_nav_bar.offset_top = 1166.0
@@ -413,8 +413,8 @@ func _update_info_area(item_view: Node) -> void:
 		return
 
 	if item_view == null or not is_instance_valid(item_view):
-		info_title_label.text = "Select Item"
-		info_desc_label.text = "Tap any item on the board to view info"
+		info_title_label.text = "A little merge, a new discovery"
+		info_desc_label.text = "Drag matching items together. Select an item for details."
 		info_btn.disabled = true
 		info_btn.visible = false
 		info_sell_btn.disabled = true
