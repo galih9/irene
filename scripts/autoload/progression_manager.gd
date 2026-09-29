@@ -1,5 +1,8 @@
 extends Node
 
+# Stable JSON filenames preserve unlocks when the level list grows.
+var cloth_unlocked_levels: Array[String] = ["level_01.json"]
+
 # Tracks discovered items and whether their discovery reward was claimed
 var _unlocked_items: Dictionary = {} # item_id -> bool
 var _claimed_rewards: Dictionary = {} # item_id -> bool
@@ -241,6 +244,7 @@ func unlock_map(silent: bool = false) -> void:
 
 func serialize_data() -> Dictionary:
 	return {
+		"cloth_unlocked_levels": cloth_unlocked_levels.duplicate(),
 		"unlocked_items": _unlocked_items.duplicate(),
 		"claimed_rewards": _claimed_rewards.duplicate(),
 		"player_level": player_level,
@@ -252,7 +256,10 @@ func serialize_data() -> Dictionary:
 		"witch_visited_first_time": witch_visited_first_time
 	}
 
-func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false) -> void:
+func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false, cloth_levels: Array = []) -> void:
+	cloth_unlocked_levels.assign(cloth_levels)
+	if not cloth_unlocked_levels.has("level_01.json"):
+		cloth_unlocked_levels.append("level_01.json")
 	_unlocked_items = unlocked.duplicate()
 	_claimed_rewards = claimed.duplicate()
 	player_level = maxi(1, level)
@@ -268,6 +275,7 @@ func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_va
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())
 
 func reset_all() -> void:
+	cloth_unlocked_levels = ["level_01.json"]
 	_unlocked_items.clear()
 	_claimed_rewards.clear()
 	_reward_queue.clear()

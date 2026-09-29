@@ -2,7 +2,7 @@ class_name RollerStation
 extends Control
 
 ## Manages the active roller slots in the middle area.
-## Supports dynamic slot counts (1 slot initially, upgradable to 2, 3, 4, 5, etc.).
+## Supports dynamic slot counts (3 slots initially, upgradable to 2, 3, 4, 5, etc.).
 ## Dispatches spools to slots and handles layout positioning.
 
 signal slot_selected(slot: RollerSlot)
@@ -10,7 +10,7 @@ signal spool_docked(slot: RollerSlot, spool: RollerSpool)
 signal roller_finished(slot: RollerSlot, cloth: Node)
 signal slots_upgraded(new_count: int)
 
-@export var max_slots: int = 1
+@export var max_slots: int = 3
 @export var slot_spacing: float = 120.0
 
 var slots: Array[RollerSlot] = []
@@ -20,7 +20,7 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
 	resized.connect(update_layout)
 
-func setup_station(p_slot_count: int = 1) -> void:
+func setup_station(p_slot_count: int = 3) -> void:
 	clear_station()
 	max_slots = max(1, p_slot_count)
 	_build_slots()

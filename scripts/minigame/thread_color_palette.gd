@@ -74,6 +74,10 @@ const COLORS: Dictionary = {
 static func get_color_data(color_id: String) -> Dictionary:
 	if COLORS.has(color_id):
 		return COLORS[color_id]
+	if color_id.begins_with("#") and Color.html_is_valid(color_id):
+		var base := Color.html(color_id)
+		return {"main": base, "thread": base, "light": base.lightened(0.3),
+			"dark": base.darkened(0.3), "accent": base.lightened(0.6)}
 	return COLORS["green"]
 
 static func get_main_color(color_id: String) -> Color:

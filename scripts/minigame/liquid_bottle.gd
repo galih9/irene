@@ -233,31 +233,43 @@ func wobble_error() -> void:
 	tween.tween_property(self, "position:x", orig_x + 5.0, 0.05)
 	tween.tween_property(self, "position:x", orig_x, 0.05)
 
+func get_lip_position_local(at_rotation: float = 0.0) -> Vector2:
+	# Match the mouth in the aspect-fitted glass texture, including its margins.
+	var texture_size := BOTTLE_TEXTURE.get_size()
+	var texture_scale := minf(size.x / texture_size.x, size.y / texture_size.y)
+	var drawn_size := texture_size * texture_scale
+	var mouth_x := 0.5
+	if at_rotation > 0.05:
+		mouth_x = 0.60
+	elif at_rotation < -0.05:
+		mouth_x = 0.40
+	return (size - drawn_size) * 0.5 + drawn_size * Vector2(mouth_x, 0.103)
+
 func get_lip_position_global() -> Vector2:
-	# Returns the world coordinate of the bottle mouth lip where liquid pours out
-	var lip_x := size.x * 0.5
-	if rotation > 0.05:
-		lip_x = size.x * 0.58
-	elif rotation < -0.05:
-		lip_x = size.x * 0.42
-	var local_lip := Vector2(lip_x, size.y * 0.08)
-	return get_global_transform() * local_lip
+	return get_global_transform() * get_lip_position_local(rotation)
 
 
 func get_neck_position_global() -> Vector2:
 	# Returns the target bottle neck entry coordinate (top opening center)
-	var local_neck := Vector2(size.x * 0.5, size.y * 0.20)
-	return get_global_transform() * local_neck
+	return get_global_transform() * get_lip_position_local()
 
 func get_liquid_surface_global() -> Vector2:
 	# Returns the current liquid surface position inside the bottle in global space.
 	# The stream endpoint should reach here so it visually goes inside the bottle.
 	const Y_BOTTOM: float = 0.885
 	const Y_TOP_FULL: float = 0.285
-	var fill_ratio := float(layers.size()) / float(capacity) if capacity > 0 else 0.0
+	# Placeholder layers are added before filling starts; use their animated
+	# heights so the stream meets the rising liquid instead of the final level.
+	var layer_units := float(layers.size())
+	if fluid_material:
+		var heights: Array = fluid_material.get_shader_parameter("layer_heights")
+		layer_units = 0.0
+		for i in range(layers.size()):
+			layer_units += float(heights[i])
+	var fill_ratio := layer_units / float(capacity) if capacity > 0 else 0.0
 	var surface_y_uv := Y_BOTTOM - fill_ratio * (Y_BOTTOM - Y_TOP_FULL)
-	# Clamp to inside the bottle body (below the neck)
-	surface_y_uv = clampf(surface_y_uv, Y_TOP_FULL + 0.05, Y_BOTTOM - 0.05)
+	# Slightly submerge the tip to meet the animated surface without a gap.
+	surface_y_uv = clampf(surface_y_uv + 0.012, Y_TOP_FULL, Y_BOTTOM)
 	var local_surface := Vector2(size.x * 0.5, surface_y_uv * size.y)
 	return get_global_transform() * local_surface
 

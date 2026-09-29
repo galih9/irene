@@ -27,81 +27,26 @@ var total_starting_blocks: int = 0
 
 func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
+	resized.connect(update_layout)
 
 # ─── Setup ───────────────────────────────────────────────────────────────────
 
-## Initializes the cloth grid.
-## colors_pool: available color_ids for procedural fill.
-## custom_stacks: legacy column-stack format still accepted:
-##   Array of cols, each col is Array of {color, rows, cols} dicts → flattened
-##   into the single cloth grid.
-func setup_grid(p_cols: int, p_rows: int, colors_pool: Array[String], custom_stacks: Array = []) -> void:
+## Rows are ordered top to bottom; each cell dictionary keeps future metadata.
+func setup_level(level_rows: Array) -> void:
 	clear_grid()
-	cols = max(1, p_cols)
-	rows = max(1, p_rows)
-	total_starting_blocks = 0
-
+	rows = level_rows.size()
+	cols = level_rows[0].size() if rows > 0 else 0
 	_recalculate_block_size()
-
-	# Build the 2D color grid (rows x cols)
-	var grid_colors: Array = _build_color_grid(colors_pool, custom_stacks)
-
-	# Create the single BigCloth
 	cloth = BigCloth.new()
 	cloth.name = "BigCloth"
 	add_child(cloth)
-
 	var cloth_size := _get_cloth_size()
-	cloth.setup(grid_colors, cloth_size)
-
-	# Center the cloth in our area
+	cloth.setup(level_rows, cloth_size)
 	cloth.position = _get_cloth_origin(cloth_size)
-
-	# Wire signals
-	cloth.rolling_finished.connect(_on_cloth_rolling_finished)
-
-	# Build columns_stacks compatibility shim: each "column" is [cloth]
 	columns_stacks.resize(cols)
 	for c in range(cols):
-		columns_stacks[c] = [cloth]  # cloth acts as the exposed block for every column
-
+		columns_stacks[c] = [cloth]
 	total_starting_blocks = rows * cols
-
-func _build_color_grid(colors_pool: Array[String], custom_stacks: Array) -> Array:
-	## Returns 2D array [row][col] of color_id strings.
-	## Row 0 = top, row (rows-1) = bottom.
-	var grid: Array = []
-	for r in range(rows):
-		var row_arr: Array = []
-		for c in range(cols):
-			row_arr.append("")
-		grid.append(row_arr)
-
-	var use_custom := custom_stacks.size() == cols
-
-	if use_custom:
-		# Legacy format: custom_stacks[col] = Array of {color, rows, cols} blocks
-		# We map each block's cells into the cloth grid column by column.
-		for c in range(cols):
-			var col_blocks: Array = custom_stacks[c]
-			# Each block occupies some rows in this column.
-			# Flatten from bottom (highest row index) upward.
-			var row_cursor := rows - 1
-			for bi in range(col_blocks.size()):
-				var block = col_blocks[bi]
-				var bc: String = str(block.get("color", "green")) if block is Dictionary else str(block)
-				var block_rows: int = int(block.get("rows", 1)) if block is Dictionary else 1
-				for _br in range(block_rows):
-					if row_cursor >= 0:
-						grid[row_cursor][c] = bc
-						row_cursor -= 1
-	else:
-		# Procedural: assign random colors from pool per cell
-		for r in range(rows):
-			for c in range(cols):
-				grid[r][c] = colors_pool[randi() % colors_pool.size()]
-
-	return grid
 
 # ─── Layout ──────────────────────────────────────────────────────────────────
 
@@ -167,11 +112,6 @@ func find_matching_col(color_id: String) -> int:
 	if not is_instance_valid(cloth) or cloth.is_cleared:
 		return -1
 	return cloth.find_matching_exposed_col(color_id)
-
-## Called when rolling finishes in a column. Checks win condition.
-func _on_cloth_rolling_finished(_c: BigCloth) -> void:
-	if get_remaining_blocks_count() == 0:
-		all_blocks_cleared.emit()
 
 ## Returns how many cloth "blocks" (cells) remain. For the new single-cloth
 ## model this is the number of remaining cells total.

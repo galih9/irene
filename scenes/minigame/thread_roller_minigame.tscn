@@ -226,7 +226,7 @@ custom_minimum_size = Vector2(95, 38)
 layout_mode = 2
 theme_override_font_sizes/font_size = 12
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
-text = "Next Level ▶"
+text = "Level Select"
 
 [node name="RestartBtn" type="Button" parent="ControlBar/Margin/HBox"]
 custom_minimum_size = Vector2(75, 38)
@@ -434,7 +434,7 @@ custom_minimum_size = Vector2(130, 42)
 layout_mode = 2
 theme_override_font_sizes/font_size = 14
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_upgrade")
-text = "Next Level ▶"
+text = "Level Select"
 
 [node name="UpgradeModal" type="Control" parent="."]
 visible = false
@@ -544,7 +544,7 @@ text = "Roller Slots"
 layout_mode = 2
 theme_override_colors/font_color = Color(0.5, 0.9, 0.6, 1)
 theme_override_font_sizes/font_size = 13
-text = "Slots: 1 ➔ 2"
+text = "Slots: 3 ➔ 4"
 
 [node name="DescLabel" type="Label" parent="UpgradeModal/Panel/VBox/CardsBox/SlotCard/Margin/VBox"]
 layout_mode = 2
@@ -604,3 +604,48 @@ layout_mode = 2
 theme_override_font_sizes/font_size = 13
 theme_override_styles/normal = SubResource("StyleBoxFlat_btn_upgrade")
 text = "Upgrade (40 🪙)"
+
+[node name="LevelSelect" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 24.0
+offset_top = 92.0
+offset_right = -24.0
+offset_bottom = -24.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_ctrlbar")
+
+[node name="Margin" type="MarginContainer" parent="LevelSelect"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_top = 20
+theme_override_constants/margin_bottom = 20
+
+[node name="VBox" type="VBoxContainer" parent="LevelSelect/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 18
+
+[node name="Title" type="Label" parent="LevelSelect/Margin/VBox"]
+layout_mode = 2
+text = "Choose Your Cloth"
+theme_override_font_sizes/font_size = 28
+
+[node name="Status" type="Label" parent="LevelSelect/Margin/VBox"]
+layout_mode = 2
+autowrap_mode = 2
+
+[node name="Scroll" type="ScrollContainer" parent="LevelSelect/Margin/VBox"]
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
+
+[node name="Levels" type="GridContainer" parent="LevelSelect/Margin/VBox/Scroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+columns = 2
+theme_override_constants/h_separation = 16
+theme_override_constants/v_separation = 16

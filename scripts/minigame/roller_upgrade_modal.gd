@@ -29,7 +29,7 @@ const CAPACITY_COSTS: Dictionary = {
 }
 const MAX_CAPACITY: int = 8
 
-var current_slots: int = 1
+var current_slots: int = 3
 var current_capacity: int = 3
 
 @onready var panel: Panel = $Panel

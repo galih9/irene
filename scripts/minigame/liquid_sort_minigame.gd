@@ -457,6 +457,8 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 	is_pouring = true
 	source.is_animating = true
 	target.is_animating = true
+	if source.hover_tween:
+		source.hover_tween.kill()
 
 	# Record state for Undo
 	var move_record: Dictionary = {
@@ -501,21 +503,20 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 	var tilt_deg := tilt_deg_abs if pour_from_left else -tilt_deg_abs
 	var target_tilt_rad := deg_to_rad(tilt_deg)
 
-	# The source bottle lip sits directly above the target neck opening.
-	# Shallower tilts need a slightly bigger horizontal nudge so the bottle body clears the target.
-	var nudge_amount := lerpf(source.size.x * 0.25, source.size.x * 0.55, clampf(fill_ratio_after, 0.0, 1.0))
+	# Align the actual pouring lip directly over the mouth. Clearance comes
+	# from lifting the source, so the liquid can fall straight through the hole.
 	var neck_global := target.get_neck_position_global()
-	var side_nudge := Vector2(-nudge_amount if pour_from_left else nudge_amount, 0.0)
-	# Lift source so it's above the target neck — just enough for the neck to be free
-	var desired_lip_global := neck_global + side_nudge + Vector2(0.0, -source.size.y * 0.18)
+	var desired_lip_global := neck_global + Vector2(0.0, -source.size.y * 0.20)
 	var desired_lip_in_parent := bottles_container.get_global_transform().affine_inverse() * desired_lip_global
 
 	# Calculate hover position so the rotated lip lands at desired_lip_in_parent
-	var source_lip_local := Vector2(source.size.x * (0.58 if pour_from_left else 0.42), source.size.y * 0.08)
+	var source_lip_local := source.get_lip_position_local(target_tilt_rad)
 	var hover_pos := desired_lip_in_parent - source.pivot_offset - (source_lip_local - source.pivot_offset).rotated(target_tilt_rad)
 
 	# 1. Fly source bottle to hover position above target, tilting mouth downward
 	source.z_index = 40
+	var target_glass_z := target.glass_texture.z_index
+	target.glass_texture.z_index = stream_renderer.z_index + 1
 	var tween := create_tween().set_parallel(true)
 	tween.tween_property(source, "position", hover_pos, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tween.tween_property(source, "rotation", target_tilt_rad, 0.30).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
@@ -524,7 +525,7 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 		# 2. Pour: stream goes from source lip → through target neck → down to liquid surface inside
 		var lip_pt := source.get_lip_position_global()
 		var surface_pt := target.get_liquid_surface_global()
-		stream_renderer.set_flow_path(lip_pt, surface_pt, color_val)
+		stream_renderer.set_flow_path(lip_pt, surface_pt, color_val, target)
 		if SoundManager: SoundManager.play_merge_tier(2)
 
 		var pour_duration := 0.45 + float(units_to_pour - 1) * 0.25
@@ -544,6 +545,7 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 
 			return_tween.chain().tween_callback(func():
 				source.z_index = 0
+				target.glass_texture.z_index = target_glass_z
 				source.rotation = 0.0
 				source.update_visuals()
 				target.update_visuals()

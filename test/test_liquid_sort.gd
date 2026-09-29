@@ -84,7 +84,7 @@ func _ready() -> void:
 	# Test Lip & Neck Coordinate Alignment
 	var lip_pos := b_single.get_lip_position_global()
 	var neck_pos := b_single.get_neck_position_global()
-	assert(lip_pos.y < neck_pos.y, "Lip mouth position must be above neck entry in upright bottle")
+	assert(lip_pos.is_equal_approx(neck_pos), "Upright lip and receiving opening must share the actual mouth center")
 
 	# Clean up test bottles
 	b1.queue_free()
@@ -131,9 +131,9 @@ func _ready() -> void:
 	assert(l2_params["color_count"] >= 4, "Level 2 must scale to 4 colors")
 	var l3_params := LiquidSortLevelGenerator.get_level_params(3)
 	assert(l3_params["capacity"] >= 4, "Level 3 must scale to 4 rows")
-	assert(l3_params["total_bottles"] >= 9, "Level 3 must scale to >= 9 bottles")
+	assert(l3_params["color_count"] + l3_params["empty_bottles"] == 6, "Level 3 must provide 4 colors and 2 buffer bottles")
 	var l6_params := LiquidSortLevelGenerator.get_level_params(6)
-	assert(l6_params["total_bottles"] == 12, "Level 6 must have 12 bottles")
+	assert(l6_params["color_count"] + l6_params["empty_bottles"] == 8, "Level 6 must provide 6 colors and 2 buffer bottles")
 	assert(l6_params["color_count"] == 6, "Level 6 must have 6 colors")
 	print("[OK] Level scaling progression verified!")
 
@@ -142,10 +142,16 @@ func _ready() -> void:
 	var stream := LiquidStream.new()
 	add_child(stream)
 	var test_color := Color(0.96, 0.52, 0.08)
-	stream.set_flow_path(Vector2(100, 100), Vector2(150, 300), test_color)
+	stream.set_flow_path(Vector2(150, 100), Vector2(150, 300), test_color)
 	assert(stream.visible == true, "Stream must be visible when active")
 	assert(stream.is_active == true, "Stream state must be active")
-	assert(stream.line.points.size() > 2, "Stream must generate curve points")
+	assert(stream.line.points.size() == 2, "Waterfall must be a straight segment")
+	for progress in [0.05, 0.5, 1.0]:
+		stream._update_stream_geometry(0.0, progress)
+		for point in stream.line.points:
+			assert(is_equal_approx(point.x, 150.0), "Emerging stream must stay vertical")
+	stream._update_stream_geometry(0.5, 1.0)
+	assert(stream.line.points[0].is_equal_approx(Vector2(150, 200)), "Tail must drain straight downward")
 	assert(stream.stream_color == test_color, "Stream must match the liquid color being poured")
 	stream.stop()
 	stream.queue_free()
@@ -157,6 +163,10 @@ func _ready() -> void:
 	assert(minigame_scene != null, "liquid_sort_minigame.tscn must exist and load")
 	var minigame: LiquidSortMinigame = minigame_scene.instantiate()
 	add_child(minigame)
+	# Generation now runs on a worker thread; wait for bottles and deferred layout.
+	while minigame.bottles.is_empty():
+		await get_tree().process_frame
+	await get_tree().process_frame
 
 	assert(minigame.current_level == 1, "Initial level must be 1")
 	assert(minigame.bottles.size() == 8, "Minigame must have 8 bottles in level 1")
@@ -176,14 +186,52 @@ func _ready() -> void:
 	# Test Pour to Empty Bottle
 	var b_dst: LiquidBottle = minigame.bottles[6] # empty bottle
 	minigame._on_bottle_clicked(b_src)
-	var top_c: String = b_src.get_top_color()
-	var prev_src_size: int = b_src.layers.size()
-
-	# Execute instant pour logic test
 	assert(b_dst.can_receive_from(b_src) == true, "b_dst should be able to receive from b_src")
-	minigame._execute_pour(b_src, b_dst)
+	minigame._on_bottle_clicked(b_dst)
 	assert(minigame.undo_stack.size() == 1, "Move must be recorded on undo_stack")
-	minigame.is_pouring = false
+	while minigame.is_pouring:
+		await get_tree().process_frame
+
+	# Exercise actual animation from both sides, including the smallest bottle
+	# width, empty receivers, partially filled receivers, and different tilts.
+	for bottle_width in [65.0, 110.0]:
+		for from_left in [true, false]:
+			for target_filled in [false, true]:
+				b_src.setup(3, ["orange", "sky_blue", "sky_blue"])
+				if target_filled:
+					b_dst.setup(3, ["sky_blue", "sky_blue"])
+				else:
+					b_dst.setup(3, [])
+				b_src.set_bottle_size(Vector2(bottle_width, bottle_width * 1.55))
+				b_dst.set_bottle_size(b_src.size)
+				b_src.position = Vector2(100 if from_left else 500, 500)
+				b_dst.position = Vector2(500 if from_left else 100, 700)
+				b_src.original_position = b_src.position
+				b_dst.original_position = b_dst.position
+				minigame._execute_pour(b_src, b_dst)
+				while not minigame.stream_renderer.is_active:
+					await get_tree().process_frame
+				var mouth := b_dst.get_neck_position_global()
+				var pouring_lip := b_src.get_lip_position_global()
+				assert(absf(pouring_lip.x - mouth.x) < 0.1, "Pouring lip must align directly above receiving mouth")
+				assert(pouring_lip.y < mouth.y, "Pouring lip must clear the receiving rim")
+				assert(minigame.stream_renderer.line.width * 1.2 < bottle_width * 0.20, "Stream must fit inside the mouth at every bottle size")
+				assert(b_dst.glass_texture.z_index > minigame.stream_renderer.z_index, "Glass must cover stream inside receiver")
+				var initial_surface_y := b_dst.get_liquid_surface_global().y
+				while minigame.stream_renderer.is_active:
+					for point in minigame.stream_renderer.line.points:
+						var world_point := minigame.stream_renderer.to_global(point)
+						assert(absf(world_point.x - mouth.x) < 0.1, "Stream must pass vertically through mouth throughout pour")
+					await get_tree().process_frame
+				assert(b_dst.get_liquid_surface_global().y < initial_surface_y, "Stream endpoint must follow rising liquid")
+				while minigame.is_pouring:
+					await get_tree().process_frame
+				assert(b_src.position.is_equal_approx(b_src.original_position), "Source must return to its slot")
+				assert(b_dst.glass_texture.z_index == 0, "Glass ordering must reset after pouring")
+				assert(b_src.layers.size() == (2 if target_filled else 1), "Source must lose only transferred layers")
+				assert(b_dst.layers.size() == (3 if target_filled else 2), "Receiver must gain transferred layers")
+				# Allow completion bounce to settle before reusing the bottles.
+				await get_tree().create_timer(0.35).timeout
 
 
 	# Test Undo
@@ -250,6 +298,8 @@ func _ready() -> void:
 	assert(main_inst.board.visible == false, "Merge board must be hidden")
 	assert(is_instance_valid(main_inst.minigame_instance), "Minigame instance must be created")
 	assert(main_inst.minigame_instance is LiquidSortMinigame, "Minigame instance must be LiquidSortMinigame")
+	while main_inst.minigame_instance.generation_thread != null:
+		await get_tree().process_frame
 
 	# Test exiting minigame
 	main_inst.minigame_instance.exit_requested.emit()

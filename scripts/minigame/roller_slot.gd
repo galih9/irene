@@ -104,6 +104,8 @@ func receive_spool(spool: RollerSpool, from_global_pos: Vector2 = Vector2.ZERO) 
 	is_rolling = false
 	is_docking = true
 	current_spool = spool
+	spool.show()
+	spool.modulate.a = 1.0
 
 	if spool.get_parent() != null:
 		spool.get_parent().remove_child(spool)

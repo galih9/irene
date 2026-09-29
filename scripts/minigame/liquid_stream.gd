@@ -11,11 +11,11 @@ var shader_material: ShaderMaterial
 var is_active: bool = false
 var flow_tween: Tween = null
 
-# Cubic Bezier control points for the pouring arc
-var p0: Vector2 = Vector2.ZERO
-var p1: Vector2 = Vector2.ZERO
-var p2: Vector2 = Vector2.ZERO
-var p3: Vector2 = Vector2.ZERO
+var flow_start: Vector2 = Vector2.ZERO
+var flow_end: Vector2 = Vector2.ZERO
+var receiving_bottle: LiquidBottle = null
+var visible_start: float = 0.0
+var visible_end: float = 0.0
 
 const STREAM_SHADER: Shader = preload("res://shaders/fluid_stream.gdshader")
 
@@ -35,10 +35,10 @@ func _init() -> void:
 	line.texture = ImageTexture.create_from_image(img)
 
 	# Liquid stream taper: wider at the bottle lip where it flows out, narrowing as it
-	# accelerates under gravity and drops into the neck. This matches the reference image.
+	# accelerates under gravity and drops into the neck.
 	var curve := Curve.new()
 	curve.add_point(Vector2(0.0, 1.20))   # broad at the spout exit
-	curve.add_point(Vector2(0.30, 1.00))  # slight widening at pour start
+	curve.add_point(Vector2(0.30, 1.00))  # steady flow below the lip
 	curve.add_point(Vector2(0.65, 0.70))  # narrows as it accelerates downward
 	curve.add_point(Vector2(1.0, 0.55))   # thin at entry into bottle neck
 	line.width_curve = curve
@@ -59,46 +59,35 @@ func _update_material_color() -> void:
 	if line:
 		line.default_color = stream_color
 
-func _evaluate_bezier(t: float) -> Vector2:
-	var u := 1.0 - t
-	return u * u * u * p0 + 3.0 * u * u * t * p1 + 3.0 * u * t * t * p2 + t * t * t * p3
+func _process(_delta: float) -> void:
+	if is_active and is_instance_valid(receiving_bottle):
+		flow_end = to_local(receiving_bottle.get_liquid_surface_global())
+		_update_stream_geometry(visible_start, visible_end)
 
 func _update_stream_geometry(t_start: float, t_end: float) -> void:
+	visible_start = t_start
+	visible_end = t_end
 	if t_end <= t_start:
 		line.clear_points()
 		return
-	var pts := PackedVector2Array()
-	var steps := 32
-	for i in range(steps + 1):
-		var frac := float(i) / float(steps)
-		var t := lerpf(t_start, t_end, frac)
-		pts.append(_evaluate_bezier(t))
-	line.points = pts
+	# Source positioning aligns the lip with the receiving mouth. Keep every
+	# point on that vertical axis, including emergence and the draining tail.
+	var start := Vector2(flow_end.x, flow_start.y)
+	line.points = PackedVector2Array([
+		start.lerp(flow_end, t_start),
+		start.lerp(flow_end, t_end)
+	])
 
-func set_flow_path(from_pt: Vector2, to_pt: Vector2, color_val: Color) -> void:
+func set_flow_path(from_pt: Vector2, to_pt: Vector2, color_val: Color, target: LiquidBottle = null) -> void:
 	if flow_tween:
 		flow_tween.kill()
 
-	var local_from := to_local(from_pt)
-	var local_to := to_local(to_pt)
+	flow_start = to_local(from_pt)
+	flow_end = to_local(to_pt)
+	receiving_bottle = target
 	stream_color = color_val
-
-	# Cubic Bezier for inside-bottle pour:
-	# - p0 = source lip (slightly to side above neck)
-	# - p3 = liquid surface inside target bottle (below neck, inside body)
-	# The stream curves quickly from the lip to align with the neck, then falls straight down.
-	p0 = local_from
-	p3 = local_to
-
-	var dx := p3.x - p0.x
-	var dy := p3.y - p0.y
-
-	# ctrl1: exits lip tangentially, quickly sweeps toward the neck center x
-	p1 = Vector2(p0.x + dx * 0.60, p0.y + dy * 0.15)
-
-	# ctrl2: aligned with p3 x (neck/bottle center), just above the surface
-	# This keeps the lower portion of the stream perfectly vertical inside the bottle
-	p2 = Vector2(p3.x, p0.y + dy * 0.70)
+	# Keep the widest part narrower than the opening on small layouts too.
+	line.width = target.size.x * 0.10 if is_instance_valid(target) else 14.0
 
 	visible = true
 	is_active = true
@@ -113,6 +102,7 @@ func set_flow_path(from_pt: Vector2, to_pt: Vector2, color_val: Color) -> void:
 
 func stop() -> void:
 	is_active = false
+	receiving_bottle = null
 	if flow_tween:
 		flow_tween.kill()
 

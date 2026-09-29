@@ -39,11 +39,11 @@ var _active_col: int = -1
 
 var _roll_tween: Tween = null
 var _fall_tween: Tween = null
-var _drop_tween: Tween = null
 var _current_target_pos: Vector2 = Vector2.ZERO
 
-## Vertical pixel offset applied during the row-drop animation (rows slide down).
-var _drop_offset: float = 0.0
+## Each column has its own vertical drop animation offset.
+var _drop_offsets: Array[float] = []
+var cell_data: Array = []
 
 ## Cell visual config
 const PAD := 5.0
@@ -54,7 +54,7 @@ func _ready() -> void:
 	mouse_filter = MOUSE_FILTER_PASS
 	custom_minimum_size = Vector2(160, 100)
 	pivot_offset = size * 0.5
-	clip_contents = true  # Clip cells to cloth bounds during row-drop animation
+	clip_contents = true  # Clip cells to cloth bounds during column-drop animation
 
 ## Builds the cloth grid from a 2D array of color_ids.
 ## p_grid[row][col] = color_id string (row 0 = top, row rows-1 = bottom).
@@ -62,11 +62,18 @@ func setup(p_grid: Array, p_size: Vector2) -> void:
 	rows = p_grid.size()
 	cols = p_grid[0].size() if rows > 0 else 0
 	_cells = []
+	cell_data = []
+	_drop_offsets.resize(cols)
+	_drop_offsets.fill(0.0)
 	for r in range(rows):
 		var row_arr: Array = []
+		var data_row: Array = []
 		for c in range(cols):
-			row_arr.append(str(p_grid[r][c]))
+			var cell: Dictionary = p_grid[r][c].duplicate(true) if p_grid[r][c] is Dictionary else {"color": str(p_grid[r][c])}
+			data_row.append(cell)
+			row_arr.append(str(cell["color"]))
 		_cells.append(row_arr)
+		cell_data.append(data_row)
 	total_cells = rows * cols
 	remaining_cells = total_cells
 	rolled_cells = 0
@@ -141,18 +148,18 @@ func get_remaining_cells_by_color() -> Dictionary:
 	return map
 
 ## Returns the Rect2 (in local coordinates) for the cell at [r][c],
-## including any active _drop_offset animation shift.
+## including any active column drop animation shift.
 func _get_cell_rect(r: int, c: int) -> Rect2:
 	var avail_w := size.x - PAD * 2.0 - CELL_SPACE * float(cols - 1)
 	var avail_h := size.y - PAD * 2.0 - CELL_SPACE * float(rows - 1)
 	var cell_w := maxf(14.0, avail_w / float(cols))
 	var cell_h := maxf(14.0, avail_h / float(rows))
 	var cx := PAD + float(c) * (cell_w + CELL_SPACE)
-	var cy := PAD + float(r) * (cell_h + CELL_SPACE) + _drop_offset
+	var cy := PAD + float(r) * (cell_h + CELL_SPACE) + _drop_offsets[c]
 	return Rect2(cx, cy, cell_w, cell_h)
 
 ## Returns the global center of the bottom non-empty cell in the active rolling column.
-## Includes the _drop_offset so the thread follows cells during the row-drop animation.
+## Includes column offsets so the thread follows cells during the column-drop animation.
 ## Falls back to cloth center-bottom if no active column is set.
 func get_attachment_point() -> Vector2:
 	if _active_col >= 0 and _active_col < cols:
@@ -229,35 +236,13 @@ func roll_cells(cells_to_roll: int, target_global_pos: Vector2, on_cell_rolled: 
 
 ## Consumes one cell from the active column's bottom matching expected_color, moving up the column.
 func _consume_one_cell(expected_color: String = "") -> void:
-	if _active_col < 0 or _active_col >= cols:
-		_active_col = 0
-
-	# Find the lowest remaining matching cell in _active_col and blank it
-	for r in range(rows - 1, -1, -1):
-		if _cells[r][_active_col] != "":
-			if expected_color == "" or _cells[r][_active_col] == expected_color:
-				_cells[r][_active_col] = ""
-				_check_and_drop_bottom_row()
-				return
-			break
-
-	# If that column has no matching cell at the bottom, find next matching column
-	for step in range(1, cols):
-		var next_col := (_active_col + step) % cols
-		for r in range(rows - 1, -1, -1):
-			if _cells[r][next_col] != "":
-				if expected_color == "" or _cells[r][next_col] == expected_color:
-					_active_col = next_col
-					_cells[r][next_col] = ""
-					_check_and_drop_bottom_row()
-					return
-				break
+	_consume_bottom_cell_in_col(_active_col, expected_color)
 
 ## Begins rolling cells from a specific column (called by ClothGrid).
 func start_column_roll(target_col: int, cells_to_roll: int, target_global_pos: Vector2, on_cell_rolled: Callable = Callable(), on_complete: Callable = Callable()) -> void:
-	_active_col = target_col
-	if is_rolling or is_cleared:
+	if is_rolling or is_cleared or target_col < 0 or target_col >= cols:
 		return
+	_active_col = target_col
 
 	var roll_color := get_bottom_cell_color(target_col)
 	if roll_color == "":
@@ -311,48 +296,28 @@ func _consume_bottom_cell_in_col(c: int, expected_color: String = "") -> void:
 			if expected_color != "" and _cells[r][c] != expected_color:
 				return # Safety guard: never consume non-matching cell
 			_cells[r][c] = ""
-			# After consuming, check if the whole bottom row is now empty
-			_check_and_drop_bottom_row()
+			cell_data[r][c] = {}
+			_drop_column(c, r)
 			return
 
-## Checks if the bottom row is fully empty. If so, shifts rows down and animates the drop.
-func _check_and_drop_bottom_row() -> void:
-	if rows <= 1:
+## Collapse only the consumed column, keeping neighboring columns stationary.
+func _drop_column(c: int, empty_row: int) -> void:
+	for r in range(empty_row, 0, -1):
+		_cells[r][c] = _cells[r - 1][c]
+		cell_data[r][c] = cell_data[r - 1][c]
+	_cells[0][c] = ""
+	cell_data[0][c] = {}
+	if get_col_remaining(c) == 0:
 		return
-	# Check bottom row (index rows-1)
-	for c in range(cols):
-		if _cells[rows - 1][c] != "":
-			return  # Bottom row still has content — no drop needed
-
-	# Bottom row is fully empty: shift all row data DOWN by one row
-	# (each row moves from its current index to the next higher index)
-	for r in range(rows - 1, 0, -1):
-		_cells[r] = _cells[r - 1].duplicate()
-	# Top row is now vacated
-	for c in range(cols):
-		_cells[0][c] = ""
-
-	# Play the visual drop slide
-	_animate_row_drop()
-
-## Plays the row-drop animation: renders rows shifted up by one cell height,
-## then tweens them back to their final position with a soft bounce.
-func _animate_row_drop() -> void:
-	if _drop_tween and _drop_tween.is_valid():
-		_drop_tween.kill()
-
-	# Calculate one cell height to know the slide distance
 	var avail_h := size.y - PAD * 2.0 - CELL_SPACE * float(rows - 1)
-	var cell_h := maxf(14.0, avail_h / float(rows))
-	var one_row_h := cell_h + CELL_SPACE
-
-	# Start with content appearing one row ABOVE final position
-	_drop_offset = -one_row_h
+	var distance := maxf(14.0, avail_h / float(rows)) + CELL_SPACE
+	_drop_offsets[c] = -distance
+	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tween.tween_method(func(value: float):
+		_drop_offsets[c] = value
+		queue_redraw()
+	, -distance, 0.0, 0.30)
 	queue_redraw()
-
-	_drop_tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	_drop_tween.tween_property(self, "_drop_offset", 0.0, 0.30)
-	_drop_tween.tween_callback(queue_redraw)
 
 func _refresh_color_id() -> void:
 	# Update the reference color_id to the first non-empty exposed cell
@@ -398,12 +363,12 @@ func _draw() -> void:
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.12, 0.12, 0.15, 0.6), true)
 	draw_rect(Rect2(Vector2.ZERO, size), Color(0.1, 0.1, 0.13, 1.0), false, BORDER_W)
 
-	# 3. Draw all cells (apply _drop_offset to Y for row-drop animation)
+	# 3. Draw all cells (apply each column offset to Y for column-drop animation)
 	var cloth_bounds := Rect2(Vector2.ZERO, size)
 	for r in range(rows):
 		for c in range(cols):
 			var cx := PAD + float(c) * (cell_w + CELL_SPACE)
-			var cy := PAD + float(r) * (cell_h + CELL_SPACE) + _drop_offset
+			var cy := PAD + float(r) * (cell_h + CELL_SPACE) + _drop_offsets[c]
 			var cell_rect := Rect2(cx, cy, cell_w, cell_h)
 			# Skip cells that are fully outside the cloth bounds during animation
 			if not cloth_bounds.intersects(cell_rect):

@@ -4,7 +4,7 @@ extends Control
 ## Main Controller for the Thread Rolling Minigame.
 ## Features modular cloth grid (multi-cell clothes), upgradeable roller station,
 ## capacity-based spools (default: 3 cells/seconds), in-game coin upgrades,
-## FIFO roller queue, multiple progression levels, and orientation adaptability.
+## JSON cloth levels, gold unlocks, and orientation adaptability.
 
 signal exit_requested()
 signal level_completed(level_num: int, score: int)
@@ -37,13 +37,20 @@ signal level_completed(level_num: int, score: int)
 @onready var jam_slot_btn: Button = $JamToast/Margin/VBox/HBox/JamSlotBtn
 @onready var jam_restart_btn: Button = $JamToast/Margin/VBox/HBox/JamRestartBtn
 
+const LevelLibrary = preload("res://scripts/minigame/cloth_level_library.gd")
+
+@onready var level_select: Control = $LevelSelect
+@onready var level_buttons: GridContainer = $LevelSelect/Margin/VBox/Scroll/Levels
+@onready var selection_status: Label = $LevelSelect/Margin/VBox/Status
+var levels: Array[Dictionary] = []
+var _round_id: int = 0
 var current_level: int = 1
 var score: int = 0
 var auto_dispatch: bool = false
 var is_game_active: bool = false
 
 # Progression upgrades (persist across levels during minigame play)
-var purchased_slots: int = 1
+var purchased_slots: int = 3
 var roller_capacity: int = 3 # Default: 3 seconds / 3 cells of the same color
 
 func _ready() -> void:
@@ -99,107 +106,111 @@ func _ready() -> void:
 		OrientationManager.orientation_changed.connect(apply_orientation)
 		apply_orientation(OrientationManager.is_landscape)
 
-	# Start initial level
-	start_level(current_level)
+	levels = LevelLibrary.load_levels()
+	show_level_select()
 
-## Starts a given level index (1 = Sketch Reference, 2+ = Bigger & More Colorful).
-func start_level(level_num: int) -> void:
-	current_level = level_num
-	is_game_active = true
-	if is_instance_valid(win_overlay):
-		win_overlay.visible = false
-	if is_instance_valid(jam_toast):
-		jam_toast.visible = false
-	if is_instance_valid(upgrade_modal):
-		upgrade_modal.visible = false
+func is_level_unlocked(index: int) -> bool:
+	return index == 0 or ProgressionManager.cloth_unlocked_levels.has(levels[index]["id"])
 
-	# Setup based on level definition
-	match level_num:
-		1:
-			# Design Sketch Reference: starts with 1 slot (or purchased_slots), multi-cell clothes, capacity 3
-			_setup_sketch_reference_level()
-		2:
-			# 4 cols x 3 rows, 4 colors (Red, Blue, Green, Yellow)
-			_setup_level(4, 3, ["red", "blue", "green", "yellow"], maxi(purchased_slots, 2))
-		3:
-			# 5 cols x 3 rows, 5 colors
-			_setup_level(5, 3, ["red", "blue", "green", "yellow", "purple"], maxi(purchased_slots, 2))
-		4:
-			# 5 cols x 4 rows, 6 colors
-			_setup_level(5, 4, ["red", "blue", "green", "yellow", "purple", "orange"], maxi(purchased_slots, 3))
-		_:
-			# Procedural scaling for higher levels
-			var c := mini(4 + (level_num / 2), 6)
-			var r := mini(2 + (level_num / 2), 5)
-			var cols_count := mini(3 + level_num, 8)
-			var colors := ThreadColorPalette.get_palette_subset(cols_count)
-			_setup_level(c, r, colors, maxi(purchased_slots, mini(2 + (level_num / 3), 4)))
-
+func show_level_select() -> void:
+	_round_id += 1
+	is_game_active = false
+	cloth_grid.clear_grid()
+	roller_station.clear_station()
+	roller_queue.clear_queue()
+	win_overlay.hide()
+	jam_toast.hide()
+	upgrade_modal.hide()
+	$VBoxContainer.hide()
+	$ControlBar.hide()
+	level_select.show()
+	selection_status.text = "Choose a cloth pattern. Unlock once, replay anytime."
+	_refresh_level_buttons()
 	_update_header_ui()
 
-func _setup_sketch_reference_level() -> void:
-	# Stacks matching sketch with varying cells (each cell represents 1 second of rolling):
-	# Col 0 = Red (1x2 = 2s) & Red (1x3 = 3s)  -> 5 Red cells
-	# Col 1 = Blue (1x3 = 3s) & Blue (1x3 = 3s) -> 6 Blue cells
-	# Col 2 = Green (1x3 = 3s) & Green (1x3 = 3s) -> 6 Green cells
-	# Col 3 = Green (1x2 = 2s) & Green (1x2 = 2s) -> 4 Green cells
-	# Total Green = 10 cells -> Needs 4 Green spools (at cap 3: 3+3+3+1 = 10 cells)
-	# Total Blue = 6 cells -> Needs 2 Blue spools (3+3 = 6 cells)
-	# Total Red = 5 cells -> Needs 2 Red spools (3+2 = 5 cells)
-	# Total Spools = 8 spools!
-	var custom_stacks: Array = [
-		[ {"color": "red", "rows": 1, "cols": 2}, {"color": "red", "rows": 1, "cols": 3} ],
-		[ {"color": "blue", "rows": 1, "cols": 3}, {"color": "blue", "rows": 1, "cols": 3} ],
-		[ {"color": "green", "rows": 1, "cols": 3}, {"color": "green", "rows": 1, "cols": 3} ],
-		[ {"color": "green", "rows": 1, "cols": 2}, {"color": "green", "rows": 1, "cols": 2} ]
-	]
-	cloth_grid.setup_grid(4, 2, ["red", "blue", "green"], custom_stacks)
+func _refresh_level_buttons() -> void:
+	for child in level_buttons.get_children():
+		level_buttons.remove_child(child)
+		child.queue_free()
+	for i in range(levels.size()):
+		var unlocked := is_level_unlocked(i)
+		var cost: int = levels[i]["cost"]
+		var button := Button.new()
+		button.custom_minimum_size = Vector2(0, 96)
+		button.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		button.add_theme_stylebox_override("normal", next_level_btn.get_theme_stylebox("normal"))
+		button.add_theme_font_size_override("font_size", 20)
+		button.text = "Level %d\n%s" % [i + 1, "Play" if unlocked else "Unlock · %d gold" % cost]
+		button.disabled = not unlocked and EconomyManager.coins < cost
+		button.pressed.connect(_on_level_selected.bind(i))
+		level_buttons.add_child(button)
+	if levels.is_empty():
+		selection_status.text = "No valid cloth levels found."
 
-	# First section starts with 1 slot (or user's purchased slots)
+func _on_level_selected(index: int) -> void:
+	if index < 0 or index >= levels.size():
+		return
+	if not is_level_unlocked(index):
+		var cost: int = levels[index]["cost"]
+		if not EconomyManager.spend_coins(cost):
+			selection_status.text = "You need %d gold to unlock this level." % cost
+			return
+		ProgressionManager.cloth_unlocked_levels.append(levels[index]["id"])
+		if not SaveManager.save_game(false):
+			ProgressionManager.cloth_unlocked_levels.erase(levels[index]["id"])
+			EconomyManager.add_coins(cost)
+			selection_status.text = "Could not save the unlock. Your gold was returned."
+			return
+	start_level(index + 1)
+
+## Only unlocked, authored JSON levels can be started, including via replay.
+func start_level(level_num: int) -> void:
+	if level_num < 1 or level_num > levels.size() or not is_level_unlocked(level_num - 1):
+		return
+	_round_id += 1
+	current_level = level_num
+	score = 0
+	is_game_active = true
+	win_overlay.hide()
+	jam_toast.hide()
+	upgrade_modal.hide()
+	level_select.hide()
+	$VBoxContainer.show()
+	$ControlBar.show()
+	cloth_grid.setup_level(levels[level_num - 1]["rows"])
 	roller_station.setup_station(purchased_slots)
 
-	# FIFO Queue matching the sketch sequence where green rolls first
-	var queue_colors: Array[String] = [
-		"green", "blue", "red", "blue", "green", "green", "green", "red"
-	]
+	# Fixed queue order based on first encounters from bottom to top.
+	var counts := cloth_grid.get_remaining_cells_by_color()
+	var queue_colors: Array[String] = []
+	var seen: Array[String] = []
+	var level_rows: Array = levels[level_num - 1]["rows"]
+	for r in range(level_rows.size() - 1, -1, -1):
+		for cell in level_rows[r]:
+			var color: String = cell["color"]
+			if seen.has(color):
+				continue
+			seen.append(color)
+	# Interleave colors so large patterns do not hide an entire color off-screen.
+	while not counts.is_empty():
+		for color in seen:
+			if not counts.has(color):
+				continue
+			queue_colors.append(color)
+			counts[color] -= roller_capacity
+			if counts[color] <= 0:
+				counts.erase(color)
 	roller_queue.setup_queue(queue_colors, roller_capacity)
-
-func _setup_level(cols_cnt: int, rows_cnt: int, colors_pool: Array[String], initial_slots: int = 1) -> void:
-	cloth_grid.setup_grid(cols_cnt, rows_cnt, colors_pool)
-	roller_station.setup_station(maxi(purchased_slots, initial_slots))
-
-	# Build a solvable FIFO queue calculated from cell requirements per color
-	var cell_counts := cloth_grid.get_remaining_cells_by_color()
-	var needed_spools: Array[String] = []
-
-	for col_id in cell_counts.keys():
-		var cells: int = cell_counts[col_id]
-		var spools_count := ceili(float(cells) / float(roller_capacity))
-		for i in range(spools_count):
-			needed_spools.append(col_id)
-
-	# Shuffle queue while keeping early exposed colors near the front to ensure smooth start
-	var exposed := cloth_grid.get_exposed_blocks()
-	var front_colors: Array[String] = []
-	for eb in exposed:
-		if needed_spools.has(eb.color_id):
-			front_colors.append(eb.color_id)
-			needed_spools.erase(eb.color_id)
-
-	needed_spools.shuffle()
-	var final_queue: Array[String] = []
-	final_queue.append_array(front_colors)
-	final_queue.append_array(needed_spools)
-
-	roller_queue.setup_queue(final_queue, roller_capacity)
+	_update_header_ui()
+	if auto_dispatch:
+		_check_and_roll()
 
 func _update_header_ui() -> void:
 	if is_instance_valid(level_label):
-		var name_suffix := " (Sketch Ref)" if current_level == 1 else ""
-		level_label.text = "Level %d%s" % [current_level, name_suffix]
+		level_label.text = "Cloth Levels" if level_select.visible else "Level %d" % current_level
 	if is_instance_valid(coin_label):
 		var coins: int = EconomyManager.coins if is_instance_valid(EconomyManager) else 0
-		coin_label.text = "🪙 %d" % coins
+		coin_label.text = "%d gold" % coins
 	if is_instance_valid(cloth_count_label):
 		var left := cloth_grid.get_total_remaining_cells()
 		cloth_count_label.text = "Cells: %d" % left
@@ -214,6 +225,9 @@ func _update_header_ui() -> void:
 ## If no slot is free, the spool is returned to the front of the queue.
 func _on_spool_dispatched_from_queue(spool: RollerSpool) -> void:
 	if not is_instance_valid(spool):
+		return
+	if not is_game_active:
+		roller_queue.spool_queue.push_front(spool)
 		return
 	var empty_slot := roller_station.get_first_empty_slot()
 	if empty_slot == null:
@@ -230,7 +244,7 @@ func _on_spool_dispatched_from_queue(spool: RollerSpool) -> void:
 
 ## Tapping an empty slot draws the next spool from the queue.
 func _on_slot_selected(slot: RollerSlot) -> void:
-	if not slot.is_occupied and roller_queue.has_spools():
+	if is_game_active and not slot.is_occupied and roller_queue.has_spools():
 		var spool := roller_queue.pop_front_spool()
 		if spool:
 			empty_slot_receive_spool(slot, spool)
@@ -256,6 +270,9 @@ func _check_and_roll() -> void:
 			continue
 
 		var spool_color := slot.current_spool.color_id
+		if not cloth_grid.get_remaining_cells_by_color().has(spool_color):
+			_eject_full_spool(slot)
+			continue
 		var match_cloth: BigCloth = cloth_grid.find_matching_exposed_block(spool_color)
 		if match_cloth != null and not match_cloth.is_rolling:
 			var available_cap := slot.current_spool.get_available_capacity()
@@ -266,13 +283,19 @@ func _check_and_roll() -> void:
 			if cells_to_take > 0:
 				_start_slot_rolling(slot, match_cloth, target_col, cells_to_take)
 
-	# Auto-dispatch logic: if auto is on, dispatch to any empty slot
-	if auto_dispatch and roller_station.has_empty_slot() and roller_queue.has_spools():
-		var spool := roller_queue.pop_front_spool()
-		if spool:
-			var slot := roller_station.get_first_empty_slot()
-			if slot:
-				empty_slot_receive_spool(slot, spool)
+	# Dispatch an exposed color that is not already docked, avoiding duplicate
+	# idle rollers and colors that were exhausted by a capacity upgrade.
+	if auto_dispatch and roller_station.has_empty_slot():
+		for spool in roller_queue.spool_queue:
+			if cloth_grid.find_matching_col(spool.color_id) < 0:
+				continue
+			var already_docked := false
+			for occupied in roller_station.get_occupied_slots():
+				if is_instance_valid(occupied.current_spool) and occupied.current_spool.color_id == spool.color_id:
+					already_docked = true
+			if not already_docked:
+				roller_queue.dispatch_spool(spool)
+				break
 
 	# Check for jam condition
 	if roller_station.is_jammed(cloth_grid):
@@ -283,6 +306,7 @@ func _check_and_roll() -> void:
 ## Starts rolling cells from a BigCloth column into a slot's spool.
 func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cells_to_take: int) -> void:
 	var spool_color := slot.current_spool.color_id
+	var round_id := _round_id
 
 	# Mark slot as rolling visually for thread drawing
 	slot.is_rolling = true
@@ -296,6 +320,9 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cel
 
 	# Per-cell callback — called every 1 second as each cell is consumed
 	var on_cell := func():
+		if round_id != _round_id:
+			return
+		_update_header_ui()
 		if is_instance_valid(slot) and is_instance_valid(slot.current_spool):
 			slot.current_spool.add_fill(1)
 		if is_instance_valid(slot):
@@ -303,6 +330,8 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cel
 
 	# Called when all cells in this rolling session are consumed
 	var on_done := func():
+		if round_id != _round_id:
+			return
 		if is_instance_valid(slot):
 			slot.is_rolling = false
 			slot._thread_points.clear()
@@ -310,15 +339,18 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, target_col: int, cel
 			slot.queue_redraw()
 		if is_instance_valid(slot) and is_instance_valid(slot.current_spool):
 			slot.current_spool.stop_spinning()
-			if slot.current_spool.is_full():
+			if slot.current_spool.is_full() or not cloth_grid.get_remaining_cells_by_color().has(spool_color):
 				_eject_full_spool(slot)
 
-		cloth_grid.consume_block_and_apply_gravity(cloth)
 		if is_instance_valid(EconomyManager):
 			EconomyManager.add_coins(5)
 		score += 50
+		cloth_grid.consume_block_and_apply_gravity(cloth)
 		_update_header_ui()
-		get_tree().create_timer(0.1).timeout.connect(_check_and_roll)
+		get_tree().create_timer(0.1).timeout.connect(func():
+			if round_id == _round_id:
+				_check_and_roll()
+		)
 
 	cloth.start_column_roll(target_col, cells_to_take, slot.global_position + slot.size * 0.5, on_cell, on_done)
 
@@ -364,6 +396,8 @@ func _on_roller_finished(_slot: RollerSlot, _cloth: Node) -> void:
 				empty_slot_receive_spool(empty_slot, spool)
 
 func _on_level_won() -> void:
+	if not is_game_active:
+		return
 	is_game_active = false
 	if is_instance_valid(SoundManager):
 		SoundManager.play_quest()
@@ -412,7 +446,7 @@ func _on_upgrade_slot_pressed() -> void:
 func _on_next_level_pressed() -> void:
 	if is_instance_valid(SoundManager):
 		SoundManager.play_click()
-	start_level(current_level + 1)
+	show_level_select()
 
 func _on_restart_pressed() -> void:
 	if is_instance_valid(SoundManager):
@@ -430,11 +464,16 @@ func _on_auto_dispatch_toggled() -> void:
 func _on_currency_changed(type: String, _new_val: int, _delta: int) -> void:
 	if type == "coins":
 		_update_header_ui()
+		if level_select.visible:
+			_refresh_level_buttons()
 
 func _on_back_pressed() -> void:
 	if is_instance_valid(SoundManager):
 		SoundManager.play_click()
-	exit_requested.emit()
+	if not level_select.visible:
+		show_level_select()
+	else:
+		exit_requested.emit()
 
 func apply_orientation(landscape: bool) -> void:
 	var vp_size := get_viewport_rect().size if is_inside_tree() else Vector2(720, 1600)

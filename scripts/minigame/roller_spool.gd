@@ -93,14 +93,6 @@ func _draw() -> void:
 	# Highlight shine on pin
 	draw_circle(center + Vector2(-1, -1), pin_radius * 0.3, Color(0.8, 0.8, 0.8, 0.6))
 
-	# 4. Fill text indicator on the pin (e.g. "2/3")
-	var font := ThemeDB.fallback_font
-	var fill_str := "%d/%d" % [current_fill, capacity]
-	var font_size := 9
-	var t_size := font.get_string_size(fill_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
-	var t_pos := center + Vector2(-t_size.x * 0.5, t_size.y * 0.35)
-	draw_string(font, t_pos, fill_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.WHITE)
-
 func start_spinning() -> void:
 	is_spinning = true
 

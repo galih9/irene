@@ -176,7 +176,8 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 			bool(prog.get("is_map_unlocked", false)),
 			bool(prog.get("farm_visited_first_time", false)),
 			bool(prog.get("is_witch_unlocked", false)),
-			bool(prog.get("witch_visited_first_time", false))
+			bool(prog.get("witch_visited_first_time", false)),
+			prog.get("cloth_unlocked_levels", [])
 		)
 
 	# 3. Restore Inventory

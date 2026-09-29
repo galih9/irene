@@ -50,15 +50,10 @@ func _ready() -> void:
 	grid.size = Vector2(500, 300)
 	add_child(grid)
 
-	# Setup sketch layout: 4 cols x 2 rows with custom multi-cell definitions
-	# custom_stacks format: col -> [blocks], each block fills rows from bottom up
-	var sketch_stacks: Array = [
-		[ {"color": "red", "rows": 1, "cols": 2}, {"color": "red", "rows": 1, "cols": 3} ],
-		[ {"color": "blue", "rows": 1, "cols": 3}, {"color": "blue", "rows": 1, "cols": 3} ],
-		[ {"color": "green", "rows": 1, "cols": 3}, {"color": "green", "rows": 1, "cols": 3} ],
-		[ {"color": "green", "rows": 1, "cols": 2}, {"color": "green", "rows": 1, "cols": 2} ]
-	]
-	grid.setup_grid(4, 2, ["red", "blue", "green"], sketch_stacks)
+	grid.setup_level([
+		[{"color": "red"}, {"color": "blue"}, {"color": "green"}, {"color": "green"}],
+		[{"color": "red"}, {"color": "blue"}, {"color": "green"}, {"color": "green"}]
+	])
 	assert(grid.cols == 4, "Grid cols must be 4")
 	assert(grid.rows == 2, "Grid rows must be 2")
 	assert(grid.get_total_remaining_cells() == 8, "Total cells must be 8 (4 cols x 2 rows)")
@@ -100,6 +95,7 @@ func _ready() -> void:
 	assert(spool.is_full() == false, "Initial spool not full")
 	assert(spool.get_available_capacity() == 3, "Initial available capacity must be 3")
 
+	add_child(spool)
 	spool.add_fill(1)
 	assert(spool.current_fill == 1, "Fill must be 1")
 	assert(spool.is_full() == false, "Spool should not be full after 1 cell")
@@ -278,18 +274,19 @@ func _ready() -> void:
 	up_modal.queue_free()
 	print("[OK] Upgrade Modal & Coin Economy verified!")
 
-	# 8. Test ThreadRollerMinigame Scene, Level 1 Initial 1 Slot & Ejection
-	print("\n--- Testing ThreadRollerMinigame Scene (1 Slot Level 1 & Capacity 3) ---")
+	# 8. Test ThreadRollerMinigame Scene, Level Select & Ejection
+	print("\n--- Testing ThreadRollerMinigame Scene (3 Slots & Capacity 3) ---")
 	var minigame_scene: PackedScene = load("res://scenes/minigame/thread_roller_minigame.tscn")
 	assert(minigame_scene != null, "ThreadRollerMinigame scene must load")
 	var mg_inst: ThreadRollerMinigame = minigame_scene.instantiate()
 	add_child(mg_inst)
 
-	# Level 1 setup verification: 1 slot, capacity 3, 8 cloth cells (4x2)
+	assert(mg_inst.level_select.visible, "Open on level select")
+	mg_inst.start_level(1)
 	assert(mg_inst.current_level == 1, "Initial level must be 1")
-	assert(mg_inst.cloth_grid.get_total_remaining_cells() == 8, "Level 1 must have 8 cloth cells (4 cols x 2 rows)")
-	assert(mg_inst.roller_station.max_slots == 1, "Level 1 must start with 1 roller slot")
-	assert(mg_inst.roller_capacity == 3, "Default roller capacity must be 3 seconds/cells")
+	assert(mg_inst.cloth_grid.get_total_remaining_cells() == 6, "Level 1 must have 6 cells")
+	assert(mg_inst.roller_station.max_slots == 3, "Default station must have 3 slots")
+	assert(mg_inst.roller_capacity == 3, "Default capacity must be 3")
 
 	# Dispatch from queue to empty slot
 	var front_spool: RollerSpool = mg_inst.roller_queue.pop_front_spool()
@@ -300,15 +297,16 @@ func _ready() -> void:
 	assert(slot0.is_occupied == true, "Slot 0 must be occupied")
 
 	# Test Level 2 scaling (4x3, 4 colors)
+	ProgressionManager.cloth_unlocked_levels.append("level_02.json")
 	mg_inst.start_level(2)
 	assert(mg_inst.current_level == 2, "Level must be 2")
 	assert(mg_inst.cloth_grid.cols == 4 and mg_inst.cloth_grid.rows == 3, "Level 2 must be 4x3")
 	assert(mg_inst.cloth_grid.get_total_remaining_cells() == 12, "Level 2 must have 12 cloth cells (4x3)")
 
 	# Test slot upgrade on minigame instance
-	mg_inst._on_slot_upgraded(2)
-	assert(mg_inst.roller_station.max_slots == 2, "Slots should be 2 after upgrade")
-	assert(mg_inst.purchased_slots == 2, "purchased_slots must be 2")
+	mg_inst._on_slot_upgraded(4)
+	assert(mg_inst.roller_station.max_slots == 4, "Slots should be 4 after upgrade")
+	assert(mg_inst.purchased_slots == 4, "purchased_slots must be 4")
 
 	# Test capacity upgrade on minigame instance
 	mg_inst._on_capacity_upgraded(4)
@@ -419,7 +417,7 @@ func _ready() -> void:
 	test_grid_sizing.custom_minimum_size = Vector2(600, 360)
 	test_grid_sizing.size = Vector2(600, 360)
 	add_child(test_grid_sizing)
-	test_grid_sizing.setup_grid(4, 2, ["red", "blue"])
+	test_grid_sizing.setup_level([[{"color": "red"}, {"color": "blue"}], [{"color": "red"}, {"color": "blue"}]])
 	var c_size := test_grid_sizing._get_cloth_size()
 	# Height should be based on target_cell_height (~52px), not stretched to 344px!
 	assert(c_size.y < 200.0, "Cloth height with 2 rows must be compact (< 200px), got %f" % c_size.y)
