@@ -17,6 +17,10 @@ var farm_visited_first_time: bool = false
 var is_witch_unlocked: bool = false
 var witch_visited_first_time: bool = false
 
+# Golden Scoop Achievements
+var golden_scoops_collected: int = 0
+var golden_scoop_milestones_claimed: Dictionary = {"3": false, "10": false, "25": false}
+
 # Temporary Reward Queue (infinitely stackable FIFO)
 var _reward_queue: Array[String] = []
 
@@ -242,6 +246,36 @@ func unlock_map(silent: bool = false) -> void:
 		if not modals.is_empty():
 			modals[0].show_dialogue_sequence(dialogue)
 
+func add_golden_scoop() -> void:
+	golden_scoops_collected += 1
+	GameEvents.progression_changed.emit()
+
+func is_golden_scoop_milestone_claimed(milestone: int) -> bool:
+	return golden_scoop_milestones_claimed.get(str(milestone), false)
+
+func claim_golden_scoop_milestone(milestone: int) -> Dictionary:
+	if golden_scoops_collected < milestone or is_golden_scoop_milestone_claimed(milestone):
+		return {}
+	golden_scoop_milestones_claimed[str(milestone)] = true
+	var reward := {}
+	match milestone:
+		3:
+			reward = {"coins": 200, "gems": 0, "energy": 50}
+			EconomyManager.add_coins(200)
+			EconomyManager.add_energy(50)
+		10:
+			reward = {"coins": 500, "gems": 50, "energy": 100}
+			EconomyManager.add_coins(500)
+			EconomyManager.add_gems(50)
+			EconomyManager.add_energy(100)
+		25:
+			reward = {"coins": 2000, "gems": 200, "energy": 200}
+			EconomyManager.add_coins(2000)
+			EconomyManager.add_gems(200)
+			EconomyManager.add_energy(200)
+	GameEvents.progression_changed.emit()
+	return reward
+
 func serialize_data() -> Dictionary:
 	return {
 		"cloth_unlocked_levels": cloth_unlocked_levels.duplicate(),
@@ -253,10 +287,12 @@ func serialize_data() -> Dictionary:
 		"is_map_unlocked": is_map_unlocked,
 		"farm_visited_first_time": farm_visited_first_time,
 		"is_witch_unlocked": is_witch_unlocked,
-		"witch_visited_first_time": witch_visited_first_time
+		"witch_visited_first_time": witch_visited_first_time,
+		"golden_scoops_collected": golden_scoops_collected,
+		"golden_scoop_milestones_claimed": golden_scoop_milestones_claimed.duplicate()
 	}
 
-func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false, cloth_levels: Array = []) -> void:
+func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false, cloth_levels: Array = [], scoops: int = 0, scoop_claims: Dictionary = {}) -> void:
 	cloth_unlocked_levels.assign(cloth_levels)
 	if not cloth_unlocked_levels.has("level_01.json"):
 		cloth_unlocked_levels.append("level_01.json")
@@ -268,6 +304,9 @@ func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_va
 	farm_visited_first_time = farm_visited
 	is_witch_unlocked = witch_unlocked
 	witch_visited_first_time = witch_visited
+	golden_scoops_collected = scoops
+	if not scoop_claims.is_empty():
+		golden_scoop_milestones_claimed = scoop_claims.duplicate()
 	load_reward_queue(queue_data)
 	if is_map_unlocked:
 		GameEvents.map_unlocked.emit()
@@ -285,6 +324,8 @@ func reset_all() -> void:
 	farm_visited_first_time = false
 	is_witch_unlocked = false
 	witch_visited_first_time = false
+	golden_scoops_collected = 0
+	golden_scoop_milestones_claimed = {"3": false, "10": false, "25": false}
 	GameEvents.progression_changed.emit()
 	GameEvents.reward_queue_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())

@@ -31,17 +31,28 @@ const TABS: Array[Dictionary] = [
 ]
 
 const KITCHEN_CHAINS: Array[Dictionary] = [
-	{"id": "foodbox", "name": "Food Boxes"},
+	{"id": "pantry", "name": "Pantry"},
 	{"id": "oven", "name": "Ovens"},
+	{"id": "burner", "name": "Burners"},
 	{"id": "fridge", "name": "Fridges"},
 	{"id": "rack", "name": "Racks"},
-	{"id": "egg", "name": "Eggs"},
-	{"id": "leaf", "name": "Produce & Herbs"},
-	{"id": "beef", "name": "Meats"},
-	{"id": "cake", "name": "Baked Goods"},
-	{"id": "sandwich", "name": "Sandwiches"},
-	{"id": "drink", "name": "Beverages"},
-	{"id": "util", "name": "Kitchen Utilities"}
+	{"id": "healthy", "name": "Healthy Plates"},
+	{"id": "staples", "name": "Pantry Staples"},
+	{"id": "bakery", "name": "Bakery"},
+	{"id": "sweets", "name": "Sweets"},
+	{"id": "grill", "name": "Grill Dishes"},
+	{"id": "noodle", "name": "Noodles"},
+	{"id": "drinks", "name": "Drinks & Beverages"},
+	{"id": "dairy", "name": "Dairy & Cheese"},
+	{"id": "util", "name": "Kitchen Utilities"},
+	{"id": "grocery_bag", "name": "Grocery Bags"},
+	{"id": "sourdough_starter", "name": "Sourdough Starters"},
+	{"id": "seed_packet", "name": "Seed Packets"},
+	{"id": "ice_cream_cart", "name": "Ice Cream Carts"},
+	{"id": "fortune_cookie_jar", "name": "Fortune Cookie Jars"},
+	{"id": "chefs_toolbox", "name": "Chef's Toolboxes"},
+	{"id": "golden_hen", "name": "Golden Hens"},
+	{"id": "foodbox", "name": "Food Boxes"}
 ]
 
 const FARM_CHAINS: Array[Dictionary] = [
@@ -279,7 +290,11 @@ func _load_tab(tab_id: String) -> void:
 		child.queue_free()
 
 	if tab_id == "kitchen":
+		var seen := {}
 		for chain in KITCHEN_CHAINS:
+			if chain["id"] == "foodbox" and seen.has("pantry"):
+				continue
+			seen[chain["id"]] = true
 			_render_chain_segment(chain)
 	elif tab_id == "farm":
 		for chain in FARM_CHAINS:
@@ -291,7 +306,7 @@ func _load_tab(tab_id: String) -> void:
 		for chain in CHEST_CHAINS:
 			_render_chain_segment(chain)
 	elif tab_id == "achievements":
-		_render_achievements_placeholder()
+		_render_achievements_tab()
 
 func _render_chain_segment(chain: Dictionary) -> void:
 	var header_box := VBoxContainer.new()
@@ -322,34 +337,117 @@ func _render_chain_segment(chain: Dictionary) -> void:
 	spacer.custom_minimum_size = Vector2(0, 16)
 	items_container.add_child(spacer)
 
-func _render_achievements_placeholder() -> void:
-	var center_box := VBoxContainer.new()
-	center_box.alignment = BoxContainer.ALIGNMENT_CENTER
-	center_box.custom_minimum_size = Vector2(0, 320)
-	center_box.add_theme_constant_override("separation", 12)
-
-	var trophy_lbl := Label.new()
-	trophy_lbl.text = ""
-	trophy_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	trophy_lbl.add_theme_font_size_override("font_size", 48)
-	center_box.add_child(trophy_lbl)
+func _render_achievements_tab() -> void:
+	var header_box := VBoxContainer.new()
+	header_box.add_theme_constant_override("separation", 6)
 
 	var title_lbl := Label.new()
-	title_lbl.text = "Achievements Coming Soon!"
-	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.text = "Golden Scoop Achievements"
 	title_lbl.add_theme_font_size_override("font_size", 18)
-	title_lbl.add_theme_color_override("font_color", Color(0.22, 0.18, 0.28))
-	center_box.add_child(title_lbl)
+	title_lbl.add_theme_color_override("font_color", Color(0.2, 0.16, 0.25))
+	header_box.add_child(title_lbl)
 
-	var desc_lbl := Label.new()
-	desc_lbl.text = "Culinary milestones, chef badges, and special rewards will be unlocked here in upcoming updates."
-	desc_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	desc_lbl.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	desc_lbl.add_theme_font_size_override("font_size", 13)
-	desc_lbl.add_theme_color_override("font_color", Color(0.48, 0.44, 0.52))
-	center_box.add_child(desc_lbl)
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Collected Trophies: %d Golden Scoops" % ProgressionManager.golden_scoops_collected
+	sub_lbl.add_theme_font_size_override("font_size", 14)
+	sub_lbl.add_theme_color_override("font_color", Color(0.7, 0.45, 0.1))
+	header_box.add_child(sub_lbl)
 
-	items_container.add_child(center_box)
+	var sep := HSeparator.new()
+	var sep_style := StyleBoxLine.new()
+	sep_style.color = Color(0.78, 0.74, 0.82, 0.7)
+	sep_style.thickness = 2
+	sep.add_theme_stylebox_override("separator", sep_style)
+	header_box.add_child(sep)
+
+	items_container.add_child(header_box)
+
+	var milestones := [
+		{"target": 3, "title": "Ice Cream Apprentice", "desc": "Collect 3 Golden Scoops from exhausted carts", "reward_text": "200 Coins, 50 Energy"},
+		{"target": 10, "title": "Gelato Connoisseur", "desc": "Collect 10 Golden Scoops from exhausted carts", "reward_text": "500 Coins, 20 Diamonds, 100 Energy"},
+		{"target": 25, "title": "Grand Gelatiere Master", "desc": "Collect 25 Golden Scoops from exhausted carts", "reward_text": "1500 Coins, 60 Diamonds, 200 Energy"}
+	]
+
+	for m in milestones:
+		var target_num: int = m.target
+		var is_claimed := ProgressionManager.is_golden_scoop_milestone_claimed(target_num)
+		var current_num: int = ProgressionManager.golden_scoops_collected
+		var can_claim := (current_num >= target_num) and not is_claimed
+
+		var card := PanelContainer.new()
+		var card_style := StyleBoxFlat.new()
+		card_style.corner_radius_top_left = 12
+		card_style.corner_radius_top_right = 12
+		card_style.corner_radius_bottom_right = 12
+		card_style.corner_radius_bottom_left = 12
+		card_style.content_margin_left = 12
+		card_style.content_margin_right = 12
+		card_style.content_margin_top = 10
+		card_style.content_margin_bottom = 10
+
+		if is_claimed:
+			card_style.bg_color = Color(0.92, 0.94, 0.92, 0.9)
+			card_style.border_color = Color(0.5, 0.7, 0.5, 0.8)
+		elif can_claim:
+			card_style.bg_color = Color(1.0, 0.98, 0.9, 0.95)
+			card_style.border_color = Color(1.0, 0.75, 0.2, 0.9)
+		else:
+			card_style.bg_color = Color(0.95, 0.95, 0.96, 0.85)
+			card_style.border_color = Color(0.8, 0.8, 0.85, 0.7)
+		card_style.border_width_left = 2
+		card_style.border_width_right = 2
+		card_style.border_width_top = 2
+		card_style.border_width_bottom = 2
+		card.add_theme_stylebox_override("panel", card_style)
+
+		var h_box := HBoxContainer.new()
+		h_box.add_theme_constant_override("separation", 12)
+
+		var info_box := VBoxContainer.new()
+		info_box.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+
+		var m_title := Label.new()
+		m_title.text = "%s (%d/%d Scoops)" % [m.title, mini(current_num, target_num), target_num]
+		m_title.add_theme_font_size_override("font_size", 14)
+		m_title.add_theme_color_override("font_color", Color(0.18, 0.15, 0.22))
+		info_box.add_child(m_title)
+
+		var m_desc := Label.new()
+		m_desc.text = "%s | Rewards: %s" % [m.desc, m.reward_text]
+		m_desc.add_theme_font_size_override("font_size", 11)
+		m_desc.add_theme_color_override("font_color", Color(0.45, 0.42, 0.5))
+		m_desc.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+		info_box.add_child(m_desc)
+
+		h_box.add_child(info_box)
+
+		var btn := Button.new()
+		btn.custom_minimum_size = Vector2(90, 36)
+		btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+
+		if is_claimed:
+			btn.text = "Claimed"
+			btn.disabled = true
+		elif can_claim:
+			btn.text = "Claim!"
+			btn.pressed.connect(func():
+				var res := ProgressionManager.claim_golden_scoop_milestone(target_num)
+				if not res.is_empty():
+					SoundManager.play_quest()
+					GameEvents.show_floating_text.emit("Milestone Claimed!", global_position + Vector2(200, 100), Color(1.0, 0.85, 0.2))
+					_load_tab("achievements")
+			)
+		else:
+			btn.text = "%d/%d" % [current_num, target_num]
+			btn.disabled = true
+
+		h_box.add_child(btn)
+		card.add_child(h_box)
+		items_container.add_child(card)
+
+	var spacer := Control.new()
+	spacer.custom_minimum_size = Vector2(0, 16)
+	items_container.add_child(spacer)
 
 func _create_item_row(item: ItemData) -> Control:
 	var is_unlocked := ProgressionManager.is_unlocked(item.id)

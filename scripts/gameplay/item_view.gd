@@ -56,6 +56,7 @@ const LOCKED_ITEM_MODULATE: Color = Color(0.65, 0.65, 0.65, 0.7)
 @export var boost_charges: int = 0
 @export var is_milked_ready: bool = false
 @export var water_fed: int = 0
+@export var pantry_boxes: int = 0
 
 # Cage storage & auto-feed state
 @export var cage_stored_items: Array[Dictionary] = []
@@ -299,6 +300,7 @@ func setup(item_data: ItemData, state: ItemState = ItemState.NORMAL, req_level: 
 
 	cage_stored_items.clear()
 	cage_auto_feed_timer = 30.0
+	pantry_boxes = 0
 
 	_update_visuals()
 
@@ -343,7 +345,7 @@ func restore_spawner_state(charges: int, cooldown: float, status_val: int = -1) 
 		producer_status = ProducerStatus.READY if current_charges > 0 else ProducerStatus.EXHAUST
 	_update_visuals()
 
-func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false, w_fed: int = 0, cd_removed: bool = false) -> void:
+func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: int = 0, milk_ready: bool = false, w_fed: int = 0, cd_removed: bool = false, p_boxes: int = 0) -> void:
 	fed_count = fed
 	shear_cooldown = s_cd
 	is_boosted = boosted
@@ -351,6 +353,9 @@ func restore_interaction_state(fed: int, s_cd: float, boosted: bool, b_charges: 
 	is_milked_ready = milk_ready
 	water_fed = w_fed
 	cooldown_removed = cd_removed
+	pantry_boxes = p_boxes
+	if data and (data.chain_id == "pantry" or data.chain_id == "foodbox"):
+		max_charges = data.max_charges + pantry_boxes * 2
 	if cooldown_removed and data and data.is_spawner:
 		current_cooldown = 0.0
 		current_charges = max_charges
@@ -878,7 +883,7 @@ func _update_visuals() -> void:
 					start_idle_animation()
 				else:
 					stop_idle_animation()
-			elif data.disappears_when_exhausted:
+			elif data.disappears_when_exhausted or data.is_temporary_spawner:
 				spawner_badge.visible = (current_charges > 0)
 				if is_instance_valid(spawner_label):
 					spawner_label.text = str(current_charges)
@@ -955,7 +960,10 @@ func consume_spawn_charge() -> bool:
 	if current_charges <= 0:
 		return false
 	current_charges -= 1
-	current_cooldown = minf(current_cooldown + cooldown_per_charge, float(max_charges) * cooldown_per_charge)
+	if data.is_temporary_spawner:
+		current_cooldown = 0.0
+	else:
+		current_cooldown = minf(current_cooldown + cooldown_per_charge, float(max_charges) * cooldown_per_charge)
 	if current_charges <= 0:
 		current_charges = 0
 		producer_status = ProducerStatus.EXHAUST

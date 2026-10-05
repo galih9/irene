@@ -529,14 +529,16 @@ func spawn_item_flight(from_world_pos: Vector2, target_coord: Vector2i, item_id:
 		var cooldown: float = float(extra_data.get("spawner_cooldown", 0.0))
 		var status_val: int = int(extra_data.get("producer_status", -1))
 		item.restore_spawner_state(charges, cooldown, status_val)
-	if extra_data.has("fed_count") or extra_data.has("shear_cooldown"):
+	if extra_data.has("fed_count") or extra_data.has("shear_cooldown") or extra_data.has("pantry_boxes"):
 		item.restore_interaction_state(
 			int(extra_data.get("fed_count", 0)),
 			float(extra_data.get("shear_cooldown", 0.0)),
 			bool(extra_data.get("is_boosted", false)),
 			int(extra_data.get("boost_charges", 0)),
 			bool(extra_data.get("is_milked_ready", false)),
-			int(extra_data.get("water_fed", 0))
+			int(extra_data.get("water_fed", 0)),
+			bool(extra_data.get("cooldown_removed", false)),
+			int(extra_data.get("pantry_boxes", 0))
 		)
 	elif extra_data.has("water_fed"):
 		item.water_fed = int(extra_data.get("water_fed", 0))
@@ -821,6 +823,18 @@ func _handle_item_tap(item: ItemView) -> void:
 		GameEvents.show_floating_text.emit("Drag onto Candle or Mystic Tree to sacrifice!", item.global_position + Vector2(0, -50), Color(0.9, 0.7, 1.0))
 		return
 
+	# 0.9 Mystery Box Tap (Roll random temporary spawner)
+	if item.data and item.data.id == "mystery_box":
+		var rolled_spawner := "golden_hen_1"
+		if randf() >= 0.05:
+			var regular_spawners := [
+				"grocery_bag_1", "sourdough_starter_1", "seed_packet_1",
+				"ice_cream_cart_1", "fortune_cookie_jar_1", "chefs_toolbox_1"
+			]
+			rolled_spawner = regular_spawners[randi() % regular_spawners.size()]
+		convert_item_in_place(item, rolled_spawner)
+		return
+
 	# 1. Spawner tap
 	if item.data.is_spawner:
 		_trigger_spawner(item)
@@ -897,6 +911,9 @@ func _trigger_spawner(spawner: ItemView) -> void:
 		GameEvents.board_changed.emit()
 		return
 	if spawner.is_spawner_exhausted():
+		if not spawner.data.exhaust_conversion_id.is_empty():
+			convert_item_in_place(spawner, spawner.data.exhaust_conversion_id)
+			return
 		spawner.animate_wobble()
 		SoundManager.play_error()
 		var cd_sec := int(ceil(spawner.current_cooldown))
@@ -927,9 +944,9 @@ func _trigger_spawner(spawner: ItemView) -> void:
 	# Pick drop item
 	var drop_context := board_theme if not board_theme.is_empty() else (spawner.board_theme if spawner and not spawner.board_theme.is_empty() else "")
 	var drop_id := ItemDatabase.get_spawner_drop(spawner.data.id, drop_context)
-	if spawner.data.id.begins_with("foodbox"):
+	if spawner.data.id.begins_with("foodbox") or spawner.data.id.begins_with("pantry"):
 		if SaveManager and SaveManager.tutorial_manager_ref and SaveManager.tutorial_manager_ref.current_step == TutorialManager.TutorialStep.SPAWN_ITEM:
-			drop_id = "egg_1"
+			drop_id = "healthy_1"
 
 	# Find closest empty cell
 	var best_coord := empty_cells[0]
@@ -967,6 +984,11 @@ func _trigger_spawner(spawner: ItemView) -> void:
 			if not extra_cells.is_empty():
 				var f_drop := ItemDatabase.get_spawner_drop(spawner.data.id, drop_context)
 				spawn_item_flight(spawner.global_position, extra_cells[0], f_drop)
+
+	# If the temporary spawner is exhausted, it converts in place!
+	if not spawner.data.exhaust_conversion_id.is_empty() and spawner.current_charges <= 0:
+		convert_item_in_place(spawner, spawner.data.exhaust_conversion_id)
+		return
 
 	# If the spawner is consumable (e.g. Chest) and exhausted, it vanishes!
 	if spawner.data.disappears_when_exhausted and spawner.current_charges <= 0:
@@ -1127,6 +1149,9 @@ func _trigger_consumable(item: ItemView) -> void:
 	elif curr == "gems" or curr == "diamond":
 		EconomyManager.add_gems(amt)
 		GameEvents.show_floating_text.emit("+%d Diamonds!" % amt, pos + Vector2(0, -40), Color(0.45, 0.85, 1.0))
+	elif curr == "golden_scoop" or item.data.id == "golden_scoop":
+		ProgressionManager.add_golden_scoop()
+		GameEvents.show_floating_text.emit("+1 Golden Scoop Trophy!", pos + Vector2(0, -40), Color(1.0, 0.85, 0.2))
 
 	SoundManager.play_consume()
 	remove_item(item)
@@ -1143,6 +1168,9 @@ func _can_merge(a: Variant, b: Variant) -> bool:
 		return false
 	if data_a.chain_id == "familiars" or data_b.chain_id == "familiars" or data_a.is_familiar or data_b.is_familiar:
 		return false
+	# Golden Egg special merge: 2 Golden Eggs merge into Healthy Plate T12 (Mezze Platter)
+	if data_a.id == "golden_egg" and data_b.id == "golden_egg":
+		return true
 	if data_a.chain_id != data_b.chain_id:
 		return false
 	if data_a.tier != data_b.tier:
@@ -1156,6 +1184,45 @@ func _try_special_interaction(dragged: ItemView, target_item: ItemView) -> bool:
 		return false
 	if not dragged.is_normal() or not target_item.is_normal():
 		return false
+
+	# Herb Garden Box: Drag onto Pantry for +2 max charges (up to 3 boxes)
+	if dragged.data.id == "seed_packet_3" and target_item.data and (target_item.data.chain_id == "pantry" or target_item.data.chain_id == "foodbox"):
+		if target_item.pantry_boxes >= 3:
+			target_item.animate_wobble()
+			SoundManager.play_error()
+			GameEvents.show_floating_text.emit("Pantry maxed out! (3/3 Herb Boxes)", target_item.global_position + Vector2(0, -45), Color(1.0, 0.4, 0.4))
+			return false
+		target_item.pantry_boxes += 1
+		target_item.max_charges += 2
+		target_item.current_charges = mini(target_item.current_charges + 2, target_item.max_charges)
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+		GameEvents.show_floating_text.emit("+2 Max Charges! (%d/3 Herb Boxes)" % target_item.pantry_boxes, target_item.global_position + Vector2(0, -45), Color(0.3, 1.0, 0.5))
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
+
+	# Whetstone: Drag onto any generator to instantly refill 25/50/75/100% charges
+	if dragged.data.chain_id == "whetstone" and target_item.data and target_item.data.is_spawner:
+		var refill_pct: float = float(dragged.data.tier) * 0.25
+		var refill_amount: int = int(ceil(float(target_item.max_charges) * refill_pct))
+		target_item.current_charges = mini(target_item.max_charges, target_item.current_charges + refill_amount)
+		if target_item.current_charges > 0:
+			target_item.producer_status = ItemView.ProducerStatus.READY
+			var missing: int = target_item.max_charges - target_item.current_charges
+			target_item.current_cooldown = float(missing) * target_item.cooldown_per_charge
+		_clear_source_slot(dragged)
+		dragged.queue_free()
+		target_item.animate_merge_pop()
+		SoundManager.play_consume()
+		GameEvents.show_floating_text.emit("Refilled %d%% Charges!" % int(refill_pct * 100), target_item.global_position + Vector2(0, -45), Color(0.4, 0.9, 1.0))
+		target_item._update_visuals()
+		select_item(target_item)
+		GameEvents.board_changed.emit()
+		return true
 
 	# 0. Tapping Milked Cow Lv.3 to Collect Milk
 	if target_item.data.id == "cow_3" and target_item.is_milked_ready and dragged == target_item:
@@ -1964,7 +2031,8 @@ func _drop_into_inventory_button(item: ItemView) -> void:
 		"is_boosted": item.is_boosted,
 		"boost_charges": item.boost_charges,
 		"is_milked_ready": item.is_milked_ready,
-		"water_fed": item.water_fed
+		"water_fed": item.water_fed,
+		"pantry_boxes": item.pantry_boxes
 	}
 	if item.data.is_spawner:
 		extra_data["spawner_charges"] = item.current_charges
@@ -1999,8 +2067,29 @@ func try_merge(from_coord: Vector2i, to_coord: Vector2i) -> bool:
 	_execute_merge(source, target)
 	return true
 
+func convert_item_in_place(item: ItemView, new_id: String) -> void:
+	var new_data := ItemDatabase.get_item(new_id)
+	if not new_data:
+		return
+	item.setup(new_data, ItemView.ItemState.NORMAL)
+	item.board_theme = board_theme
+	item.fed_count = 0
+	item.shear_cooldown = 0.0
+	item.is_boosted = false
+	item.boost_charges = 0
+	item.is_milked_ready = false
+	item._update_visuals()
+	item.animate_merge_pop()
+	SoundManager.play_quest()
+	ProgressionManager.unlock_item(new_id)
+	GameEvents.show_floating_text.emit("Converted into %s!" % new_data.display_name, item.global_position + Vector2(0, -50), Color(1.0, 0.9, 0.3))
+	select_item(item)
+	GameEvents.board_changed.emit()
+
 func _execute_merge(source: ItemView, target: ItemView) -> void:
 	var next_id := target.data.get_next_tier_id()
+	if target.data.id == "golden_egg" and source.data.id == "golden_egg":
+		next_id = "healthy_12" # Mezze Platter
 	var new_data := ItemDatabase.get_item(next_id)
 	if not new_data:
 		_return_item_to_origin(source)
@@ -2242,6 +2331,7 @@ func serialize_items() -> Array[Dictionary]:
 					"is_milked_ready": it.is_milked_ready,
 					"water_fed": it.water_fed,
 					"cooldown_removed": it.cooldown_removed,
+					"pantry_boxes": it.pantry_boxes,
 					"board_theme": it.board_theme
 				}
 				if it.data.is_spawner:
@@ -2301,7 +2391,8 @@ func load_items(items_data: Array) -> void:
 					int(entry.get("boost_charges", 0)),
 					bool(entry.get("is_milked_ready", false)),
 					int(entry.get("water_fed", 0)),
-					bool(entry.get("cooldown_removed", false))
+					bool(entry.get("cooldown_removed", false)),
+					int(entry.get("pantry_boxes", 0))
 				)
 	check_boxed_items_unlock(ProgressionManager.player_level)
 	check_map_unlock_milestone()

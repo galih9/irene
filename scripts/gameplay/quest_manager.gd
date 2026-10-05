@@ -555,7 +555,7 @@ func check_ultimate_quest_trigger() -> void:
 	GameEvents.show_floating_text.emit(arrival_msg, global_position + Vector2(330, 80), Color(1.0, 0.85, 0.2))
 	SoundManager.play_quest()
 
-const KITCHEN_PRODUCER_CHAINS: Array[String] = ["foodbox", "oven", "fridge", "rack"]
+const KITCHEN_PRODUCER_CHAINS: Array[String] = ["pantry", "oven", "burner", "fridge", "rack", "foodbox"]
 const FARM_PRODUCER_CHAINS: Array[String] = ["barn", "tree", "pine", "water"]
 const WITCH_PRODUCER_CHAINS: Array[String] = ["mystic_tree", "shroom", "candle", "spellbook", "cauldron"]
 

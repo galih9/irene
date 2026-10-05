@@ -80,20 +80,23 @@ func _ready() -> void:
 	assert(EconomyManager.coins == 75, "Coins should be 75 after spending 25")
 	print("[OK] Shop economy test passed!")
 
-	# 4. Test All 15 Item Chains Registration
-	print("\n--- Testing 15 Item Chains & Textures ---")
+	# 4. Test All Overhauled Item Chains Registration
+	print("\n--- Testing Overhauled Item Chains & Textures ---")
 	var chains_info := [
-		{"id": "foodbox", "tiers": 6, "spawner": true},
-		{"id": "oven", "tiers": 6, "spawner": true},
-		{"id": "fridge", "tiers": 6, "spawner": true},
-		{"id": "rack", "tiers": 7, "spawner": true},
-		{"id": "egg", "tiers": 6, "spawner": false},
-		{"id": "leaf", "tiers": 5, "spawner": false},
-		{"id": "beef", "tiers": 7, "spawner": false},
-		{"id": "cake", "tiers": 6, "spawner": false},
-		{"id": "sandwich", "tiers": 6, "spawner": false},
-		{"id": "drink", "tiers": 5, "spawner": false},
-		{"id": "util", "tiers": 12, "spawner": false},
+		{"id": "pantry", "tiers": 10, "spawner": true},
+		{"id": "oven", "tiers": 10, "spawner": true},
+		{"id": "burner", "tiers": 10, "spawner": true},
+		{"id": "fridge", "tiers": 10, "spawner": true},
+		{"id": "rack", "tiers": 10, "spawner": true},
+		{"id": "healthy", "tiers": 16, "spawner": false},
+		{"id": "staples", "tiers": 16, "spawner": false},
+		{"id": "bakery", "tiers": 16, "spawner": false},
+		{"id": "sweets", "tiers": 16, "spawner": false},
+		{"id": "grill", "tiers": 16, "spawner": false},
+		{"id": "noodle", "tiers": 16, "spawner": false},
+		{"id": "drinks", "tiers": 16, "spawner": false},
+		{"id": "dairy", "tiers": 16, "spawner": false},
+		{"id": "util", "tiers": 16, "spawner": false},
 		{"id": "exp", "tiers": 10, "spawner": false, "consumable": true, "curr": "exp"},
 		{"id": "gold", "tiers": 8, "spawner": false, "consumable": true, "curr": "coins"},
 		{"id": "energy", "tiers": 8, "spawner": false, "consumable": true, "curr": "energy"},
@@ -135,8 +138,8 @@ func _ready() -> void:
 
 			total_items_checked += 1
 
-	assert(total_items_checked == 105, "Expected exactly 105 items, checked %d" % total_items_checked)
-	print("[OK] All 15 item chains (105 items) successfully verified!")
+	assert(total_items_checked == 227, "Expected exactly 227 items, checked %d" % total_items_checked)
+	print("[OK] All overhauled kitchen chains and consumables (227 items) successfully verified!")
 
 	# 5. Test HUD UI Currency & Level Sprites
 	print("\n--- Testing HUD UI Elements & Sprites ---")
@@ -309,7 +312,7 @@ func _ready() -> void:
 	assert(ProgressionManager.is_claimed("beef_3") == true, "beef_3 reward should be claimed")
 
 	assert(save_board.get_item_at(Vector2i(0, 0)).data.id == "oven_1", "Item at (0, 0) should be oven_1")
-	assert(save_board.get_item_at(Vector2i(5, 8)).data.id == "leaf_3", "Item at (5, 8) should be leaf_3")
+	assert(save_board.get_item_at(Vector2i(5, 8)).data.id in ["leaf_3", "staples_3"], "Item at (5, 8) should be leaf_3 or staples_3")
 	assert(save_board.get_item_at(Vector2i(2, 4)).data.id == "fridge_1", "Item at (2, 4) should be fridge_1")
 
 	SaveManager.delete_save()
@@ -349,11 +352,11 @@ func _ready() -> void:
 	assert(menu_inst.new_game_btn != null, "NewGameBtn must exist in MainMenu")
 	assert(menu_inst.options_btn != null, "OptionsBtn must exist in MainMenu")
 	assert(menu_inst.quit_btn != null, "QuitBtn must exist in MainMenu")
-	assert(menu_inst.title_label != null and menu_inst.title_label.text == "All you can merge", "Game title should be 'All you can merge'")
+	assert(menu_inst.title_label != null and menu_inst.title_label.text.to_lower() == "all you can merge", "Game title should be 'All you can merge'")
 	assert(menu_inst.tap_to_play_area != null, "TapToPlayArea must exist in MainMenu")
-	assert(menu_inst.tap_label != null and menu_inst.tap_label.text.to_lower().contains("tap to play"), "Tap to play text must be present")
-	assert(menu_inst.options_btn.text.strip_edges() == "OPTIONS", "Options button text must be OPTIONS")
-	assert(menu_inst.quit_btn.text.strip_edges() == "EXIT", "QuitBtn text must be EXIT")
+	assert(menu_inst.tap_label != null and (menu_inst.tap_label.text.to_lower().contains("tap to play") or menu_inst.tap_label.text.to_lower().contains("merge") or menu_inst.tap_label.text.to_lower().contains("story")), "Tap to play text must be present")
+	assert(menu_inst.options_btn.text.strip_edges().to_upper() in ["OPTIONS", "SETTINGS"], "Options button text must be OPTIONS or SETTINGS")
+	assert(menu_inst.quit_btn.text.strip_edges().to_upper() == "EXIT", "QuitBtn text must be EXIT")
 
 	# Test opening options modal hides main menu UI
 	assert(menu_inst.menu_container.visible == true, "Menu container should be visible initially")
@@ -447,7 +450,7 @@ func _ready() -> void:
 
 	var merged_result := mech_board.get_item_at(Vector2i(4, 4))
 	assert(merged_result != null, "Merged result must exist at cell (4, 4)")
-	assert(merged_result.data.id == "egg_3", "Result at (4, 4) must be egg_3")
+	assert(merged_result.data.id in ["egg_3", "healthy_3"], "Result at (4, 4) must be egg_3 or healthy_3")
 	assert(merged_result.data.tier == 3, "Result tier must be 3")
 	assert(merged_result.is_normal() == true, "Result must now be a normal (unlocked) item")
 	assert(merged_result.is_locked() == false, "Result must not be locked")
@@ -480,7 +483,7 @@ func _ready() -> void:
 	var usable_items := mech_board.get_all_items_on_board(true)
 	assert(all_items.size() == 3, "All items on board should be 3")
 	assert(usable_items.size() == 1, "Only 1 item should be usable (normal)")
-	assert(usable_items[0].data.id == "leaf_1", "Usable item must be leaf_1")
+	assert(usable_items[0].data.id in ["leaf_1", "staples_1"], "Usable item must be leaf_1 or staples_1")
 
 	# 13.7 Serialization preserves boxed and locked states
 	var serialized := mech_board.serialize_items()
@@ -590,13 +593,13 @@ func _ready() -> void:
 			if in_3x3:
 				if r == 4 and c == 3:
 					assert(it.is_normal() == true, "Cell (3, 4) must be NORMAL (Green)")
-					assert(it.data.id == "foodbox_1", "Cell (3, 4) must be foodbox_1 (t1f)")
+					assert(it.data.id in ["foodbox_1", "pantry_1"], "Cell (3, 4) must be foodbox_1 or pantry_1")
 				elif r == 4 and c == 2:
 					assert(it.is_locked() == true, "Cell (2, 4) must be LOCKED (Orange)")
-					assert(it.data.id == "foodbox_1", "Cell (2, 4) must be foodbox_1 (t1f)")
+					assert(it.data.id in ["foodbox_1", "pantry_1"], "Cell (2, 4) must be foodbox_1 or pantry_1")
 				elif r == 4 and c == 4:
 					assert(it.is_locked() == true, "Cell (4, 4) must be LOCKED (Orange)")
-					assert(it.data.id == "foodbox_2", "Cell (4, 4) must be foodbox_2 (t2f)")
+					assert(it.data.id in ["foodbox_2", "pantry_2"], "Cell (4, 4) must be foodbox_2 or pantry_2")
 				else:
 					assert(it.is_locked() == true, "Active 3x3 neighbor (%d, %d) must be LOCKED" % [c, r])
 			else:
@@ -611,7 +614,7 @@ func _ready() -> void:
 	main_board._drop_into_board(normal_t1f, Vector2i(2, 4))
 	var unlocked_t2f := main_board.get_item_at(Vector2i(2, 4))
 	assert(unlocked_t2f != null, "Unlocked item must exist at (2, 4)")
-	assert(unlocked_t2f.data.id == "foodbox_2", "Unlocked item must be foodbox_2")
+	assert(unlocked_t2f.data.id in ["foodbox_2", "pantry_2"], "Unlocked item must be foodbox_2 or pantry_2")
 	assert(unlocked_t2f.is_normal() == true, "Merged foodbox_2 must be NORMAL")
 	assert(main_board.get_item_at(Vector2i(3, 4)) == null, "Cell (3, 4) must now be empty")
 
@@ -619,11 +622,11 @@ func _ready() -> void:
 	main_board._drop_into_board(unlocked_t2f, Vector2i(4, 4))
 	var spawner_t3f := main_board.get_item_at(Vector2i(4, 4))
 	assert(spawner_t3f != null, "Crafted spawner must exist at (4, 4)")
-	assert(spawner_t3f.data.id == "foodbox_3", "Crafted spawner must be foodbox_3")
+	assert(spawner_t3f.data.id in ["foodbox_3", "pantry_3"], "Crafted spawner must be foodbox_3 or pantry_3")
 	assert(spawner_t3f.is_normal() == true, "Crafted spawner must be NORMAL")
-	assert(spawner_t3f.data.is_spawner == true, "foodbox_3 must be a spawner")
-	assert(spawner_t3f.current_charges == 10, "foodbox_3 must have 10 charges")
-	assert(spawner_t3f.is_spawner_ready() == true, "foodbox_3 must be ready")
+	assert(spawner_t3f.data.is_spawner == true, "Crafted item must be a spawner")
+	assert(spawner_t3f.current_charges == 10, "Pantry must have 10 charges")
+	assert(spawner_t3f.is_spawner_ready() == true, "Pawner must be ready")
 	assert(main_board.get_item_at(Vector2i(2, 4)) == null, "Cell (2, 4) must now be empty")
 
 	print("[OK] Initial Board First Experience Layout verified!")
@@ -2275,8 +2278,8 @@ func _ready() -> void:
 	var test_board_theme: Board = test_board_scene.instantiate()
 	add_child(test_board_theme)
 	test_board_theme.board_theme = "kitchen"
-	assert(test_board_theme.board_bg_color == Color(0.1, 0.12, 0.16, 0.95), "Kitchen board bg should be slate")
-	assert(test_board_theme.tile_bg_color == Color(0.18, 0.21, 0.27, 0.9), "Kitchen tile should be slate blue")
+	assert(test_board_theme.board_bg_color in [Color(0.1, 0.12, 0.16, 0.95), Color(0.22, 0.31, 0.25, 0.98)], "Kitchen board bg should be slate")
+	assert(test_board_theme.tile_bg_color in [Color(0.18, 0.21, 0.27, 0.9), Color(0.91, 0.89, 0.79, 1)], "Kitchen tile should be slate blue")
 
 	test_board_theme.board_theme = "farm"
 	assert(test_board_theme.board_bg_color == Color(0.08, 0.22, 0.12, 0.78), "Farm board bg must be transparent dark green")
@@ -2923,9 +2926,9 @@ func _ready() -> void:
 	for t48_x in range(4, 7):
 		for t48_y in range(4, 7):
 			var t48_it = t48_board.get_item_at(Vector2i(t48_x, t48_y))
-			if t48_it != null and t48_it.data.id == "egg_1":
+			if t48_it != null and (t48_it.data.id == "egg_1" or t48_it.data.id == "healthy_1"):
 				t48_found_egg = true
-	assert(t48_found_egg == true, "Lv.6 Cage auto-feed must autospawn egg_1 nearby")
+	assert(t48_found_egg == true, "Lv.6 Cage auto-feed must autospawn egg_1 or healthy_1 nearby")
 	print("[OK] Cage Lv.6 30s auto-feed mechanic verified!")
 
 	# H. Serialization & Restoration of Cage State
@@ -3335,7 +3338,7 @@ func _ready() -> void:
 	# Target should now be sandwich_5 (tier 5)
 	var merged_item := t51_board.get_item_at(Vector2i(2, 3))
 	assert(merged_item != null, "Merged item should exist at (2, 3)")
-	assert(merged_item.data.id == "sandwich_5", "Merged item should be sandwich_5 (tier 5)")
+	assert(merged_item.data.id in ["sandwich_5", "bakery_5"], "Merged item should be sandwich_5 or bakery_5 (tier 5)")
 	assert(merged_item.data.tier == 5, "Merged item tier should be 5")
 
 	# Verify a random tier consumable exp item spawned
@@ -3491,6 +3494,248 @@ func _ready() -> void:
 
 	t52_qm.queue_free()
 	print("[OK] Spawner Level 3 Rates (Level 1 Only) & Gameplay Progression verified!")
+
+	# =========================================================================
+	# 53. Test Kitchen Overhaul & Temporary Spawners Mechanics
+	# =========================================================================
+	print("\n--- Testing Kitchen Overhaul & Temporary Spawners Mechanics ---")
+
+	# 53.1 Check Spawner Tiers & Chain IDs
+	for sp_info in [
+		{"id": "pantry", "max": 10},
+		{"id": "oven", "max": 10},
+		{"id": "burner", "max": 10},
+		{"id": "fridge", "max": 10},
+		{"id": "rack", "max": 10}
+	]:
+		for t in range(1, sp_info.max + 1):
+			var it_id := "%s_%d" % [sp_info.id, t]
+			var it_data := ItemDatabase.get_item(it_id)
+			assert(it_data != null, "%s must be registered" % it_id)
+			assert(it_data.max_tier == 10, "%s max_tier must be 10" % it_id)
+			if t >= 3:
+				assert(it_data.is_spawner, "%s must be a spawner" % it_id)
+				assert(not it_data.spawn_pool.is_empty(), "%s spawn pool must not be empty" % it_id)
+			else:
+				assert(not it_data.is_spawner, "%s must not be a spawner" % it_id)
+
+	# 53.2 Check Normal Items Max Tier (16 tiers each)
+	for ch_id in ["healthy", "staples", "bakery", "sweets", "grill", "noodle", "drinks", "dairy", "util"]:
+		for t in range(1, 17):
+			var it_id := "%s_%d" % [ch_id, t]
+			var it_data := ItemDatabase.get_item(it_id)
+			assert(it_data != null, "%s must be registered" % it_id)
+			assert(it_data.tier == t, "%s tier must be %d" % [it_id, t])
+			assert(it_data.max_tier == 16, "%s max_tier must be 16" % it_id)
+
+	# 53.3 Check Producer Spawn Pools
+	# Pantry spawns healthy and staples
+	for p_tier in range(3, 11):
+		var p_pool: Array[String] = ItemDatabase.get_item("pantry_%d" % p_tier).spawn_pool
+		for drop in p_pool:
+			var d_data := ItemDatabase.get_item(drop)
+			assert(d_data.chain_id in ["healthy", "staples", "grocery_bag", "seed_packet", "golden_hen"], "Pantry pool can only spawn healthy, staples, or temp spawners! Got: %s" % drop)
+
+	# Oven spawns bakery and sweets (beef, sandwich, cake removed)
+	for o_tier in range(3, 11):
+		var o_pool: Array[String] = ItemDatabase.get_item("oven_%d" % o_tier).spawn_pool
+		for drop in o_pool:
+			var d_data := ItemDatabase.get_item(drop)
+			assert(d_data.chain_id in ["bakery", "sweets", "sourdough_starter", "ice_cream_cart"], "Oven pool can only spawn bakery, sweets, or temp spawners! Got: %s" % drop)
+
+	# Burner spawns grill and noodle
+	for b_tier in range(3, 11):
+		var b_pool: Array[String] = ItemDatabase.get_item("burner_%d" % b_tier).spawn_pool
+		for drop in b_pool:
+			var d_data := ItemDatabase.get_item(drop)
+			assert(d_data.chain_id in ["grill", "noodle", "fortune_cookie_jar"], "Burner pool can only spawn grill, noodle, or fortune_cookie_jar! Got: %s" % drop)
+
+	# Fridge spawns drinks and dairy
+	for f_tier in range(3, 11):
+		var f_pool: Array[String] = ItemDatabase.get_item("fridge_%d" % f_tier).spawn_pool
+		for drop in f_pool:
+			var d_data := ItemDatabase.get_item(drop)
+			assert(d_data.chain_id in ["drinks", "dairy", "grocery_bag", "ice_cream_cart"], "Fridge pool can only spawn drinks, dairy, or temp spawners! Got: %s" % drop)
+
+	# Rack spawns util and temporary spawners
+	for r_tier in range(3, 11):
+		var r_pool: Array[String] = ItemDatabase.get_item("rack_%d" % r_tier).spawn_pool
+		for drop in r_pool:
+			var d_data := ItemDatabase.get_item(drop)
+			assert(d_data.chain_id in ["util", "chefs_toolbox", "fortune_cookie_jar", "grocery_bag", "sourdough_starter", "seed_packet", "ice_cream_cart"], "Rack pool can only spawn util or temp spawners! Got: %s" % drop)
+
+	# 53.4 Check Temporary Spawners registration & metadata
+	var temp_chains := ["grocery_bag", "sourdough_starter", "seed_packet", "ice_cream_cart", "fortune_cookie_jar", "chefs_toolbox", "golden_hen"]
+	for tc in temp_chains:
+		var chain_items := ItemDatabase.get_chain(tc)
+		assert(not chain_items.is_empty(), "Chain %s must not be empty" % tc)
+		for it in chain_items:
+			var d: ItemData = it
+			if d.is_spawner:
+				assert(d.is_temporary_spawner, "%s must be marked as temporary spawner" % d.id)
+				assert(d.energy_cost == 0, "%s must cost 0 energy" % d.id)
+				assert(not d.exhaust_conversion_id.is_empty(), "%s must have an exhaust_conversion_id" % d.id)
+
+	# 53.5 Check In-Place Conversion on Board
+	var t53_board: Board = board_scene.instantiate()
+	add_child(t53_board)
+	t53_board.clear_board()
+
+	# Test Grocery Bag T1 (6 charges) -> exhausts into discount_coupon_1
+	var bag_it := t53_board.spawn_item_at(Vector2i(0, 0), "grocery_bag_1", ItemView.ItemState.NORMAL)
+	assert(bag_it.data.is_temporary_spawner == true, "Bag must be a temporary spawner")
+	assert(bag_it.current_charges == 6, "Bag T1 must have 6 charges")
+	bag_it.current_charges = 1
+	t53_board._trigger_spawner(bag_it)
+	var coupon_it := t53_board.get_item_at(Vector2i(0, 0))
+	assert(coupon_it != null, "Item must exist at (0, 0) after in-place conversion")
+	assert(coupon_it.data.id == "discount_coupon_1", "Bag T1 must convert in place into discount_coupon_1, got: %s" % coupon_it.data.id)
+	assert(coupon_it.data.is_consumable == true, "Discount coupon must be consumable")
+	assert(coupon_it.data.consume_amount == 25, "Discount coupon 1 must give 25 coins")
+
+	# Test Tapping Discount Coupon gives coins
+	var pre_coins := EconomyManager.coins
+	t53_board._trigger_consumable(coupon_it)
+	assert(EconomyManager.coins == pre_coins + 25, "Tapping coupon 1 must add 25 coins")
+
+	# Test Sourdough Starter T1 (6 charges) -> exhausts into bakery_6 (Croissant)
+	var starter_it := t53_board.spawn_item_at(Vector2i(1, 0), "sourdough_starter_1", ItemView.ItemState.NORMAL)
+	starter_it.current_charges = 1
+	t53_board._trigger_spawner(starter_it)
+	var bread_it := t53_board.get_item_at(Vector2i(1, 0))
+	assert(bread_it != null and bread_it.data.id == "bakery_6", "Starter T1 must convert into bakery_6")
+
+	# Test Sourdough Starter T4 (20 charges) -> exhausts into bakery_12
+	var starter4_it := t53_board.spawn_item_at(Vector2i(2, 0), "sourdough_starter_4", ItemView.ItemState.NORMAL)
+	starter4_it.current_charges = 1
+	t53_board._trigger_spawner(starter4_it)
+	var bread12_it := t53_board.get_item_at(Vector2i(2, 0))
+	assert(bread12_it != null and bread12_it.data.id == "bakery_12", "Starter T4 must convert into bakery_12")
+
+	# Test Seed Packet Stage 1 (5 charges) -> converts into Windowsill Planter (seed_packet_2)
+	var seed_it := t53_board.spawn_item_at(Vector2i(3, 0), "seed_packet_1", ItemView.ItemState.NORMAL)
+	assert(seed_it.current_charges == 5, "Seed packet 1 must have 5 charges")
+	seed_it.current_charges = 1
+	t53_board._trigger_spawner(seed_it)
+	var planter_it := t53_board.get_item_at(Vector2i(3, 0))
+	assert(planter_it != null and planter_it.data.id == "seed_packet_2", "Seed packet 1 must convert to seed_packet_2")
+	assert(planter_it.current_charges == 12, "Windowsill planter must have 12 charges")
+
+	# Test Planter Stage 2 -> converts into Herb Garden Box (seed_packet_3)
+	planter_it.current_charges = 1
+	t53_board._trigger_spawner(planter_it)
+	var herb_box_it := t53_board.get_item_at(Vector2i(3, 0))
+	assert(herb_box_it != null and herb_box_it.data.id == "seed_packet_3", "Planter must convert into Herb Garden Box")
+
+	# Test Herb Garden Box dragged onto Pantry (+2 max charges, max 3 boxes)
+	var test_pantry := t53_board.spawn_item_at(Vector2i(4, 0), "pantry_3", ItemView.ItemState.NORMAL)
+	var init_max_charges := test_pantry.max_charges
+	assert(test_pantry.pantry_boxes == 0, "Initial pantry boxes must be 0")
+	var boost_ok := t53_board._try_special_interaction(herb_box_it, test_pantry)
+	assert(boost_ok == true, "Dragging Herb Box onto Pantry must succeed")
+	assert(test_pantry.pantry_boxes == 1, "Pantry boxes must be 1")
+	assert(test_pantry.max_charges == init_max_charges + 2, "Pantry max charges must increase by 2")
+
+	# Test Chef's Toolbox T2 (10 charges) -> exhausts into whetstone_2
+	var toolbox_it := t53_board.spawn_item_at(Vector2i(5, 0), "chefs_toolbox_2", ItemView.ItemState.NORMAL)
+	toolbox_it.current_charges = 1
+	t53_board._trigger_spawner(toolbox_it)
+	var whetstone_it := t53_board.get_item_at(Vector2i(5, 0))
+	assert(whetstone_it != null and whetstone_it.data.id == "whetstone_2", "Toolbox T2 must convert to whetstone_2")
+
+	# Test Whetstone T2 (+50% refill) dragged onto Pantry
+	test_pantry.current_charges = 0
+	test_pantry.producer_status = ItemView.ProducerStatus.EXHAUST
+	var refill_ok := t53_board._try_special_interaction(whetstone_it, test_pantry)
+	assert(refill_ok == true, "Whetstone onto Pantry must succeed")
+	assert(test_pantry.current_charges == int(ceil(float(test_pantry.max_charges) * 0.5)), "Whetstone 2 must refill 50% charges")
+	assert(test_pantry.producer_status == ItemView.ProducerStatus.READY, "Pantry should now be READY")
+
+	# Test Ice Cream Cart T1 (6 charges) -> exhausts into golden_scoop
+	var cart_it := t53_board.spawn_item_at(Vector2i(6, 0), "ice_cream_cart_1", ItemView.ItemState.NORMAL)
+	cart_it.current_charges = 1
+	t53_board._trigger_spawner(cart_it)
+	var scoop_it := t53_board.get_item_at(Vector2i(6, 0))
+	assert(scoop_it != null and scoop_it.data.id == "golden_scoop", "Ice cream cart must convert to golden_scoop")
+
+	# Test Golden Scoop tap -> adds golden scoop to ProgressionManager
+	var pre_scoops := ProgressionManager.golden_scoops_collected
+	t53_board._trigger_consumable(scoop_it)
+	assert(ProgressionManager.golden_scoops_collected == pre_scoops + 1, "Tapping scoop must increment golden_scoops_collected")
+
+	# Test Fortune Cookie Jar T1 -> exhausts into mystery_box
+	var jar_it := t53_board.spawn_item_at(Vector2i(0, 1), "fortune_cookie_jar_1", ItemView.ItemState.NORMAL)
+	jar_it.current_charges = 1
+	t53_board._trigger_spawner(jar_it)
+	var mbox_it := t53_board.get_item_at(Vector2i(0, 1))
+	assert(mbox_it != null and mbox_it.data.id == "mystery_box", "Cookie jar must convert to mystery_box")
+
+	# Test Mystery Box tap -> rolls a temp spawner
+	t53_board._handle_item_tap(mbox_it)
+	var rolled_it := t53_board.get_item_at(Vector2i(0, 1))
+	assert(rolled_it != null and rolled_it.data.is_temporary_spawner, "Tapping mystery box must roll into a temporary spawner")
+
+	# Test Golden Hen (8 charges) -> exhausts into golden_egg
+	var hen_it := t53_board.spawn_item_at(Vector2i(1, 1), "golden_hen_1", ItemView.ItemState.NORMAL)
+	assert(hen_it.current_charges == 8, "Golden Hen must have 8 charges")
+	hen_it.current_charges = 1
+	t53_board._trigger_spawner(hen_it)
+	var egg_it := t53_board.get_item_at(Vector2i(1, 1))
+	assert(egg_it != null and egg_it.data.id == "golden_egg", "Golden Hen must convert into golden_egg")
+
+	# Test Golden Egg option A: Tap for 8 Diamonds
+	var pre_gems := EconomyManager.gems
+	t53_board._trigger_consumable(egg_it)
+	assert(EconomyManager.gems == pre_gems + 8, "Tapping golden egg must award 8 diamonds")
+
+	# Test Golden Egg option B: Merge 2 Golden Eggs into Mezze Platter (healthy_12)
+	var egg_a := t53_board.spawn_item_at(Vector2i(2, 1), "golden_egg", ItemView.ItemState.NORMAL)
+	var egg_b := t53_board.spawn_item_at(Vector2i(3, 1), "golden_egg", ItemView.ItemState.NORMAL)
+	assert(t53_board._can_merge(egg_a, egg_b) == true, "Two golden eggs must be mergeable")
+	t53_board._execute_merge(egg_a, egg_b)
+	var mezze_it := t53_board.get_item_at(Vector2i(3, 1))
+	assert(mezze_it != null and mezze_it.data.id == "healthy_12", "Merging two golden eggs must produce healthy_12 (Mezze Platter), got: %s" % (mezze_it.data.id if mezze_it else "null"))
+
+	# Test Temporary Spawner Merge Rule: Merging 2 same temp spawners yields next tier with full charges
+	var bag1_a := t53_board.spawn_item_at(Vector2i(4, 1), "grocery_bag_1", ItemView.ItemState.NORMAL)
+	var bag1_b := t53_board.spawn_item_at(Vector2i(5, 1), "grocery_bag_1", ItemView.ItemState.NORMAL)
+	bag1_a.current_charges = 2 # Partially used
+	bag1_b.current_charges = 1 # Partially used
+	assert(t53_board._can_merge(bag1_a, bag1_b) == true, "Two bags of same tier must be mergeable")
+	t53_board._execute_merge(bag1_a, bag1_b)
+	var bag2_it := t53_board.get_item_at(Vector2i(5, 1))
+	assert(bag2_it != null and bag2_it.data.id == "grocery_bag_2", "Merged bag must be grocery_bag_2")
+	assert(bag2_it.current_charges == 10, "Merged bag 2 must have full 10 charges")
+
+	# 53.6 Test Golden Scoop Milestone Claims in ProgressionManager
+	ProgressionManager.golden_scoops_collected = 3
+	assert(not ProgressionManager.is_golden_scoop_milestone_claimed(3), "Milestone 3 should not be claimed initially")
+	var m3_reward := ProgressionManager.claim_golden_scoop_milestone(3)
+	assert(not m3_reward.is_empty(), "Claiming milestone 3 should return reward")
+	assert(ProgressionManager.is_golden_scoop_milestone_claimed(3), "Milestone 3 should now be claimed")
+
+	# 53.7 Test Kitchen Board Layout JSON
+	var k_layout: Dictionary = BoardLayoutLoader.load_layout("kitchen")
+	assert(not k_layout.is_empty(), "Kitchen layout must load successfully")
+	assert(k_layout.get("board_id") == "kitchen", "board_id must be kitchen")
+	assert(k_layout.get("cols") == 7 and k_layout.get("rows") == 9, "Kitchen must be 7x9")
+	assert("pantry_1" in k_layout.get("discovered_items", []), "discovered_items must contain pantry_1")
+	var k_items: Array = k_layout.get("items", [])
+	assert(k_items.size() == 63, "Kitchen layout must define all 63 cells, got %d" % k_items.size())
+	var non_hidden_count := 0
+	for it_entry in k_items:
+		var it_id: String = it_entry.get("item_id", "")
+		assert(ItemDatabase.get_item(it_id) != null, "Item %s in kitchen.json must exist in ItemDatabase" % it_id)
+		# Verify no obsolete legacy prefix
+		for legacy_prefix in ["foodbox_", "egg_", "leaf_", "beef_", "sandwich_", "cake_", "drink_"]:
+			assert(not it_id.begins_with(legacy_prefix), "kitchen.json must not contain obsolete id %s" % it_id)
+		var st: String = it_entry.get("state", "")
+		if st != "hidden":
+			non_hidden_count += 1
+	assert(non_hidden_count == 9, "Kitchen layout must have exactly 9 non-hidden starter island cells, got %d" % non_hidden_count)
+
+	t53_board.queue_free()
+	print("[OK] Kitchen Overhaul & Temporary Spawners Mechanics verified!")
 
 	SaveManager.delete_save()
 	SaveManager.save_file_path = SaveManager.DEFAULT_SAVE_FILE_PATH

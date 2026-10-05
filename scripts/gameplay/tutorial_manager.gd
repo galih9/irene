@@ -360,14 +360,14 @@ func _on_item_merged(source_id: String, target_id: String, result_id: String, _w
 
 	match current_step:
 		TutorialStep.MERGE_LEFT:
-			# Merged foodbox_1 into foodbox_1 -> foodbox_2
-			if result_id == "foodbox_2" or (source_id == "foodbox_1" and target_id == "foodbox_1"):
+			# Merged foodbox_1/pantry_1 into foodbox_1/pantry_1 -> foodbox_2/pantry_2
+			if result_id in ["foodbox_2", "pantry_2"] or (source_id in ["foodbox_1", "pantry_1"] and target_id in ["foodbox_1", "pantry_1"]):
 				get_tree().create_timer(0.35).timeout.connect(func():
 					_set_step(TutorialStep.MERGE_RIGHT)
 				)
 		TutorialStep.MERGE_RIGHT:
-			# Merged foodbox_2 into foodbox_2 -> foodbox_3
-			if result_id == "foodbox_3" or (source_id == "foodbox_2" and target_id == "foodbox_2"):
+			# Merged foodbox_2/pantry_2 into foodbox_2/pantry_2 -> foodbox_3/pantry_3
+			if result_id in ["foodbox_3", "pantry_3"] or (source_id in ["foodbox_2", "pantry_2"] and target_id in ["foodbox_2", "pantry_2"]):
 				get_tree().create_timer(0.35).timeout.connect(func():
 					_set_step(TutorialStep.SPAWN_ITEM)
 				)

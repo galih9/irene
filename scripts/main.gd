@@ -276,100 +276,17 @@ func _exit_tree() -> void:
 		if SaveManager.tutorial_manager_ref == tutorial_manager:
 			SaveManager.tutorial_manager_ref = null
 
-func _get_tiered_drop(dist: float) -> String:
-	var prefix := "egg" if randf() < 0.5 else "leaf"
-	var tier := 1
-	if dist > 1.5:
-		tier = 2 if randf() < 0.85 else 1
-	else:
-		tier = 1 if randf() < 0.85 else 2
-	return "%s_%d" % [prefix, tier]
-
 func _setup_initial_board() -> void:
-	board.clear_board(false)
-
-	var boxed_pool := [
-		"beef_1", "beef_2", "cake_1", "cake_2",
-		"sandwich_1", "sandwich_2", "drink_1", "drink_2",
-		"util_1", "util_2", "oven_1", "fridge_1", "rack_1",
-		"egg_2", "leaf_2", "egg_3", "leaf_3"
-	]
-
-	var is_ls := (board.cols == 9 and board.rows == 7)
-	var center_coord := Vector2i(4, 3) if is_ls else Vector2i(3, 4)
-
-	var portrait_previews := {
-		Vector2i(1, 2): "oven_1",
-		Vector2i(5, 2): "fridge_1",
-		Vector2i(3, 6): "rack_1"
-	}
-	var previews: Dictionary = {}
-	for p_coord in portrait_previews:
-		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
-		previews[target_coord] = portrait_previews[p_coord]
-
-	# Starter 3x3 Active Zone
-	var portrait_starter_cells := {
-		Vector2i(3, 4): {"id": "foodbox_1", "state": ItemView.ItemState.NORMAL},
-		Vector2i(2, 4): {"id": "foodbox_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 4): {"id": "foodbox_2", "state": ItemView.ItemState.LOCKED},
-		Vector2i(3, 3): {"id": "egg_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(3, 5): {"id": "leaf_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(2, 3): {"id": "leaf_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 3): {"id": "egg_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(2, 5): {"id": "egg_2", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 5): {"id": "leaf_2", "state": ItemView.ItemState.LOCKED},
-	}
-	var mapped_starter_cells: Dictionary = {}
-	for p_coord in portrait_starter_cells:
-		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
-		mapped_starter_cells[target_coord] = portrait_starter_cells[p_coord]
-
-	# Populate Board
-	for c in range(board.cols):
-		for r in range(board.rows):
-			var cur_coord := Vector2i(c, r)
-			var is_perimeter: bool = false
-			var req_level := 2
-
-			if is_ls:
-				is_perimeter = (r == 0 or r == 6 or c == 0 or c == 1 or c == 7 or c == 8)
-				if r == 0 or r == 6:
-					req_level = 4 if (c >= 3 and c <= 5) else 5
-				elif c == 0 or c == 8:
-					req_level = 3
-				elif c == 1 or c == 7:
-					req_level = 2 if (r >= 2 and r <= 4) else 3
-			else:
-				is_perimeter = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
-				if r == 0 or r == 8:
-					req_level = 4 if (c == 2 or c == 3 or c == 4) else 5
-				elif r == 1 or r == 7:
-					req_level = 3
-				elif c == 0 or c == 6:
-					req_level = 2 if (r >= 3 and r <= 5) else 3
-
-			if mapped_starter_cells.has(cur_coord):
-				var cell_info: Dictionary = mapped_starter_cells[cur_coord]
-				board.spawn_item_at(cur_coord, cell_info["id"], cell_info["state"])
-			elif is_perimeter:
-				var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
-				board.spawn_item_at(cur_coord, rand_item, ItemView.ItemState.HIDDEN, req_level)
-			else:
-				if previews.has(cur_coord):
-					board.spawn_item_at(cur_coord, previews[cur_coord], ItemView.ItemState.HIDDEN, 1)
-				else:
-					var dist: float = Vector2(c, r).distance_to(Vector2(center_coord))
-					var drop_item: String = _get_tiered_drop(dist)
-					board.spawn_item_at(cur_coord, drop_item, ItemView.ItemState.HIDDEN, 1)
-
-	board.update_all_cells_lock_visuals()
-
-	# Register starter discovery
-	ProgressionManager.unlock_item("foodbox_1", true)
-
-	GameEvents.board_changed.emit()
+	_setup_board_from_layout("kitchen")
 	GameEvents.inventory_changed.emit()
+
+## Builds a fresh board from the hand-designed layout in
+## res://resources/board_layouts/<board_id>.json (see README.md there).
+func _setup_board_from_layout(board_id: String) -> void:
+	if not BoardLayoutLoader.apply_layout(board, board_id):
+		push_error("Could not build the starting %s board; check its layout file." % board_id)
+	board.update_all_cells_lock_visuals()
+	GameEvents.board_changed.emit()
 
 func _on_show_floating_text(text: String, world_pos: Vector2, color: Color) -> void:
 	var ft: FloatingText = floating_text_scene.instantiate()
@@ -621,6 +538,40 @@ func _get_interaction_info_text(item: ItemView) -> String:
 		else:
 			return "Cage: Merge to Lv.3 to unlock animal storage!"
 
+	elif chain_id in ["pantry", "foodbox"]:
+		var box_str := (" | Herb Boxes: %d/3" % item.pantry_boxes) if item.pantry_boxes > 0 else ""
+		return "Pantry Spawner: Produces Healthy Food & Pantry Staples." + box_str
+
+	elif chain_id == "oven":
+		return "Oven Spawner: Produces Bakery and Sweets."
+
+	elif chain_id == "burner":
+		return "Burner Spawner: Produces Grill and Noodles."
+
+	elif chain_id == "fridge":
+		return "Fridge Spawner: Produces Drinks and Dairy."
+
+	elif chain_id == "rack":
+		return "Rack Spawner: Produces Kitchen Utilities & Temporary Spawners."
+
+	elif chain_id == "seed_packet" and lvl == 3:
+		return "Herb Garden Box: Drag onto any Pantry to add +2 max charges (max 3 per Pantry)!"
+
+	elif chain_id == "whetstone":
+		return "Whetstone: Drag onto any generator to instantly refill %d%% charges!" % (lvl * 25)
+
+	elif item.data and item.data.id.begins_with("golden_egg"):
+		return "Golden Egg: Tap for 8 Diamonds, or merge 2 Golden Eggs for Mezze Platter!"
+
+	elif item.data and item.data.id.begins_with("golden_scoop"):
+		return "Golden Scoop Trophy: Tap to collect into Achievements tab!"
+
+	elif item.data and item.data.id.begins_with("mystery_box"):
+		return "Mystery Box: Tap to roll a random temporary spawner (5% chance of Golden Hen)!"
+
+	elif item.data and item.data.is_temporary_spawner:
+		return "Temporary Spawner (%d charges left). Costs 0 Energy. Converts in place when exhausted!" % item.current_charges
+
 	if item.data and item.data.has_auto_spawn:
 		if item.auto_spawn_current_stack >= item.data.auto_spawn_max_stack:
 			return "Auto Spawn: Full (%d/%d)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack]
@@ -628,6 +579,13 @@ func _get_interaction_info_text(item: ItemView) -> String:
 			return "Auto Spawn: %d/%d (%ds)" % [item.auto_spawn_current_stack, item.data.auto_spawn_max_stack, int(ceil(item.auto_spawn_timer))]
 
 	return ""
+
+func _get_tiered_drop(dist: float) -> String:
+	var roll := randf()
+	if dist <= 1.5:
+		return "util_1" if roll < 0.8 else "util_2"
+	else:
+		return "util_2" if roll < 0.8 else "util_1"
 
 func _on_level_change_requested(target_board_id: String) -> void:
 	if target_board_id == SaveManager.current_board_id:
@@ -796,7 +754,7 @@ func _is_stuck_farm_board(items: Array) -> bool:
 	if items.is_empty():
 		return false
 
-	var producer_chains := ["oven", "fridge", "rack", "foodbox", "barn", "water", "tree", "pine", "chest"]
+	var producer_chains := ["pantry", "burner", "oven", "fridge", "rack", "foodbox", "barn", "water", "tree", "pine", "chest"]
 
 	for it in items:
 		var item_id: String = it.get("item_id", "")
@@ -813,205 +771,10 @@ func _is_stuck_farm_board(items: Array) -> bool:
 	return true
 
 func _setup_initial_witch_board() -> void:
-	board.clear_board(false)
-	board.board_theme = "witch"
-
-	var boxed_pool := [
-		"mystic_tree_1", "mystic_tree_1", "mystic_tree_2",
-		"shroom_1", "shroom_1", "shroom_2",
-		"wand_1", "wand_1", "wand_2",
-		"staff_1", "staff_2",
-		"broom_1", "broom_2",
-		"cauldron_1", "cauldron_1", "cauldron_2",
-		"candle_1", "candle_1", "candle_2",
-		"spellbook_1", "spellbook_2"
-	]
-
-	var is_ls := (board.cols == 9 and board.rows == 7)
-	var center_coord := Vector2i(4, 3) if is_ls else Vector2i(3, 4)
-
-	var portrait_previews := {
-		Vector2i(1, 2): "cauldron_1",
-		Vector2i(5, 2): "candle_1",
-		Vector2i(3, 6): "spellbook_1"
-	}
-	var previews: Dictionary = {}
-	for p_coord in portrait_previews:
-		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
-		previews[target_coord] = portrait_previews[p_coord]
-
-	# Starter 3x3 Active Zone for Witch (Hardcoded initial merge sequence to reach Lv.3 Mystic Tree Spawner)
-	# Merge (3, 4) normal mystic_tree_1 into (2, 4) locked mystic_tree_1 -> mystic_tree_2
-	# Merge (2, 4) mystic_tree_2 into (4, 4) locked mystic_tree_2 -> mystic_tree_3 (Mystic Tree Spawner!)
-	# Mystic Tree produces shrooms & wands to unlock surrounding locked tiles
-	var portrait_starter_cells := {
-		Vector2i(3, 4): {"id": "mystic_tree_1", "state": ItemView.ItemState.NORMAL},
-		Vector2i(2, 4): {"id": "mystic_tree_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 4): {"id": "mystic_tree_2", "state": ItemView.ItemState.LOCKED},
-		Vector2i(3, 3): {"id": "shroom_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(3, 5): {"id": "wand_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(2, 3): {"id": "shroom_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 3): {"id": "wand_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(2, 5): {"id": "shroom_2", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 5): {"id": "wand_2", "state": ItemView.ItemState.LOCKED},
-	}
-	var mapped_starter_cells: Dictionary = {}
-	for p_coord in portrait_starter_cells:
-		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
-		mapped_starter_cells[target_coord] = portrait_starter_cells[p_coord]
-
-	# Populate Witch Board
-	for c in range(board.cols):
-		for r in range(board.rows):
-			var cur_coord := Vector2i(c, r)
-			var is_perimeter: bool = false
-			var req_level := 2
-
-			if is_ls:
-				is_perimeter = (r == 0 or r == 6 or c == 0 or c == 1 or c == 7 or c == 8)
-				if r == 0 or r == 6:
-					req_level = 4 if (c >= 3 and c <= 5) else 5
-				elif c == 0 or c == 8:
-					req_level = 3
-				elif c == 1 or c == 7:
-					req_level = 2 if (r >= 2 and r <= 4) else 3
-			else:
-				is_perimeter = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
-				if r == 0 or r == 8:
-					req_level = 4 if (c == 2 or c == 3 or c == 4) else 5
-				elif r == 1 or r == 7:
-					req_level = 3
-				elif c == 0 or c == 6:
-					req_level = 2 if (r >= 3 and r <= 5) else 3
-
-			if mapped_starter_cells.has(cur_coord):
-				var cell_info: Dictionary = mapped_starter_cells[cur_coord]
-				board.spawn_item_at(cur_coord, cell_info["id"], cell_info["state"])
-			elif is_perimeter:
-				var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
-				board.spawn_item_at(cur_coord, rand_item, ItemView.ItemState.HIDDEN, req_level)
-			else:
-				if previews.has(cur_coord):
-					board.spawn_item_at(cur_coord, previews[cur_coord], ItemView.ItemState.HIDDEN, 1)
-				else:
-					var dist: float = Vector2(c, r).distance_to(Vector2(center_coord))
-					var prefix := "mystic_tree" if randf() < 0.5 else "shroom"
-					var tier := 1
-					if dist > 1.5:
-						tier = 2 if randf() < 0.85 else 1
-					var drop_item := "%s_%d" % [prefix, tier]
-					board.spawn_item_at(cur_coord, drop_item, ItemView.ItemState.HIDDEN, 1)
-
-	board.update_all_cells_lock_visuals()
-
-	# Register initial discovery
-	ProgressionManager.unlock_item("mystic_tree_1", true)
-
-	GameEvents.board_changed.emit()
+	_setup_board_from_layout("witch")
 
 func _setup_initial_farm_board() -> void:
-	board.clear_board(false)
-	board.board_theme = "farm"
-
-	var boxed_pool := [
-		"pine_1", "pine_1", "pine_1", "pine_2",
-		"water_1", "water_1", "water_2",
-		"barn_1", "barn_1", "barn_2",
-		"tool_1", "tool_1", "tool_2",
-		"fruit_1", "fruit_2",
-		"hay_2", "hay_2", "hay_3", "hay_3",
-		"bird_1", "cow_1", "sheep_1", "pig_1",
-		"tree_1"
-	]
-
-	var is_ls := (board.cols == 9 and board.rows == 7)
-	var center_coord := Vector2i(4, 3) if is_ls else Vector2i(3, 4)
-
-	var portrait_previews := {
-		Vector2i(1, 2): "pine_1",
-		Vector2i(5, 2): "water_1",
-		Vector2i(3, 6): "tree_1"
-	}
-	var previews: Dictionary = {}
-	for p_coord in portrait_previews:
-		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
-		previews[target_coord] = portrait_previews[p_coord]
-
-	# Starter 3x3 Active Zone for Farm (Hardcoded initial merge sequence to reach Lv.3 Barn Spawner)
-	# Merge (3, 4) normal barn_1 into (2, 4) locked barn_1 -> barn_2
-	# Merge (2, 4) barn_2 into (4, 4) locked barn_2 -> barn_3 (Finished Barn Spawner!)
-	# Finished Barn produces hay_1 & hay_2 to unlock surrounding locked hay tiles
-	var portrait_starter_cells := {
-		Vector2i(3, 4): {"id": "barn_1", "state": ItemView.ItemState.NORMAL},
-		Vector2i(2, 4): {"id": "barn_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 4): {"id": "barn_2", "state": ItemView.ItemState.LOCKED},
-		Vector2i(3, 3): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(3, 5): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(2, 3): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 3): {"id": "hay_1", "state": ItemView.ItemState.LOCKED},
-		Vector2i(2, 5): {"id": "hay_2", "state": ItemView.ItemState.LOCKED},
-		Vector2i(4, 5): {"id": "hay_2", "state": ItemView.ItemState.LOCKED},
-	}
-	var mapped_starter_cells: Dictionary = {}
-	for p_coord in portrait_starter_cells:
-		var target_coord: Vector2i = board.map_coord_for_orientation(p_coord, true) if is_ls else p_coord
-		mapped_starter_cells[target_coord] = portrait_starter_cells[p_coord]
-
-	# Populate Farm Board
-	for c in range(board.cols):
-		for r in range(board.rows):
-			var cur_coord := Vector2i(c, r)
-			var is_perimeter: bool = false
-			var req_level := 2
-
-			if is_ls:
-				is_perimeter = (r == 0 or r == 6 or c == 0 or c == 1 or c == 7 or c == 8)
-				if r == 0 or r == 6:
-					req_level = 4 if (c >= 3 and c <= 5) else 5
-				elif c == 0 or c == 8:
-					req_level = 3
-				elif c == 1 or c == 7:
-					req_level = 2 if (r >= 2 and r <= 4) else 3
-			else:
-				is_perimeter = (r == 0 or r == 1 or r == 7 or r == 8 or c == 0 or c == 6)
-				if r == 0 or r == 8:
-					req_level = 4 if (c == 2 or c == 3 or c == 4) else 5
-				elif r == 1 or r == 7:
-					req_level = 3
-				elif c == 0 or c == 6:
-					req_level = 2 if (r >= 3 and r <= 5) else 3
-
-			if mapped_starter_cells.has(cur_coord):
-				var cell_info: Dictionary = mapped_starter_cells[cur_coord]
-				board.spawn_item_at(cur_coord, cell_info["id"], cell_info["state"])
-			elif is_perimeter:
-				var rand_item: String = boxed_pool[randi() % boxed_pool.size()]
-				board.spawn_item_at(cur_coord, rand_item, ItemView.ItemState.HIDDEN, req_level)
-			else:
-				if previews.has(cur_coord):
-					board.spawn_item_at(cur_coord, previews[cur_coord], ItemView.ItemState.HIDDEN, 1)
-				else:
-					var dist: float = Vector2(c, r).distance_to(Vector2(center_coord))
-					var r_val := randf()
-					var prefix := "hay"
-					if r_val < 0.5:
-						prefix = "hay"
-					elif r_val < 0.85:
-						prefix = "pine"
-					else:
-						prefix = "water"
-					var tier := 1
-					if dist > 1.5:
-						tier = 2 if randf() < 0.85 else 1
-					var drop_item := "%s_%d" % [prefix, tier]
-					board.spawn_item_at(cur_coord, drop_item, ItemView.ItemState.HIDDEN, 1)
-
-	board.update_all_cells_lock_visuals()
-
-	# Register initial discovery
-	ProgressionManager.unlock_item("barn_1", true)
-
-	GameEvents.board_changed.emit()
+	_setup_board_from_layout("farm")
 
 func _on_info_btn_pressed() -> void:
 	SoundManager.play_click()

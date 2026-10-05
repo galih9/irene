@@ -20,6 +20,8 @@ extends Resource
 @export var max_charges: int = 10
 @export var cooldown_per_charge: float = 5.0
 @export var disappears_when_exhausted: bool = false
+@export var is_temporary_spawner: bool = false
+@export var exhaust_conversion_id: String = ""
 
 # Auto-spawn attributes (can be on spawner or applied to normal item)
 @export var has_auto_spawn: bool = false
