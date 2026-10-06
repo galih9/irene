@@ -4,6 +4,8 @@
 [ext_resource type="Texture2D" path="res://assets/items/farm/wool/6.png" id="2_roller_icon"]
 [ext_resource type="Texture2D" path="res://assets/items/extras/bottle/normal.png" id="3_bottle_icon"]
 [ext_resource type="Texture2D" path="res://assets/items/farm/wool/4.png" id="4_soon_icon"]
+[ext_resource type="Texture2D" path="res://assets/items/kitchen/foodbox/food1.png" id="5_delivery_icon"]
+
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
 bg_color = Color(0.985, 0.973, 0.935, 1)
@@ -299,6 +301,65 @@ theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
 theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
 theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
 text = "Play"
+
+[node name="FoodDeliveryCard" type="Panel" parent="Panel/VBox/ScrollContainer/CardsContainer"]
+custom_minimum_size = Vector2(0, 170)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_card")
+
+[node name="Margin" type="MarginContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 16
+
+[node name="HBox" type="HBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard/Margin"]
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Portrait" type="TextureRect" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard/Margin/HBox"]
+custom_minimum_size = Vector2(90, 110)
+layout_mode = 2
+texture = ExtResource("5_delivery_icon")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="InfoVBox" type="VBoxContainer" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard/Margin/HBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Name" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.15, 0.1, 1)
+theme_override_font_sizes/font_size = 20
+text = "Food Delivery Rush"
+
+[node name="Desc" type="Label" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard/Margin/HBox/InfoVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.48, 0.44, 0.4, 1)
+theme_override_font_sizes/font_size = 13
+text = "Match sets of 3 identical foods into delivery boxes before time runs out! Arrange temporary slots wisely."
+autowrap_mode = 2
+
+[node name="ActionBtn" type="Button" parent="Panel/VBox/ScrollContainer/CardsContainer/FoodDeliveryCard/Margin/HBox"]
+custom_minimum_size = Vector2(110, 48)
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_normal")
+theme_override_styles/hover = SubResource("StyleBoxFlat_btn_hover")
+theme_override_styles/disabled = SubResource("StyleBoxFlat_btn_disabled")
+text = "Play"
+
 
 
 [node name="ComingSoonBanner" type="PanelContainer" parent="Panel/VBox"]

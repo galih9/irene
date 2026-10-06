@@ -3,6 +3,16 @@ extends Node
 # Stable JSON filenames preserve unlocks when the level list grows.
 var cloth_unlocked_levels: Array[String] = ["level_01.json"]
 
+# Food Delivery Minigame Level Progression (1..10)
+var delivery_max_unlocked_level: int = 1
+
+func unlock_delivery_level(lvl: int) -> void:
+	if lvl > delivery_max_unlocked_level:
+		delivery_max_unlocked_level = mini(10, lvl)
+		if is_instance_valid(SaveManager):
+			SaveManager.save_game(false, false)
+
+
 # Tracks discovered items and whether their discovery reward was claimed
 var _unlocked_items: Dictionary = {} # item_id -> bool
 var _claimed_rewards: Dictionary = {} # item_id -> bool
@@ -279,6 +289,7 @@ func claim_golden_scoop_milestone(milestone: int) -> Dictionary:
 func serialize_data() -> Dictionary:
 	return {
 		"cloth_unlocked_levels": cloth_unlocked_levels.duplicate(),
+		"delivery_max_unlocked_level": delivery_max_unlocked_level,
 		"unlocked_items": _unlocked_items.duplicate(),
 		"claimed_rewards": _claimed_rewards.duplicate(),
 		"player_level": player_level,
@@ -292,10 +303,11 @@ func serialize_data() -> Dictionary:
 		"golden_scoop_milestones_claimed": golden_scoop_milestones_claimed.duplicate()
 	}
 
-func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false, cloth_levels: Array = [], scoops: int = 0, scoop_claims: Dictionary = {}) -> void:
+func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_val: int = 0, queue_data: Array = [], map_unlocked: bool = false, farm_visited: bool = false, witch_unlocked: bool = false, witch_visited: bool = false, cloth_levels: Array = [], scoops: int = 0, scoop_claims: Dictionary = {}, delivery_level: int = 1) -> void:
 	cloth_unlocked_levels.assign(cloth_levels)
 	if not cloth_unlocked_levels.has("level_01.json"):
 		cloth_unlocked_levels.append("level_01.json")
+	delivery_max_unlocked_level = maxi(1, delivery_level)
 	_unlocked_items = unlocked.duplicate()
 	_claimed_rewards = claimed.duplicate()
 	player_level = maxi(1, level)
@@ -315,6 +327,7 @@ func load_data(unlocked: Dictionary, claimed: Dictionary, level: int = 1, exp_va
 
 func reset_all() -> void:
 	cloth_unlocked_levels = ["level_01.json"]
+	delivery_max_unlocked_level = 1
 	_unlocked_items.clear()
 	_claimed_rewards.clear()
 	_reward_queue.clear()
@@ -329,3 +342,4 @@ func reset_all() -> void:
 	GameEvents.progression_changed.emit()
 	GameEvents.reward_queue_changed.emit()
 	GameEvents.player_exp_changed.emit(player_level, player_exp, get_current_level_req())
+

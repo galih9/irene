@@ -53,5 +53,7 @@ signal level_change_requested(target_level_id: String)
 signal request_minigame_select_open()
 signal request_minigame_toggle()
 signal request_liquid_sort_open()
+signal request_food_delivery_open()
 signal minigame_closed()
+
 

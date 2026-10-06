@@ -4,6 +4,8 @@ extends Node2D
 @export var floating_text_scene: PackedScene = preload("res://scenes/floating_text.tscn")
 @export var minigame_scene: PackedScene = preload("res://scenes/minigame/thread_roller_minigame.tscn")
 @export var liquid_sort_scene: PackedScene = preload("res://scenes/minigame/liquid_sort_minigame.tscn")
+@export var food_delivery_scene: PackedScene = preload("res://scenes/minigame/food_delivery_minigame.tscn")
+
 
 var minigame_instance: Control = null
 var is_minigame_active: bool = false
@@ -84,7 +86,9 @@ func _ready() -> void:
 	# Minigame toggle and selection events
 	GameEvents.request_minigame_toggle.connect(toggle_minigame)
 	GameEvents.request_liquid_sort_open.connect(func(): open_specific_minigame("liquid_sort"))
+	GameEvents.request_food_delivery_open.connect(func(): open_specific_minigame("food_delivery"))
 	GameEvents.request_minigame_select_open.connect(_on_request_minigame_select_open)
+
 
 	# Listen to floating text signal
 	GameEvents.show_floating_text.connect(_on_show_floating_text)
@@ -238,11 +242,16 @@ func show_minigame(enable: bool, game_type: String = "thread_roller") -> void:
 			minigame_instance = null
 		active_minigame_id = game_type
 		if minigame_instance == null:
-			var target_scene := liquid_sort_scene if game_type == "liquid_sort" else minigame_scene
+			var target_scene := minigame_scene
+			if game_type == "liquid_sort":
+				target_scene = liquid_sort_scene
+			elif game_type == "food_delivery":
+				target_scene = food_delivery_scene
 			minigame_instance = target_scene.instantiate()
 			$CanvasLayer/UI.add_child(minigame_instance)
 			if minigame_instance.has_signal("exit_requested"):
 				minigame_instance.exit_requested.connect(func(): show_minigame(false))
+
 		minigame_instance.visible = true
 		board.visible = false
 		if is_instance_valid(quest_container):

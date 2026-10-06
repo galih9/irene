@@ -121,8 +121,14 @@ func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 		}
 	}
 
+	var abs_base_dir := ProjectSettings.globalize_path(save_file_path.get_base_dir())
+	if not DirAccess.dir_exists_absolute(abs_base_dir):
+		DirAccess.make_dir_recursive_absolute(abs_base_dir)
+
 	var file := FileAccess.open(save_file_path, FileAccess.WRITE)
 	if not file:
+
+
 		push_error("Failed to open save file for writing: %s" % save_file_path)
 		save_completed.emit(false, is_auto_save)
 		return false
@@ -179,7 +185,8 @@ func load_game(target_board: Board = null, target_quest_mgr: QuestManager = null
 			bool(prog.get("witch_visited_first_time", false)),
 			prog.get("cloth_unlocked_levels", []),
 			int(prog.get("golden_scoops_collected", 0)),
-			prog.get("golden_scoop_milestones_claimed", {})
+			prog.get("golden_scoop_milestones_claimed", {}),
+			int(prog.get("delivery_max_unlocked_level", 1))
 		)
 
 	# 3. Restore Inventory
