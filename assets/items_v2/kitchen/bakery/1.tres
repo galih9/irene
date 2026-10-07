@@ -1,0 +1,7 @@
+[gd_resource type="AtlasTexture" format=3 uid="uid://btusdgjmtnokk"]
+
+[ext_resource type="Texture2D" uid="uid://dvphlo48p8jmx" path="res://assets/items_v2/kitchen/bakery/bakery.png" id="1_ims1k"]
+
+[resource]
+atlas = ExtResource("1_ims1k")
+region = Rect2(49, 61, 351, 319)

@@ -1,0 +1,7 @@
+[gd_resource type="AtlasTexture" format=3 uid="uid://c6vaknckxsxp6"]
+
+[ext_resource type="Texture2D" uid="uid://bpxth828kr8wo" path="res://assets/items_v2/kitchen/oven/oven.png" id="1_pswbp"]
+
+[resource]
+atlas = ExtResource("1_pswbp")
+region = Rect2(1365, 34, 389, 394)
