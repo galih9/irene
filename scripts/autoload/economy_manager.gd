@@ -109,4 +109,3 @@ func reset_all() -> void:
 	GameEvents.currency_changed.emit("coins", coins, 0)
 	GameEvents.currency_changed.emit("gems", gems, 0)
 	GameEvents.currency_changed.emit("energy", energy, 0)
-

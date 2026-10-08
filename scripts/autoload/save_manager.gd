@@ -3,6 +3,7 @@ extends Node
 signal save_started(is_auto_save: bool)
 signal save_completed(success: bool, is_auto_save: bool)
 signal toast_requested(message: String, duration: float)
+signal save_deleted()
 
 const DEFAULT_SAVE_FILE_PATH: String = "user://savegame.json"
 const SAVE_FILE_PATH: String = DEFAULT_SAVE_FILE_PATH
@@ -80,6 +81,28 @@ func delete_save() -> bool:
 			dir.remove(save_file_path.get_file())
 	should_load_on_start = false
 	return not has_save()
+
+func reset_game_data() -> bool:
+	var success := delete_save()
+	kitchen_board_items.clear()
+	farm_board_items.clear()
+	witch_board_items.clear()
+	current_board_id = "kitchen"
+	_saved_completed_quest_count = 0
+	if is_instance_valid(quest_manager_ref):
+		quest_manager_ref.completed_quest_count = 0
+	should_load_on_start = false
+	_auto_save_timer = 0.0
+
+	if EconomyManager:
+		EconomyManager.reset_all()
+	if ProgressionManager:
+		ProgressionManager.reset_all()
+	if InventoryManager:
+		InventoryManager.reset_all()
+
+	save_deleted.emit()
+	return success
 
 func save_game(show_toast: bool = true, is_auto_save: bool = false) -> bool:
 	save_started.emit(is_auto_save)

@@ -525,8 +525,9 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 		# 2. Pour: stream goes from source lip → through target neck → down to liquid surface inside
 		var lip_pt := source.get_lip_position_global()
 		var surface_pt := target.get_liquid_surface_global()
-		stream_renderer.set_flow_path(lip_pt, surface_pt, color_val, target)
-		if SoundManager: SoundManager.play_merge_tier(2)
+		if SoundManager:
+			SoundManager.play_pouring()
+			SoundManager.play_merge_tier(2)
 
 		var pour_duration := 0.45 + float(units_to_pour - 1) * 0.25
 		source.animate_pour_out(units_to_pour, pour_duration)

@@ -35,6 +35,8 @@ func show_toast(text: String, duration: float = 3.0) -> void:
 	var in_tween := create_tween().set_parallel(true).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 	in_tween.tween_property(self, "position:y", _original_y, 0.25)
 	in_tween.tween_property(self, "modulate:a", 1.0, 0.2)
+	if is_instance_valid(SoundManager):
+		SoundManager.play_toast()
 
 	# Pulse icon
 	var icon_tween := create_tween().set_loops(int(duration * 2)).set_trans(Tween.TRANS_SINE)

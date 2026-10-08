@@ -150,6 +150,10 @@ func clear_all() -> void:
 	_slots.fill("")
 	GameEvents.inventory_changed.emit()
 
+func reset_all() -> void:
+	unlocked_rows = INITIAL_ROWS
+	clear_all()
+
 func get_slots() -> Array:
 	var max_s := get_max_slots()
 	var result: Array = []

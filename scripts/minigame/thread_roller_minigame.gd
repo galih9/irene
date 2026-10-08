@@ -312,7 +312,7 @@ func _start_slot_rolling(slot: RollerSlot, cloth: BigCloth, cells_to_take: int) 
 	if is_instance_valid(slot.current_spool):
 		slot.current_spool.start_spinning()
 	if is_instance_valid(SoundManager):
-		SoundManager.play_spawn()
+		SoundManager.play_fabric_roll()
 
 	# One completed second of rolling contributes one unit of spool fill.
 	var on_cell := func():

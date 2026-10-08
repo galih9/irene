@@ -1,30 +1,12 @@
 class_name MergeSparkles
 extends Node2D
 
-static var _cached_star_texture: Texture2D = null
+const STAR_TEX: Texture2D = preload("res://assets/vfx/star_02.png")
+const SPARK_TEX: Texture2D = preload("res://assets/vfx/spark_02.png")
 
 static func get_sparkle_texture() -> Texture2D:
-	if _cached_star_texture:
-		return _cached_star_texture
-	var img := Image.create(64, 64, false, Image.FORMAT_RGBA8)
-	var center := Vector2(31.5, 31.5)
-	for y in range(64):
-		for x in range(64):
-			var p := Vector2(float(x), float(y)) - center
-			var dist := p.length() / 31.5
-			if dist > 1.0:
-				img.set_pixel(x, y, Color(1, 1, 1, 0))
-				continue
-			var u := absf(p.x) / 31.5
-			var v := absf(p.y) / 31.5
-			var ray_h := pow(maxf(0.0, 1.0 - u), 5.0) * pow(maxf(0.0, 1.0 - v * 2.5), 2.0)
-			var ray_v := pow(maxf(0.0, 1.0 - v), 5.0) * pow(maxf(0.0, 1.0 - u * 2.5), 2.0)
-			var star_shape := maxf(ray_h, ray_v)
-			var core := pow(maxf(0.0, 1.0 - dist * 2.2), 2.5)
-			var alpha := clampf(star_shape * 0.9 + core * 0.9, 0.0, 1.0)
-			img.set_pixel(x, y, Color(1.0, 1.0, 1.0, alpha))
-	_cached_star_texture = ImageTexture.create_from_image(img)
-	return _cached_star_texture
+	return STAR_TEX
+
 
 @onready var particles: CPUParticles2D = $Particles
 
@@ -59,8 +41,8 @@ func _setup_particles() -> void:
 	particles.damping_max = 70.0
 	particles.angular_velocity_min = -180.0
 	particles.angular_velocity_max = 180.0
-	particles.scale_amount_min = 0.35
-	particles.scale_amount_max = 0.65
+	particles.scale_amount_min = 0.05
+	particles.scale_amount_max = 0.12
 
 	# Color ramp: white -> golden yellow -> transparent orange
 	var grad := Gradient.new()
@@ -80,7 +62,6 @@ func _setup_particles() -> void:
 	particles.emitting = true
 
 func _spawn_gleams() -> void:
-	var tex := get_sparkle_texture()
 	var gleam_offsets := [
 		Vector2(-22, -18),
 		Vector2(24, -14),
@@ -91,7 +72,7 @@ func _spawn_gleams() -> void:
 
 	for i in range(gleam_offsets.size()):
 		var gleam := Sprite2D.new()
-		gleam.texture = tex
+		gleam.texture = STAR_TEX if (i % 2 == 0) else SPARK_TEX
 		gleam.position = gleam_offsets[i]
 		gleam.scale = Vector2.ZERO
 		gleam.modulate = Color(1.0, 0.95, 0.6, 0.0)
@@ -99,7 +80,7 @@ func _spawn_gleams() -> void:
 
 		var tw := create_tween()
 		tw.tween_interval(delays[i])
-		tw.parallel().tween_property(gleam, "scale", Vector2(0.7, 0.7), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		tw.parallel().tween_property(gleam, "scale", Vector2(0.12, 0.12), 0.18).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
 		tw.parallel().tween_property(gleam, "modulate:a", 1.0, 0.14)
 		tw.parallel().tween_property(gleam, "rotation", deg_to_rad(60.0), 0.35)
 		tw.chain().tween_property(gleam, "scale", Vector2.ZERO, 0.16).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)

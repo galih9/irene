@@ -1,0 +1,147 @@
+[gd_scene format=4 uid="uid://drro77h1c1i6s"]
+
+[ext_resource type="Script" uid="uid://dt0d038qby6x6" path="res://scripts/experimental/overworld_board.gd" id="1_board"]
+[ext_resource type="Texture2D" uid="uid://c7rss0cxau300" path="res://scenes/experimental/grass_256.png" id="2_grass"]
+
+[sub_resource type="TileMapPattern" id="TileMapPattern_3ta87"]
+tile_data = PackedInt32Array(0, 65537, 0, 65536, 1, 0, 1, 1, 0, 65537, 65537, 0)
+
+[sub_resource type="TileMapPattern" id="TileMapPattern_71qhu"]
+tile_data = PackedInt32Array(0, 65537, 0, 65536, 1, 0, 131072, 65537, 0, 196608, 1, 0, 262144, 65537, 0, 327680, 1, 0, 393216, 65537, 0, 458752, 1, 0, 1, 1, 0, 65537, 65537, 0, 131073, 1, 0, 196609, 65537, 0, 262145, 1, 0, 327681, 65537, 0, 393217, 1, 0, 458753, 65537, 0, 2, 65537, 0, 65538, 1, 0, 131074, 65537, 0, 196610, 1, 0, 262146, 65537, 0, 327682, 1, 0, 393218, 65537, 0, 458754, 1, 0, 3, 1, 0, 65539, 65537, 0, 131075, 1, 0, 196611, 65537, 0, 262147, 1, 0, 327683, 65537, 0, 393219, 1, 0, 458755, 65537, 0, 4, 65537, 0, 65540, 1, 0, 131076, 65537, 0, 196612, 1, 0, 262148, 65537, 0, 327684, 1, 0, 393220, 65537, 0, 458756, 1, 0, 5, 1, 0, 65541, 65537, 0, 131077, 1, 0, 196613, 65537, 0, 262149, 1, 0, 327685, 65537, 0, 393221, 1, 0, 458757, 65537, 0, 6, 65537, 0, 65542, 1, 0, 131078, 65537, 0, 196614, 1, 0, 262150, 65537, 0, 327686, 1, 0, 393222, 65537, 0, 458758, 1, 0, 7, 1, 0, 65543, 65537, 0, 131079, 1, 0, 196615, 65537, 0, 262151, 1, 0, 327687, 65537, 0, 393223, 1, 0, 458759, 65537, 0)
+
+[sub_resource type="TileSetAtlasSource" id="TileSetAtlasSource_71qhu"]
+texture = ExtResource("2_grass")
+margins = Vector2i(8, 72)
+separation = Vector2i(8, 136)
+texture_region_size = Vector2i(256, 128)
+0:0/0 = 0
+1:0/0 = 0
+0:1/0 = 0
+1:1/0 = 0
+
+[sub_resource type="TileSet" id="TileSet_mv58x"]
+tile_shape = 1
+tile_layout = 4
+tile_size = Vector2i(256, 128)
+sources/1 = SubResource("TileSetAtlasSource_71qhu")
+pattern_0 = SubResource("TileMapPattern_3ta87")
+pattern_1 = SubResource("TileMapPattern_71qhu")
+
+[node name="World" type="Node2D" unique_id=1000022072]
+script = ExtResource("1_board")
+
+[node name="TileMapLayer" type="TileMapLayer" parent="." unique_id=493273835]
+tile_map_data = PackedByteArray("AAD//wEAAQABAAAAAAD//wIAAQAAAAAAAAAAAAEAAQAAAAAAAAAAAAIAAQABAAAAAAD//wMAAQABAAAAAAD//wQAAQAAAAAAAAAAAAMAAQAAAAAAAAAAAAQAAQABAAAAAAD9/wMAAQABAAAAAAD9/wQAAQAAAAAAAAD+/wMAAQAAAAAAAAD+/wQAAQABAAAAAAD9/wUAAQABAAAAAAD9/wYAAQAAAAAAAAD+/wUAAQAAAAAAAAD+/wYAAQABAAAAAAD//wUAAQABAAAAAAD//wYAAQAAAAAAAAAAAAUAAQAAAAAAAAAAAAYAAQABAAAAAAD9/wcAAQABAAAAAAD9/wgAAQAAAAAAAAD+/wcAAQAAAAAAAAD+/wgAAQABAAAAAAD//wcAAQABAAAAAAD//wgAAQAAAAAAAAAAAAcAAQAAAAAAAAAAAAgAAQABAAAAAAD7/wcAAQABAAAAAAD7/wgAAQAAAAAAAAD8/wcAAQAAAAAAAAD8/wgAAQABAAAAAAD7/wUAAQABAAAAAAD7/wYAAQAAAAAAAAD8/wUAAQAAAAAAAAD8/wYAAQABAAAAAAD7/wMAAQABAAAAAAD7/wQAAQAAAAAAAAD8/wMAAQAAAAAAAAD8/wQAAQABAAAAAAD9/wEAAQABAAAAAAD9/wIAAQAAAAAAAAD+/wEAAQAAAAAAAAD+/wIAAQABAAAAAAD7/wEAAQABAAAAAAD7/wIAAQAAAAAAAAD8/wEAAQAAAAAAAAD8/wIAAQABAAAAAAD5/wcAAQABAAAAAAD5/wgAAQAAAAAAAAD6/wcAAQAAAAAAAAD6/wgAAQABAAAAAAD5/wUAAQABAAAAAAD5/wYAAQAAAAAAAAD6/wUAAQAAAAAAAAD6/wYAAQABAAAAAAD5/wMAAQABAAAAAAD5/wQAAQAAAAAAAAD6/wMAAQAAAAAAAAD6/wQAAQABAAAAAAD5/wEAAQABAAAAAAD5/wIAAQAAAAAAAAD6/wEAAQAAAAAAAAD6/wIAAQABAAAAAAD5/wkAAQABAAAAAAD5/woAAQAAAAAAAAD5/wsAAQABAAAAAAD5/wwAAQAAAAAAAAD5/w0AAQABAAAAAAD5/w4AAQAAAAAAAAD5/w8AAQABAAAAAAD5/xAAAQAAAAAAAAD6/wkAAQAAAAAAAAD6/woAAQABAAAAAAD6/wsAAQAAAAAAAAD6/wwAAQABAAAAAAD6/w0AAQAAAAAAAAD6/w4AAQABAAAAAAD6/w8AAQAAAAAAAAD6/xAAAQABAAAAAAD7/wkAAQABAAAAAAD7/woAAQAAAAAAAAD7/wsAAQABAAAAAAD7/wwAAQAAAAAAAAD7/w0AAQABAAAAAAD7/w4AAQAAAAAAAAD7/w8AAQABAAAAAAD7/xAAAQAAAAAAAAD8/wkAAQAAAAAAAAD8/woAAQABAAAAAAD8/wsAAQAAAAAAAAD8/wwAAQABAAAAAAD8/w0AAQAAAAAAAAD8/w4AAQABAAAAAAD8/w8AAQAAAAAAAAD8/xAAAQABAAAAAAD9/wkAAQABAAAAAAD9/woAAQAAAAAAAAD9/wsAAQABAAAAAAD9/wwAAQAAAAAAAAD9/w0AAQABAAAAAAD9/w4AAQAAAAAAAAD9/w8AAQABAAAAAAD9/xAAAQAAAAAAAAD+/wkAAQAAAAAAAAD+/woAAQABAAAAAAD+/wsAAQAAAAAAAAD+/wwAAQABAAAAAAD+/w0AAQAAAAAAAAD+/w4AAQABAAAAAAD+/w8AAQAAAAAAAAD+/xAAAQABAAAAAAD//wkAAQABAAAAAAD//woAAQAAAAAAAAD//wsAAQABAAAAAAD//wwAAQAAAAAAAAD//w0AAQABAAAAAAD//w4AAQAAAAAAAAD//w8AAQABAAAAAAD//xAAAQAAAAAAAAAAAAkAAQAAAAAAAAAAAAoAAQABAAAAAAAAAAsAAQAAAAAAAAAAAAwAAQABAAAAAAAAAA0AAQAAAAAAAAAAAA4AAQABAAAAAAAAAA8AAQAAAAAAAAAAABAAAQABAAAAAADx/wkAAQABAAAAAADx/woAAQAAAAAAAADx/wsAAQABAAAAAADx/wwAAQAAAAAAAADx/w0AAQABAAAAAADx/w4AAQAAAAAAAADx/w8AAQABAAAAAADx/xAAAQAAAAAAAADy/wkAAQAAAAAAAADy/woAAQABAAAAAADy/wsAAQAAAAAAAADy/wwAAQABAAAAAADy/w0AAQAAAAAAAADy/w4AAQABAAAAAADy/w8AAQAAAAAAAADy/xAAAQABAAAAAADz/wkAAQABAAAAAADz/woAAQAAAAAAAADz/wsAAQABAAAAAADz/wwAAQAAAAAAAADz/w0AAQABAAAAAADz/w4AAQAAAAAAAADz/w8AAQABAAAAAADz/xAAAQAAAAAAAAD0/wkAAQAAAAAAAAD0/woAAQABAAAAAAD0/wsAAQAAAAAAAAD0/wwAAQABAAAAAAD0/w0AAQAAAAAAAAD0/w4AAQABAAAAAAD0/w8AAQAAAAAAAAD0/xAAAQABAAAAAAD1/wkAAQABAAAAAAD1/woAAQAAAAAAAAD1/wsAAQABAAAAAAD1/wwAAQAAAAAAAAD1/w0AAQABAAAAAAD1/w4AAQAAAAAAAAD1/w8AAQABAAAAAAD1/xAAAQAAAAAAAAD2/wkAAQAAAAAAAAD2/woAAQABAAAAAAD2/wsAAQAAAAAAAAD2/wwAAQABAAAAAAD2/w0AAQAAAAAAAAD2/w4AAQABAAAAAAD2/w8AAQAAAAAAAAD2/xAAAQABAAAAAAD3/wkAAQABAAAAAAD3/woAAQAAAAAAAAD3/wsAAQABAAAAAAD3/wwAAQAAAAAAAAD3/w0AAQABAAAAAAD3/w4AAQAAAAAAAAD3/w8AAQABAAAAAAD3/xAAAQAAAAAAAAD4/wkAAQAAAAAAAAD4/woAAQABAAAAAAD4/wsAAQAAAAAAAAD4/wwAAQABAAAAAAD4/w0AAQAAAAAAAAD4/w4AAQABAAAAAAD4/w8AAQAAAAAAAAD4/xAAAQABAAAAAADx/wEAAQABAAAAAADx/wIAAQAAAAAAAADx/wMAAQABAAAAAADx/wQAAQAAAAAAAADx/wUAAQABAAAAAADx/wYAAQAAAAAAAADx/wcAAQABAAAAAADx/wgAAQAAAAAAAADy/wEAAQAAAAAAAADy/wIAAQABAAAAAADy/wMAAQAAAAAAAADy/wQAAQABAAAAAADy/wUAAQAAAAAAAADy/wYAAQABAAAAAADy/wcAAQAAAAAAAADy/wgAAQABAAAAAADz/wEAAQABAAAAAADz/wIAAQAAAAAAAADz/wMAAQABAAAAAADz/wQAAQAAAAAAAADz/wUAAQABAAAAAADz/wYAAQAAAAAAAADz/wcAAQABAAAAAADz/wgAAQAAAAAAAAD0/wEAAQAAAAAAAAD0/wIAAQABAAAAAAD0/wMAAQAAAAAAAAD0/wQAAQABAAAAAAD0/wUAAQAAAAAAAAD0/wYAAQABAAAAAAD0/wcAAQAAAAAAAAD0/wgAAQABAAAAAAD1/wEAAQABAAAAAAD1/wIAAQAAAAAAAAD1/wMAAQABAAAAAAD1/wQAAQAAAAAAAAD1/wUAAQABAAAAAAD1/wYAAQAAAAAAAAD1/wcAAQABAAAAAAD1/wgAAQAAAAAAAAD2/wEAAQAAAAAAAAD2/wIAAQABAAAAAAD2/wMAAQAAAAAAAAD2/wQAAQABAAAAAAD2/wUAAQAAAAAAAAD2/wYAAQABAAAAAAD2/wcAAQAAAAAAAAD2/wgAAQABAAAAAAD3/wEAAQABAAAAAAD3/wIAAQAAAAAAAAD3/wMAAQABAAAAAAD3/wQAAQAAAAAAAAD3/wUAAQABAAAAAAD3/wYAAQAAAAAAAAD3/wcAAQABAAAAAAD3/wgAAQAAAAAAAAD4/wEAAQAAAAAAAAD4/wIAAQABAAAAAAD4/wMAAQAAAAAAAAD4/wQAAQABAAAAAAD4/wUAAQAAAAAAAAD4/wYAAQABAAAAAAD4/wcAAQAAAAAAAAD4/wgAAQABAAAAAAA=")
+tile_set = SubResource("TileSet_mv58x")
+
+[node name="FootprintHighlighter" type="Node2D" parent="." unique_id=987112233]
+
+[node name="BuildingsContainer" type="Node2D" parent="." unique_id=987112234]
+y_sort_enabled = true
+
+[node name="Camera2D" type="Camera2D" parent="." unique_id=987112235]
+position = Vector2(256, 1088)
+zoom = Vector2(0.75, 0.75)
+
+[node name="UI" type="CanvasLayer" parent="." unique_id=987112236]
+
+[node name="TopBar" type="PanelContainer" parent="UI" unique_id=987112237]
+anchors_preset = 10
+anchor_right = 1.0
+offset_bottom = 90.0
+grow_horizontal = 2
+
+[node name="Margin" type="MarginContainer" parent="UI/TopBar" unique_id=1669507960]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 14
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 14
+
+[node name="HBox" type="HBoxContainer" parent="UI/TopBar/Margin" unique_id=2142509073]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="BackBtn" type="Button" parent="UI/TopBar/Margin/HBox" unique_id=987112238]
+custom_minimum_size = Vector2(130, 48)
+layout_mode = 2
+text = "← Main Menu"
+
+[node name="VBox" type="VBoxContainer" parent="UI/TopBar/Margin/HBox" unique_id=666337327]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/TopBar/Margin/HBox/VBox" unique_id=1836672618]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.94, 0.82, 1)
+theme_override_font_sizes/font_size = 18
+text = "Overworld Merge (Isometric Board)"
+
+[node name="StatsLabel" type="Label" parent="UI/TopBar/Margin/HBox/VBox" unique_id=987112239]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.78, 0.88, 0.75, 1)
+theme_override_font_sizes/font_size = 13
+text = "Buildings: 0"
+
+[node name="BottomBar" type="PanelContainer" parent="UI" unique_id=987112240]
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -120.0
+grow_horizontal = 2
+grow_vertical = 0
+
+[node name="Margin" type="MarginContainer" parent="UI/BottomBar" unique_id=1671398742]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 16
+
+[node name="VBox" type="VBoxContainer" parent="UI/BottomBar/Margin" unique_id=1759556032]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="HBox" type="HBoxContainer" parent="UI/BottomBar/Margin/VBox" unique_id=2077511225]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="SpawnT1Btn" type="Button" parent="UI/BottomBar/Margin/VBox/HBox" unique_id=987112241]
+custom_minimum_size = Vector2(120, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "+ T1 (1x1)"
+
+[node name="SpawnT2Btn" type="Button" parent="UI/BottomBar/Margin/VBox/HBox" unique_id=987112242]
+custom_minimum_size = Vector2(120, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "+ T2 (1x2)"
+
+[node name="SpawnT3Btn" type="Button" parent="UI/BottomBar/Margin/VBox/HBox" unique_id=987112243]
+custom_minimum_size = Vector2(120, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "+ T3 (2x2)"
+
+[node name="ResetBtn" type="Button" parent="UI/BottomBar/Margin/VBox/HBox" unique_id=987112244]
+custom_minimum_size = Vector2(110, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Reset"
+
+[node name="CenterCamBtn" type="Button" parent="UI/BottomBar/Margin/VBox/HBox" unique_id=987112245]
+custom_minimum_size = Vector2(110, 44)
+layout_mode = 2
+theme_override_font_sizes/font_size = 14
+text = "Center"
+
+[node name="HelpLabel" type="Label" parent="UI/BottomBar/Margin/VBox" unique_id=190755960]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.85, 0.85, 0.75)
+theme_override_font_sizes/font_size = 12
+text = "Drag to move · Drop onto same tier to merge (1x1 -> 1x2 -> 2x2) · Drag empty ground or Right-Click to pan · Scroll wheel to zoom"
+horizontal_alignment = 1

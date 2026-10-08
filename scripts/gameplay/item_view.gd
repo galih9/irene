@@ -147,6 +147,70 @@ var _pulse_tween: Tween
 var _scale_tween: Tween
 var _base_scale: float = 0.48
 
+# Maxed Item Light Effect & Merge Shining Circle
+var max_light_sprite: Sprite2D = null
+var _max_light_tween: Tween = null
+var merge_circle_sprite: Sprite2D = null
+var _merge_circle_tween: Tween = null
+
+func is_max_tier() -> bool:
+	return data != null and data.tier >= data.max_tier
+
+func _ensure_max_light_effect() -> void:
+	if not visuals:
+		return
+	if not max_light_sprite:
+		max_light_sprite = visuals.get_node_or_null("MaxLightEffect")
+	if not max_light_sprite:
+		max_light_sprite = Sprite2D.new()
+		max_light_sprite.name = "MaxLightEffect"
+		max_light_sprite.texture = preload("res://assets/vfx/light_01.png")
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		max_light_sprite.material = mat
+		max_light_sprite.modulate = Color(1.0, 0.95, 0.6, 0.8)
+		max_light_sprite.scale = Vector2(0.24, 0.24)
+		max_light_sprite.visible = false
+		visuals.add_child(max_light_sprite)
+		if sprite:
+			visuals.move_child(max_light_sprite, sprite.get_index())
+
+func _update_max_light_visibility() -> void:
+	_ensure_max_light_effect()
+	if not max_light_sprite:
+		return
+	var should_show := is_max_tier() and item_state == ItemState.NORMAL and not is_in_inventory
+	if should_show:
+		max_light_sprite.visible = true
+		if _max_light_tween == null or not _max_light_tween.is_valid():
+			_max_light_tween = create_tween().set_loops()
+			_max_light_tween.tween_property(max_light_sprite, "rotation", deg_to_rad(360.0), 9.0).from(0.0)
+			_max_light_tween.parallel().tween_property(max_light_sprite, "scale", Vector2(0.26, 0.26), 1.5).set_trans(Tween.TRANS_SINE)
+			_max_light_tween.chain().tween_property(max_light_sprite, "scale", Vector2(0.22, 0.22), 1.5).set_trans(Tween.TRANS_SINE)
+	else:
+		max_light_sprite.visible = false
+		if _max_light_tween and _max_light_tween.is_valid():
+			_max_light_tween.kill()
+			_max_light_tween = null
+
+func _ensure_merge_circle_effect() -> void:
+	if not visuals:
+		return
+	if not merge_circle_sprite:
+		merge_circle_sprite = visuals.get_node_or_null("MergeCircleShine")
+	if not merge_circle_sprite:
+		merge_circle_sprite = Sprite2D.new()
+		merge_circle_sprite.name = "MergeCircleShine"
+		merge_circle_sprite.texture = preload("res://assets/vfx/circle_05.png")
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		merge_circle_sprite.material = mat
+		merge_circle_sprite.modulate = Color(1.0, 0.98, 0.65, 0.9)
+		merge_circle_sprite.scale = Vector2(0.24, 0.24)
+		merge_circle_sprite.visible = false
+		visuals.add_child(merge_circle_sprite)
+
+
 func _ready() -> void:
 	if sprite and sprite.material:
 		sprite.material = sprite.material.duplicate()
@@ -855,6 +919,7 @@ func _update_visuals() -> void:
 			status_label.text = "Lv.%d" % unlock_level
 		if sprite and sprite.material is ShaderMaterial:
 			(sprite.material as ShaderMaterial).set_shader_parameter("enable_outline", false)
+		_update_max_light_visibility()
 		return
 
 	# Determine texture and scale for revealed items (NORMAL or LOCKED)
@@ -916,6 +981,7 @@ func _update_visuals() -> void:
 		if auto_spawn_badge:
 			auto_spawn_badge.visible = false
 		stop_idle_animation()
+		_update_max_light_visibility()
 	else:
 		# Normal status: active coloring and badges, hide web/dirt
 		if sprite and sprite.material is ShaderMaterial:
@@ -1009,6 +1075,7 @@ func _update_visuals() -> void:
 					auto_spawn_badge.visible = false
 		elif auto_spawn_badge:
 			auto_spawn_badge.visible = false
+		_update_max_light_visibility()
 
 func consume_spawn_charge() -> bool:
 	if not data or not data.is_spawner:
@@ -1221,6 +1288,40 @@ func animate_spawn_flight(from_pos: Vector2, to_pos: Vector2, on_complete: Calla
 	# Parabolic height arc
 	var mid_y := minf(from_pos.y, to_pos.y) - 90.0
 
+	# Trail effect to increase visibility for the player that an item is moving into the board
+	var trail := CPUParticles2D.new()
+	trail.name = "FlightTrail"
+	trail.texture = preload("res://assets/vfx/spark_01.png")
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	trail.material = mat
+	trail.local_coords = false
+	trail.amount = 26
+	trail.lifetime = 0.32
+	trail.explosiveness = 0.0
+	trail.emission_shape = CPUParticles2D.EMISSION_SHAPE_SPHERE
+	trail.emission_sphere_radius = 8.0
+	trail.gravity = Vector2(0, 35.0)
+	trail.initial_velocity_min = 8.0
+	trail.initial_velocity_max = 24.0
+	trail.angular_velocity_min = -180.0
+	trail.angular_velocity_max = 180.0
+	trail.scale_amount_min = 0.06
+	trail.scale_amount_max = 0.14
+
+	var curve := Curve.new()
+	curve.add_point(Vector2(0.0, 1.0))
+	curve.add_point(Vector2(1.0, 0.0))
+	trail.scale_amount_curve = curve
+
+	var grad := Gradient.new()
+	grad.set_color(0, Color(1.0, 1.0, 0.8, 0.95))
+	grad.add_point(0.4, Color(1.0, 0.85, 0.25, 0.85))
+	grad.set_color(grad.get_point_count() - 1, Color(1.0, 0.45, 0.1, 0.0))
+	trail.color_ramp = grad
+	trail.emitting = true
+	add_child(trail)
+
 	var pos_tween := create_tween()
 	pos_tween.tween_method(func(t: float):
 		var p_start := from_pos
@@ -1238,28 +1339,57 @@ func animate_spawn_flight(from_pos: Vector2, to_pos: Vector2, on_complete: Calla
 	pos_tween.finished.connect(func():
 		z_index = 10
 		SoundManager.play_drop()
+		if is_instance_valid(trail):
+			trail.emitting = false
+			var t_timer := get_tree().create_timer(0.35)
+			if t_timer:
+				t_timer.timeout.connect(func():
+					if is_instance_valid(trail):
+						trail.queue_free()
+				)
 		if on_complete.is_valid():
 			on_complete.call()
 	)
 
 func set_merge_highlight(active: bool) -> void:
-	glow.visible = active
-	if sprite and sprite.material is ShaderMaterial:
-		var sm := sprite.material as ShaderMaterial
-		if active:
-			sm.set_shader_parameter("outline_color", Color(0.35, 1.0, 0.55, 1.0))
-			sm.set_shader_parameter("outline_width", 3.2)
-		else:
+	_ensure_merge_circle_effect()
+	glow.visible = false
+	if active:
+		if merge_circle_sprite:
+			merge_circle_sprite.visible = true
+			if _merge_circle_tween and _merge_circle_tween.is_valid():
+				_merge_circle_tween.kill()
+			_merge_circle_tween = create_tween().set_loops()
+			_merge_circle_tween.tween_property(merge_circle_sprite, "rotation", deg_to_rad(360.0), 3.0).from(0.0)
+			_merge_circle_tween.parallel().tween_property(merge_circle_sprite, "scale", Vector2(0.26, 0.26), 0.35).set_trans(Tween.TRANS_SINE)
+			_merge_circle_tween.parallel().tween_property(merge_circle_sprite, "modulate:a", 1.0, 0.35)
+			_merge_circle_tween.chain().tween_property(merge_circle_sprite, "scale", Vector2(0.21, 0.21), 0.35).set_trans(Tween.TRANS_SINE)
+			_merge_circle_tween.parallel().tween_property(merge_circle_sprite, "modulate:a", 0.7, 0.35)
+
+		# Keep outline normal white instead of green
+		if sprite and sprite.material is ShaderMaterial:
+			var sm := sprite.material as ShaderMaterial
 			sm.set_shader_parameter("outline_color", Color(1.0, 1.0, 1.0, 0.95))
 			sm.set_shader_parameter("outline_width", 2.2)
-	if active:
+
 		stop_idle_animation()
 		if _pulse_tween and _pulse_tween.is_valid():
 			_pulse_tween.kill()
 		_pulse_tween = create_tween().set_loops()
-		_pulse_tween.tween_property(visuals, "scale", Vector2(1.12, 1.12), 0.25).set_trans(Tween.TRANS_SINE)
+		_pulse_tween.tween_property(visuals, "scale", Vector2(1.10, 1.10), 0.25).set_trans(Tween.TRANS_SINE)
 		_pulse_tween.tween_property(visuals, "scale", Vector2(1.0, 1.0), 0.25).set_trans(Tween.TRANS_SINE)
 	else:
+		if merge_circle_sprite:
+			merge_circle_sprite.visible = false
+			if _merge_circle_tween and _merge_circle_tween.is_valid():
+				_merge_circle_tween.kill()
+				_merge_circle_tween = null
+
+		if sprite and sprite.material is ShaderMaterial:
+			var sm := sprite.material as ShaderMaterial
+			sm.set_shader_parameter("outline_color", Color(1.0, 1.0, 1.0, 0.95))
+			sm.set_shader_parameter("outline_width", 2.2)
+
 		if _pulse_tween and _pulse_tween.is_valid():
 			_pulse_tween.kill()
 		if not is_dragging:

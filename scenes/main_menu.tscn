@@ -5,6 +5,7 @@
 [ext_resource type="PackedScene" uid="uid://c7nan2b4k5x1y" path="res://scenes/option_modal.tscn" id="3_opt"]
 [ext_resource type="Texture2D" uid="uid://di7oct0i1cts5" path="res://assets/icon/icon_gear.png" id="4_gear"]
 [ext_resource type="Texture2D" uid="uid://courjb207v2ui" path="res://assets/icon/icon_kitchen.png" id="5_kitchen"]
+[ext_resource type="Texture2D" path="res://assets/icon/icon_home.png" id="6_home"]
 [ext_resource type="Texture2D" path="res://assets/icon/icon_exit.svg" id="8_exit"]
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_title_card"]
@@ -223,7 +224,7 @@ theme_override_constants/separation = 24
 alignment = 1
 
 [node name="OptionsBtn" type="Button" parent="UI/MenuContainer/BottomArea/NavButtons" unique_id=1321035588]
-custom_minimum_size = Vector2(154, 56)
+custom_minimum_size = Vector2(140, 56)
 layout_mode = 2
 tooltip_text = "Options"
 focus_mode = 2
@@ -238,8 +239,24 @@ icon_alignment = 0
 expand_icon = true
 size_flags_vertical = 4
 
-[node name="QuitBtn" type="Button" parent="UI/MenuContainer/BottomArea/NavButtons" unique_id=1276760746]
+[node name="ExperimentalBtn" type="Button" parent="UI/MenuContainer/BottomArea/NavButtons" unique_id=1412098765]
 custom_minimum_size = Vector2(154, 56)
+layout_mode = 2
+tooltip_text = "Overworld Merge (Experimental)"
+focus_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 0.95, 0.75, 1)
+theme_override_colors/font_hover_color = Color(1, 1, 0.88, 1)
+theme_override_colors/font_pressed_color = Color(0.95, 0.82, 0.6, 1)
+theme_override_font_sizes/font_size = 17
+text = "Overworld"
+icon = ExtResource("6_home")
+icon_alignment = 0
+expand_icon = true
+size_flags_vertical = 4
+
+[node name="QuitBtn" type="Button" parent="UI/MenuContainer/BottomArea/NavButtons" unique_id=1276760746]
+custom_minimum_size = Vector2(140, 56)
 layout_mode = 2
 tooltip_text = "Exit"
 focus_mode = 2

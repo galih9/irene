@@ -78,6 +78,51 @@ func setup_style(bg_col: Color, border_col: Color, hover_empty: Color, hover_mer
 	corner_radius = rad
 	set_highlight(_current_highlight)
 
+var shining_circle: Sprite2D = null
+var _shine_tween: Tween = null
+
+func _ensure_shining_circle() -> void:
+	if not shining_circle:
+		shining_circle = get_node_or_null("ShiningCircle")
+	if not shining_circle:
+		shining_circle = Sprite2D.new()
+		shining_circle.name = "ShiningCircle"
+		shining_circle.texture = preload("res://assets/vfx/circle_03.png")
+		var mat := CanvasItemMaterial.new()
+		mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+		shining_circle.material = mat
+		shining_circle.modulate = Color(1.0, 0.95, 0.55, 0.9)
+		shining_circle.scale = Vector2(0.22, 0.22)
+		shining_circle.visible = false
+		shining_circle.z_index = 5
+		add_child(shining_circle)
+		if background:
+			shining_circle.position = background.size * 0.5
+		else:
+			shining_circle.position = Vector2(40, 40)
+
+func _set_shining_circle_visible(vis: bool) -> void:
+	_ensure_shining_circle()
+	if not shining_circle:
+		return
+	if vis:
+		if background:
+			shining_circle.position = background.size * 0.5
+		shining_circle.visible = true
+		if _shine_tween and _shine_tween.is_valid():
+			_shine_tween.kill()
+		_shine_tween = create_tween().set_loops()
+		_shine_tween.tween_property(shining_circle, "rotation", deg_to_rad(360.0), 3.0).from(0.0)
+		_shine_tween.parallel().tween_property(shining_circle, "scale", Vector2(0.25, 0.25), 0.4).set_trans(Tween.TRANS_SINE)
+		_shine_tween.parallel().tween_property(shining_circle, "modulate:a", 1.0, 0.4)
+		_shine_tween.chain().tween_property(shining_circle, "scale", Vector2(0.20, 0.20), 0.4).set_trans(Tween.TRANS_SINE)
+		_shine_tween.parallel().tween_property(shining_circle, "modulate:a", 0.7, 0.4)
+	else:
+		shining_circle.visible = false
+		if _shine_tween and _shine_tween.is_valid():
+			_shine_tween.kill()
+			_shine_tween = null
+
 func set_highlight(state: int) -> void:
 	_current_highlight = state
 	if not background or not is_inside_tree():
@@ -95,6 +140,7 @@ func set_highlight(state: int) -> void:
 
 	match state:
 		0: # Normal
+			_set_shining_circle_visible(false)
 			if is_locked:
 				style.bg_color = cell_locked_bg_color
 				style.border_color = cell_locked_border_color
@@ -106,20 +152,27 @@ func set_highlight(state: int) -> void:
 			style.border_width_right = 1
 			style.border_width_bottom = 1
 		1: # Hover empty slot
+			_set_shining_circle_visible(false)
 			style.bg_color = hover_empty_color
 			style.border_color = Color(0.5, 0.75, 1.0, 0.9)
 			style.border_width_left = 2
 			style.border_width_top = 2
 			style.border_width_right = 2
 			style.border_width_bottom = 2
-		2: # Hover merge partner
-			style.bg_color = hover_merge_color
-			style.border_color = Color(0.6, 1.0, 0.6, 1.0)
-			style.border_width_left = 3
-			style.border_width_top = 3
-			style.border_width_right = 3
-			style.border_width_bottom = 3
+		2: # Hover merge partner (show shining circle instead of green border)
+			_set_shining_circle_visible(true)
+			if is_locked:
+				style.bg_color = cell_locked_bg_color
+				style.border_color = cell_locked_border_color
+			else:
+				style.bg_color = cell_bg_color
+				style.border_color = cell_border_color
+			style.border_width_left = 1
+			style.border_width_top = 1
+			style.border_width_right = 1
+			style.border_width_bottom = 1
 		3: # Tutorial highlight
+			_set_shining_circle_visible(false)
 			style.bg_color = Color(1.0, 0.82, 0.35, 0.35)
 			style.border_color = Color(1.0, 0.88, 0.3, 1.0)
 			style.border_width_left = 3
@@ -127,4 +180,5 @@ func set_highlight(state: int) -> void:
 			style.border_width_right = 3
 			style.border_width_bottom = 3
 	background.add_theme_stylebox_override("panel", style)
+
 

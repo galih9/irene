@@ -200,7 +200,7 @@ func show_toast(text: String, emotion: String = "greeting", duration: float = 5.
 	in_tween.tween_property(self, "modulate:a", 1.0, 0.22)
 
 	# Sound cue
-	SoundManager.play_dialogue_blip()
+	SoundManager.play_toast()
 
 	# Hold on screen
 	_anim_tween.tween_interval(duration)

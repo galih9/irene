@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://c3m784k8v2e34"]
+
+[ext_resource type="Script" path="res://test/test_delete_save.gd" id="1_test"]
+
+[node name="TestDeleteSave" type="Node"]
+script = ExtResource("1_test")

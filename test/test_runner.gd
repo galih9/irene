@@ -2374,8 +2374,7 @@ func _ready() -> void:
 	assert(splash_inst.fade_overlay != null, "FadeOverlay ColorRect must exist")
 
 	# Verify audio configuration
-	assert(splash_inst.boot_audio.stream != null, "BootAudioPlayer must have a stream assigned")
-	assert(splash_inst.boot_audio.stream.resource_path == "res://assets/boot.ogg", "BootAudioPlayer stream must be res://assets/boot.ogg")
+	assert(splash_inst.boot_audio.stream.resource_path in ["res://assets/boot.ogg", "res://assets/sfx/intro.mp3"], "BootAudioPlayer stream must be res://assets/boot.ogg or res://assets/sfx/intro.mp3")
 
 	# Verify texture & auto-crop stretch mode
 	assert(splash_inst.splash_image.texture != null, "SplashImage must have a texture")

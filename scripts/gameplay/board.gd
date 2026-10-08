@@ -1045,7 +1045,10 @@ func try_auto_spawn(spawner: ItemView) -> bool:
 
 	# Audio & Visual FX
 	spawner.animate_spawner_tap()
-	SoundManager.play_spawn()
+	if spawner.data.chain_id == "oven":
+		SoundManager.play_spawnspray()
+	else:
+		SoundManager.play_spawn()
 	var drop_data := ItemDatabase.get_item(drop_id)
 	var drop_name := drop_data.display_name if drop_data else "Item"
 	GameEvents.show_floating_text.emit(
@@ -1151,9 +1154,11 @@ func _trigger_consumable(item: ItemView) -> void:
 	elif curr == "energy":
 		EconomyManager.add_energy(amt, true)
 		GameEvents.show_floating_text.emit("+%d Energy!" % amt, pos + Vector2(0, -40), Color(0.3, 1.0, 0.5))
+		spawn_cell_spark_effect(pos)
 	elif curr == "exp":
 		ProgressionManager.add_exp(amt)
 		GameEvents.show_floating_text.emit("+%d EXP!" % amt, pos + Vector2(0, -40), Color(0.85, 0.55, 1.0))
+		spawn_cell_magic_effect(pos)
 	elif curr == "gems" or curr == "diamond":
 		EconomyManager.add_gems(amt)
 		GameEvents.show_floating_text.emit("+%d Diamonds!" % amt, pos + Vector2(0, -40), Color(0.45, 0.85, 1.0))
@@ -2156,6 +2161,109 @@ func spawn_merge_sparkles(world_pos: Vector2) -> void:
 	var fx: Node2D = merge_sparkles_scene.instantiate()
 	fx.global_position = world_pos
 	add_child(fx)
+
+func spawn_cell_spark_effect(world_pos: Vector2) -> void:
+	var fx := Node2D.new()
+	fx.name = "CellSparkEffect"
+	fx.global_position = world_pos
+	fx.z_index = 65
+	add_child(fx)
+
+	var spark_textures := [
+		preload("res://assets/vfx/spark_01.png"),
+		preload("res://assets/vfx/spark_02.png"),
+		preload("res://assets/vfx/spark_03.png"),
+		preload("res://assets/vfx/spark_04.png")
+	]
+
+	# Central main electric spark
+	var center_spark := Sprite2D.new()
+	center_spark.texture = spark_textures[0]
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+	center_spark.material = mat
+	center_spark.modulate = Color(0.35, 1.0, 0.65, 0.95)
+	center_spark.scale = Vector2.ZERO
+	fx.add_child(center_spark)
+
+	var tw := create_tween().set_parallel(true)
+	tw.tween_property(center_spark, "scale", Vector2(0.24, 0.24), 0.16).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw.tween_property(center_spark, "rotation", deg_to_rad(45.0), 0.35)
+	tw.chain().tween_property(center_spark, "scale", Vector2.ZERO, 0.20).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw.parallel().tween_property(center_spark, "modulate:a", 0.0, 0.20)
+
+	# 4 mini surrounding sparks bursting outward inside cell
+	var spark_dirs := [
+		Vector2(-20, -18),
+		Vector2(22, -14),
+		Vector2(-16, 20),
+		Vector2(18, 18)
+	]
+	for i in range(spark_dirs.size()):
+		var sub_spark := Sprite2D.new()
+		sub_spark.texture = spark_textures[(i + 1) % spark_textures.size()]
+		sub_spark.material = mat
+		sub_spark.modulate = Color(0.5, 1.0, 0.8, 0.9)
+		sub_spark.scale = Vector2.ZERO
+		sub_spark.position = Vector2.ZERO
+		fx.add_child(sub_spark)
+
+		var sub_tw := create_tween().set_parallel(true)
+		sub_tw.tween_interval(float(i) * 0.04)
+		sub_tw.chain().tween_property(sub_spark, "position", spark_dirs[i], 0.18).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
+		sub_tw.parallel().tween_property(sub_spark, "scale", Vector2(0.12, 0.12), 0.15).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+		sub_tw.parallel().tween_property(sub_spark, "rotation", randf_range(-PI, PI), 0.3)
+		sub_tw.chain().tween_property(sub_spark, "scale", Vector2.ZERO, 0.15).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+		sub_tw.parallel().tween_property(sub_spark, "modulate:a", 0.0, 0.15)
+
+	var timer := get_tree().create_timer(0.55)
+	if timer:
+		timer.timeout.connect(fx.queue_free)
+
+func spawn_cell_magic_effect(world_pos: Vector2) -> void:
+	var fx := Node2D.new()
+	fx.name = "CellMagicEffect"
+	fx.global_position = world_pos
+	fx.z_index = 65
+	add_child(fx)
+
+	var magic_1: Texture2D = preload("res://assets/vfx/magic_01.png")
+	var magic_2: Texture2D = preload("res://assets/vfx/magic_02.png")
+	var mat := CanvasItemMaterial.new()
+	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_ADD
+
+	# Central arcane magic circle
+	var rune_1 := Sprite2D.new()
+	rune_1.texture = magic_1
+	rune_1.material = mat
+	rune_1.modulate = Color(0.85, 0.45, 1.0, 0.95)
+	rune_1.scale = Vector2.ZERO
+	fx.add_child(rune_1)
+
+	var tw1 := create_tween().set_parallel(true)
+	tw1.tween_property(rune_1, "scale", Vector2(0.24, 0.24), 0.22).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw1.tween_property(rune_1, "rotation", deg_to_rad(90.0), 0.45)
+	tw1.chain().tween_property(rune_1, "scale", Vector2(0.28, 0.28), 0.22).set_trans(Tween.TRANS_SINE)
+	tw1.parallel().tween_property(rune_1, "modulate:a", 0.0, 0.22)
+
+	# Counter-rotating outer magic aura
+	var rune_2 := Sprite2D.new()
+	rune_2.texture = magic_2
+	rune_2.material = mat
+	rune_2.modulate = Color(0.65, 0.85, 1.0, 0.8)
+	rune_2.scale = Vector2.ZERO
+	fx.add_child(rune_2)
+
+	var tw2 := create_tween().set_parallel(true)
+	tw2.tween_interval(0.05)
+	tw2.chain().tween_property(rune_2, "scale", Vector2(0.22, 0.22), 0.20).set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	tw2.parallel().tween_property(rune_2, "rotation", -deg_to_rad(75.0), 0.40)
+	tw2.chain().tween_property(rune_2, "scale", Vector2.ZERO, 0.20).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+	tw2.parallel().tween_property(rune_2, "modulate:a", 0.0, 0.20)
+
+	var timer := get_tree().create_timer(0.55)
+	if timer:
+		timer.timeout.connect(fx.queue_free)
 
 func _spawn_merge_bonus_exp(from_pos: Vector2, target_coord: Vector2i, merge_tier: int) -> void:
 	var max_exp_tier: int = clampi(merge_tier - 1, 1, 6)

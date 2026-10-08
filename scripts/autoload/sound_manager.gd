@@ -22,18 +22,27 @@ const BGM_WITCH: String = "res://assets/background/witch.mp3"
 var current_bgm_track: String = ""
 var _cached_bgm_streams: Dictionary = {}
 
-const STREAM_PICKUP: AudioStream = null
-const STREAM_DROP: AudioStream = null
-const STREAM_MERGE: AudioStream = null
-const STREAM_SPAWN: AudioStream = null
-const STREAM_CONSUME: AudioStream = null
-const STREAM_QUEST: AudioStream = null
-const STREAM_ERROR: AudioStream = null
-const STREAM_CLICK: AudioStream = null
-const STREAM_OPEN: AudioStream = null
-const STREAM_CLOSE: AudioStream = null
-const STREAM_BUY: AudioStream = null
-const STREAM_COIN_TICK: AudioStream = null
+const STREAM_CLICK: AudioStream = preload("res://assets/sfx/click.mp3")
+const STREAM_OPEN: AudioStream = preload("res://assets/sfx/popup_open.mp3")
+const STREAM_CLOSE: AudioStream = preload("res://assets/sfx/popup_close.mp3")
+const STREAM_SPAWN: AudioStream = preload("res://assets/sfx/spawn.mp3")
+const STREAM_SPAWN_SPRAY: AudioStream = preload("res://assets/sfx/spawnspray.mp3")
+const STREAM_TOAST: AudioStream = preload("res://assets/sfx/toast.mp3")
+const STREAM_BUBBLE: AudioStream = preload("res://assets/sfx/bubble.mp3")
+const STREAM_ATTENTION: AudioStream = preload("res://assets/sfx/attention.mp3")
+const STREAM_POURING: AudioStream = preload("res://assets/sfx/pouring.mp3")
+const STREAM_FABRIC_ROLL: AudioStream = preload("res://assets/sfx/fabric_roll.mp3")
+const STREAM_CONSTRUCTION: AudioStream = preload("res://assets/sfx/construction.mp3")
+const STREAM_INTRO: AudioStream = preload("res://assets/sfx/intro.mp3")
+
+const STREAM_PICKUP: AudioStream = STREAM_BUBBLE
+const STREAM_DROP: AudioStream = STREAM_BUBBLE
+const STREAM_MERGE: AudioStream = STREAM_BUBBLE
+const STREAM_CONSUME: AudioStream = STREAM_BUBBLE
+const STREAM_QUEST: AudioStream = STREAM_ATTENTION
+const STREAM_ERROR: AudioStream = STREAM_ATTENTION
+const STREAM_BUY: AudioStream = STREAM_CLICK
+const STREAM_COIN_TICK: AudioStream = STREAM_CLICK
 
 # Distinct merge sounds mapped by chain ID
 const CHAIN_MERGE_SOUNDS: Dictionary = {}
@@ -218,3 +227,18 @@ func play_buy() -> void:
 
 func play_token_arrival(pitch: float = 1.0) -> void:
 	play_sfx(STREAM_COIN_TICK, -2.0, 0.0, pitch)
+
+func play_spawnspray() -> void:
+	play_sfx(STREAM_SPAWN_SPRAY, 0.0, 0.03)
+
+func play_toast() -> void:
+	play_sfx(STREAM_TOAST, 0.0, 0.0)
+
+func play_pouring() -> void:
+	play_sfx(STREAM_POURING, 0.0, 0.02)
+
+func play_fabric_roll() -> void:
+	play_sfx(STREAM_FABRIC_ROLL, 0.0, 0.02)
+
+func play_attention() -> void:
+	play_sfx(STREAM_ATTENTION, 0.0, 0.0)

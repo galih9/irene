@@ -2,7 +2,7 @@
 
 [ext_resource type="Script" uid="uid://ow5pcxgwfjus" path="res://scripts/ui/splash_screen.gd" id="1_splash"]
 [ext_resource type="Texture2D" uid="uid://d03k2q3ae4iga" path="res://assets/splash.png" id="2_img"]
-[ext_resource type="AudioStream" uid="uid://b8vxr3ymv5lxf" path="res://assets/boot.ogg" id="3_audio"]
+[ext_resource type="AudioStream" uid="uid://d0xr1ibeu26r8" path="res://assets/sfx/intro.mp3" id="3_4gp4q"]
 
 [node name="SplashScreen" type="Control" unique_id=1564421400]
 layout_mode = 3
@@ -34,7 +34,7 @@ expand_mode = 1
 stretch_mode = 6
 
 [node name="BootAudioPlayer" type="AudioStreamPlayer" parent="." unique_id=661922363]
-stream = ExtResource("3_audio")
+stream = ExtResource("3_4gp4q")
 
 [node name="FadeOverlay" type="ColorRect" parent="." unique_id=1627316400]
 visible = false
