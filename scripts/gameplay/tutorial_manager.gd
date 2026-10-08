@@ -36,6 +36,9 @@ var popup_modal_ref: IrenePopupModal = null
 var toast_ref: IreneToast = null
 var bottom_nav_bar_ref: BottomNavBar = null
 
+const FORCED_OVERLAY_SCENE: PackedScene = preload("res://scenes/forced_tutorial_overlay.tscn")
+var forced_overlay: Control = null
+
 func _ready() -> void:
 	GameEvents.item_merged.connect(_on_item_merged)
 	GameEvents.item_spawned.connect(_on_item_spawned)
@@ -70,6 +73,7 @@ func start_tutorial_if_needed() -> void:
 		_resume_step(current_step)
 
 func _set_step(step: TutorialStep) -> void:
+	_hide_forced_tutorial()
 	current_step = step
 	GameEvents.tutorial_step_changed.emit(step as int)
 
@@ -97,6 +101,22 @@ func _set_step(step: TutorialStep) -> void:
 		TutorialStep.COMPLETED:
 			_finish_tutorial()
 
+func _show_forced_merge_tutorial(src_coord: Vector2i, tgt_coord: Vector2i) -> void:
+	_hide_forced_tutorial()
+	if not is_instance_valid(board_ref):
+		return
+	var parent_node: Node = board_ref.get_parent()
+	if not is_instance_valid(parent_node):
+		parent_node = board_ref
+	forced_overlay = FORCED_OVERLAY_SCENE.instantiate()
+	parent_node.add_child(forced_overlay)
+	forced_overlay.setup(board_ref, src_coord, tgt_coord)
+
+func _hide_forced_tutorial() -> void:
+	if is_instance_valid(forced_overlay):
+		forced_overlay.dismiss()
+		forced_overlay = null
+
 func _get_cell(coord: Vector2i) -> Vector2i:
 	if board_ref and board_ref.cols == 9:
 		return board_ref.map_coord_for_orientation(coord, true)
@@ -110,12 +130,14 @@ func _resume_step(step: TutorialStep) -> void:
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 			if toast_ref:
 				toast_ref.show_toast("Drag the center Foodbox to the locked Foodbox on the left!", "explain", 6.0)
+			_show_forced_merge_tutorial(_get_cell(Vector2i(3, 4)), _get_cell(Vector2i(2, 4)))
 		TutorialStep.MERGE_RIGHT:
 			if board_ref:
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
 			if toast_ref:
 				toast_ref.show_toast("Merge your Tier 2 Foodbox into the locked one on the right!", "happy", 6.0)
+			_show_forced_merge_tutorial(_get_cell(Vector2i(2, 4)), _get_cell(Vector2i(4, 4)))
 		TutorialStep.SPAWN_ITEM:
 			if board_ref:
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
@@ -151,7 +173,10 @@ func _show_step_1_merge_left() -> void:
 		popup_modal_ref.show_dialogue(msg, "greeting", func():
 			if toast_ref:
 				toast_ref.show_toast("Drag the center Foodbox to the locked Foodbox on the left!", "explain", 6.0)
+			_show_forced_merge_tutorial(_get_cell(Vector2i(3, 4)), _get_cell(Vector2i(2, 4)))
 		)
+	else:
+		_show_forced_merge_tutorial(_get_cell(Vector2i(3, 4)), _get_cell(Vector2i(2, 4)))
 
 # --- Step 2: Merge Right ---
 func _show_step_2_merge_right() -> void:
@@ -165,7 +190,10 @@ func _show_step_2_merge_right() -> void:
 		popup_modal_ref.show_dialogue(msg, "happy", func():
 			if toast_ref:
 				toast_ref.show_toast("Merge your Tier 2 Foodbox into the locked one on the right!", "happy", 6.0)
+			_show_forced_merge_tutorial(_get_cell(Vector2i(2, 4)), _get_cell(Vector2i(4, 4)))
 		)
+	else:
+		_show_forced_merge_tutorial(_get_cell(Vector2i(2, 4)), _get_cell(Vector2i(4, 4)))
 
 # --- Step 3: Spawn Item ---
 func _show_step_3_spawn_item() -> void:
@@ -333,6 +361,7 @@ func _show_step_9_store_in_inventory() -> void:
 		toast_ref.show_toast("Drag an item to the Backpack button below to store it!", "explain", 6.0)
 
 func _finish_tutorial() -> void:
+	_hide_forced_tutorial()
 	is_completed = true
 	current_step = TutorialStep.COMPLETED
 	if board_ref:
@@ -362,12 +391,14 @@ func _on_item_merged(source_id: String, target_id: String, result_id: String, _w
 		TutorialStep.MERGE_LEFT:
 			# Merged foodbox_1/pantry_1 into foodbox_1/pantry_1 -> foodbox_2/pantry_2
 			if result_id in ["foodbox_2", "pantry_2"] or (source_id in ["foodbox_1", "pantry_1"] and target_id in ["foodbox_1", "pantry_1"]):
+				_hide_forced_tutorial()
 				get_tree().create_timer(0.35).timeout.connect(func():
 					_set_step(TutorialStep.MERGE_RIGHT)
 				)
 		TutorialStep.MERGE_RIGHT:
 			# Merged foodbox_2/pantry_2 into foodbox_2/pantry_2 -> foodbox_3/pantry_3
 			if result_id in ["foodbox_3", "pantry_3"] or (source_id in ["foodbox_2", "pantry_2"] and target_id in ["foodbox_2", "pantry_2"]):
+				_hide_forced_tutorial()
 				get_tree().create_timer(0.35).timeout.connect(func():
 					_set_step(TutorialStep.SPAWN_ITEM)
 				)

@@ -177,6 +177,7 @@ const DRAG_THRESHOLD: float = 12.0
 
 @export var item_view_scene: PackedScene = preload("res://scenes/item_view.tscn")
 @export var cell_scene: PackedScene = preload("res://scenes/board_cell.tscn")
+@export var merge_sparkles_scene: PackedScene = preload("res://scenes/fx/merge_sparkles.tscn")
 
 @onready var background_panel: Panel = $Background
 @onready var cells_container: Control = $CellsContainer
@@ -224,11 +225,18 @@ func _trigger_idle_helper_animation() -> void:
 	
 	for i in range(items.size()):
 		var it1 := items[i]
-		if it1.data == null or it1.data.tier >= it1.data.max_tier or it1.data.is_spawner or it1.data.is_consumable or it1.data.is_combiner:
+		if it1.data == null or it1.data.tier >= it1.data.max_tier or it1.data.is_consumable or it1.data.is_combiner:
 			continue
+		if it1.data.is_spawner:
+			if it1.data.chain_id == "bakery" and it1.data.tier >= 7 and it1.current_charges > 0:
+				pass
+			else:
+				continue
 		for j in range(i + 1, items.size()):
 			var it2 := items[j]
 			if it2.data == it1.data:
+				if it2.data.chain_id == "bakery" and it2.data.tier >= 7 and it2.current_charges <= 0:
+					continue
 				it1.animate_shake_left_right()
 				it2.animate_shake_left_right()
 				return
@@ -1038,10 +1046,10 @@ func try_auto_spawn(spawner: ItemView) -> bool:
 	# Audio & Visual FX
 	spawner.animate_spawner_tap()
 	SoundManager.play_spawn()
-	var animal_data := ItemDatabase.get_item(drop_id)
-	var animal_name := animal_data.display_name if animal_data else "Animal"
+	var drop_data := ItemDatabase.get_item(drop_id)
+	var drop_name := drop_data.display_name if drop_data else "Item"
 	GameEvents.show_floating_text.emit(
-		"+1 %s!" % animal_name,
+		"+1 %s!" % drop_name,
 		spawner.global_position + Vector2(0, -45),
 		Color(0.3, 0.9, 0.5)
 	)
@@ -1176,6 +1184,11 @@ func _can_merge(a: Variant, b: Variant) -> bool:
 	if data_a.tier != data_b.tier:
 		return false
 	if data_a.tier >= data_a.max_tier:
+		return false
+	# Bakery tier 7+ hybrid: can only be merged as long as it has charges
+	if a is ItemView and a.data and a.data.chain_id == "bakery" and a.data.tier >= 7 and a.current_charges <= 0:
+		return false
+	if b is ItemView and b.data and b.data.chain_id == "bakery" and b.data.tier >= 7 and b.current_charges <= 0:
 		return false
 	return true
 
@@ -2111,6 +2124,7 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	target.boost_charges = 0
 	target.is_milked_ready = false
 	target.animate_merge_pop()
+	spawn_merge_sparkles(target.global_position)
 
 	var pop_pos := target.global_position + Vector2(0, -50)
 	var text_msg := "%s!" % [new_data.display_name]
@@ -2135,6 +2149,13 @@ func _execute_merge(source: ItemView, target: ItemView) -> void:
 	# Bonus EXP drop: Every time the user merges item higher than tier 4 (resulting in tier 5+)
 	if source_tier >= 4:
 		_spawn_merge_bonus_exp(target.global_position, target.grid_coord, source_tier)
+
+func spawn_merge_sparkles(world_pos: Vector2) -> void:
+	if not merge_sparkles_scene:
+		return
+	var fx: Node2D = merge_sparkles_scene.instantiate()
+	fx.global_position = world_pos
+	add_child(fx)
 
 func _spawn_merge_bonus_exp(from_pos: Vector2, target_coord: Vector2i, merge_tier: int) -> void:
 	var max_exp_tier: int = clampi(merge_tier - 1, 1, 6)
@@ -2414,7 +2435,7 @@ func update_cell_lock_visual(coord: Vector2i) -> void:
 		cell.set_cell_hidden(true)
 	else:
 		cell.set_cell_hidden(false)
-		var locked_status: bool = (item != null and item.is_locked())
+		var locked_status: bool = (item != null and (item.is_locked() or item.is_boxed()))
 		cell.set_locked(locked_status)
 
 func reveal_surrounding_items(center_coord: Vector2i, ring_radius: int = 1) -> Array[ItemView]:

@@ -2,6 +2,16 @@
 
 [ext_resource type="Script" uid="uid://ciculw8n4uxw2" path="res://scripts/gameplay/item_view.gd" id="1_item"]
 [ext_resource type="Texture2D" uid="uid://bibg5fga2dnaa" path="res://icon.jpg" id="2_icon"]
+[ext_resource type="Shader" path="res://shaders/item_outline.gdshader" id="3_outline_sh"]
+
+[sub_resource type="ShaderMaterial" id="ShaderMaterial_outline"]
+shader = ExtResource("3_outline_sh")
+shader_parameter/outline_color = Color(1, 1, 1, 0.95)
+shader_parameter/outline_width = 2.2
+shader_parameter/enable_outline = true
+shader_parameter/inner_stroke_amount = 0.25
+shader_parameter/pulse_speed = 0.0
+shader_parameter/pulse_intensity = 0.0
 
 [sub_resource type="StyleBoxFlat" id="StyleBoxFlat_badge"]
 bg_color = Color(0.12, 0.12, 0.15, 0.85)
@@ -50,6 +60,7 @@ scale = Vector2(0.56, 0.56)
 texture = ExtResource("2_icon")
 
 [node name="Sprite" type="Sprite2D" parent="Visuals" unique_id=1972356557]
+material = SubResource("ShaderMaterial_outline")
 scale = Vector2(0.48, 0.48)
 texture = ExtResource("2_icon")
 

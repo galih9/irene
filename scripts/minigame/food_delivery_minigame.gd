@@ -54,6 +54,7 @@ var stacks_container: HBoxContainer
 var flying_layer: Control
 
 # Modals
+var win_modal_layer: Control
 var win_modal: PanelContainer
 var win_title: Label
 var win_reward_label: Label
@@ -63,6 +64,7 @@ var win_levels_btn: Button
 var win_exit_btn: Button
 var win_particles: CPUParticles2D
 
+var game_over_modal_layer: Control
 var game_over_modal: PanelContainer
 var game_over_reason_label: Label
 var game_over_retry_btn: Button
@@ -320,12 +322,40 @@ func _build_ui() -> void:
 	playfield_container.size_flags_vertical = SIZE_EXPAND_FILL
 	main_vbox.add_child(playfield_container)
 
+	var playfield_center := CenterContainer.new()
+	playfield_center.name = "PlayfieldCenter"
+	playfield_center.set_anchors_preset(PRESET_FULL_RECT)
+	playfield_center.mouse_filter = MOUSE_FILTER_IGNORE
+	playfield_container.add_child(playfield_center)
+
+	var playfield_board := PanelContainer.new()
+	playfield_board.name = "PlayfieldBoard"
+	var board_style := StyleBoxFlat.new()
+	board_style.bg_color = Color(0.18, 0.15, 0.13, 0.72)
+	board_style.border_width_left = 2
+	board_style.border_width_top = 2
+	board_style.border_width_right = 2
+	board_style.border_width_bottom = 3
+	board_style.border_color = Color(0.48, 0.40, 0.34, 0.8)
+	board_style.set_corner_radius_all(20)
+	board_style.shadow_color = Color(0, 0, 0, 0.3)
+	board_style.shadow_size = 12
+	board_style.shadow_offset = Vector2(0, 4)
+	playfield_board.add_theme_stylebox_override("panel", board_style)
+	playfield_center.add_child(playfield_board)
+
+	var board_margin := MarginContainer.new()
+	board_margin.add_theme_constant_override("margin_left", 14)
+	board_margin.add_theme_constant_override("margin_right", 14)
+	board_margin.add_theme_constant_override("margin_top", 14)
+	board_margin.add_theme_constant_override("margin_bottom", 14)
+	playfield_board.add_child(board_margin)
+
 	stacks_container = HBoxContainer.new()
 	stacks_container.name = "StacksContainer"
-	stacks_container.set_anchors_preset(PRESET_FULL_RECT)
 	stacks_container.alignment = BoxContainer.ALIGNMENT_CENTER
-	stacks_container.add_theme_constant_override("separation", 16)
-	playfield_container.add_child(stacks_container)
+	stacks_container.add_theme_constant_override("separation", 14)
+	board_margin.add_child(stacks_container)
 
 	# Top Animation Layer for flying items
 	flying_layer = Control.new()
@@ -352,12 +382,37 @@ func _style_button(btn: Button, bg_col: Color) -> void:
 	btn.add_theme_color_override("font_color", Color.WHITE)
 
 func _build_win_modal() -> void:
+	win_modal_layer = Control.new()
+	win_modal_layer.name = "WinModalLayer"
+	win_modal_layer.set_anchors_preset(PRESET_FULL_RECT)
+	win_modal_layer.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	win_modal_layer.grow_vertical = Control.GROW_DIRECTION_BOTH
+	win_modal_layer.z_index = 400
+	win_modal_layer.visible = false
+	add_child(win_modal_layer)
+
+	var dimmer := ColorRect.new()
+	dimmer.name = "Dimmer"
+	dimmer.set_anchors_preset(PRESET_FULL_RECT)
+	dimmer.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	dimmer.grow_vertical = Control.GROW_DIRECTION_BOTH
+	dimmer.color = Color(0.06, 0.08, 0.10, 0.75)
+	dimmer.mouse_filter = Control.MOUSE_FILTER_STOP
+	win_modal_layer.add_child(dimmer)
+
+	var center := CenterContainer.new()
+	center.name = "Center"
+	center.set_anchors_preset(PRESET_FULL_RECT)
+	center.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center.grow_vertical = Control.GROW_DIRECTION_BOTH
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	win_modal_layer.add_child(center)
+
 	win_modal = PanelContainer.new()
 	win_modal.name = "WinModal"
 	win_modal.custom_minimum_size = Vector2(480, 480)
-	win_modal.set_anchors_preset(PRESET_CENTER)
 	win_modal.pivot_offset = Vector2(240, 240)
-	win_modal.z_index = 300
+	win_modal.mouse_filter = Control.MOUSE_FILTER_STOP
 	win_modal.visible = false
 
 	var style := StyleBoxFlat.new()
@@ -372,7 +427,7 @@ func _build_win_modal() -> void:
 	style.shadow_size = 20
 	style.shadow_offset = Vector2(0, 10)
 	win_modal.add_theme_stylebox_override("panel", style)
-	add_child(win_modal)
+	center.add_child(win_modal)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
@@ -447,6 +502,8 @@ func _build_win_modal() -> void:
 	win_levels_btn.custom_minimum_size = Vector2(100, 44)
 	_style_button(win_levels_btn, Color(0.45, 0.55, 0.65))
 	win_levels_btn.pressed.connect(func():
+		if is_instance_valid(win_modal_layer):
+			win_modal_layer.visible = false
 		win_modal.visible = false
 		open_level_select()
 	)
@@ -463,7 +520,12 @@ func _build_win_modal() -> void:
 	win_exit_btn.text = "Exit"
 	win_exit_btn.custom_minimum_size = Vector2(80, 44)
 	_style_button(win_exit_btn, Color(0.7, 0.4, 0.35))
-	win_exit_btn.pressed.connect(_on_back_pressed)
+	win_exit_btn.pressed.connect(func():
+		if is_instance_valid(win_modal_layer):
+			win_modal_layer.visible = false
+		win_modal.visible = false
+		_on_back_pressed()
+	)
 	btn_hbox.add_child(win_exit_btn)
 
 	# Confetti particles
@@ -484,12 +546,37 @@ func _build_win_modal() -> void:
 	win_modal.add_child(win_particles)
 
 func _build_game_over_modal() -> void:
+	game_over_modal_layer = Control.new()
+	game_over_modal_layer.name = "GameOverModalLayer"
+	game_over_modal_layer.set_anchors_preset(PRESET_FULL_RECT)
+	game_over_modal_layer.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	game_over_modal_layer.grow_vertical = Control.GROW_DIRECTION_BOTH
+	game_over_modal_layer.z_index = 400
+	game_over_modal_layer.visible = false
+	add_child(game_over_modal_layer)
+
+	var dimmer := ColorRect.new()
+	dimmer.name = "Dimmer"
+	dimmer.set_anchors_preset(PRESET_FULL_RECT)
+	dimmer.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	dimmer.grow_vertical = Control.GROW_DIRECTION_BOTH
+	dimmer.color = Color(0.12, 0.05, 0.05, 0.75)
+	dimmer.mouse_filter = Control.MOUSE_FILTER_STOP
+	game_over_modal_layer.add_child(dimmer)
+
+	var center := CenterContainer.new()
+	center.name = "Center"
+	center.set_anchors_preset(PRESET_FULL_RECT)
+	center.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center.grow_vertical = Control.GROW_DIRECTION_BOTH
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	game_over_modal_layer.add_child(center)
+
 	game_over_modal = PanelContainer.new()
 	game_over_modal.name = "GameOverModal"
 	game_over_modal.custom_minimum_size = Vector2(440, 360)
-	game_over_modal.set_anchors_preset(PRESET_CENTER)
 	game_over_modal.pivot_offset = Vector2(220, 180)
-	game_over_modal.z_index = 300
+	game_over_modal.mouse_filter = Control.MOUSE_FILTER_STOP
 	game_over_modal.visible = false
 
 	var style := StyleBoxFlat.new()
@@ -504,7 +591,7 @@ func _build_game_over_modal() -> void:
 	style.shadow_size = 20
 	style.shadow_offset = Vector2(0, 8)
 	game_over_modal.add_theme_stylebox_override("panel", style)
-	add_child(game_over_modal)
+	center.add_child(game_over_modal)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
@@ -543,6 +630,8 @@ func _build_game_over_modal() -> void:
 	game_over_retry_btn.custom_minimum_size = Vector2(130, 46)
 	_style_button(game_over_retry_btn, Color(0.3, 0.65, 0.45))
 	game_over_retry_btn.pressed.connect(func():
+		if is_instance_valid(game_over_modal_layer):
+			game_over_modal_layer.visible = false
 		game_over_modal.visible = false
 		start_level(current_level)
 	)
@@ -553,6 +642,8 @@ func _build_game_over_modal() -> void:
 	game_over_levels_btn.custom_minimum_size = Vector2(90, 46)
 	_style_button(game_over_levels_btn, Color(0.45, 0.55, 0.65))
 	game_over_levels_btn.pressed.connect(func():
+		if is_instance_valid(game_over_modal_layer):
+			game_over_modal_layer.visible = false
 		game_over_modal.visible = false
 		open_level_select()
 	)
@@ -562,25 +653,43 @@ func _build_game_over_modal() -> void:
 	game_over_exit_btn.text = "Exit"
 	game_over_exit_btn.custom_minimum_size = Vector2(80, 46)
 	_style_button(game_over_exit_btn, Color(0.65, 0.45, 0.4))
-	game_over_exit_btn.pressed.connect(_on_back_pressed)
+	game_over_exit_btn.pressed.connect(func():
+		if is_instance_valid(game_over_modal_layer):
+			game_over_modal_layer.visible = false
+		game_over_modal.visible = false
+		_on_back_pressed()
+	)
 	btn_hbox.add_child(game_over_exit_btn)
 
 func _build_level_select_modal() -> void:
 	level_select_modal = Control.new()
 	level_select_modal.name = "LevelSelectModal"
 	level_select_modal.set_anchors_preset(PRESET_FULL_RECT)
+	level_select_modal.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	level_select_modal.grow_vertical = Control.GROW_DIRECTION_BOTH
 	level_select_modal.visible = false
-	level_select_modal.z_index = 320
+	level_select_modal.z_index = 420
 	add_child(level_select_modal)
 
 	var dimmer := ColorRect.new()
 	dimmer.set_anchors_preset(PRESET_FULL_RECT)
+	dimmer.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	dimmer.grow_vertical = Control.GROW_DIRECTION_BOTH
 	dimmer.color = Color(0.08, 0.08, 0.1, 0.88)
+	dimmer.mouse_filter = Control.MOUSE_FILTER_STOP
 	level_select_modal.add_child(dimmer)
+
+	var center := CenterContainer.new()
+	center.name = "Center"
+	center.set_anchors_preset(PRESET_FULL_RECT)
+	center.grow_horizontal = Control.GROW_DIRECTION_BOTH
+	center.grow_vertical = Control.GROW_DIRECTION_BOTH
+	center.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	level_select_modal.add_child(center)
 
 	var panel := PanelContainer.new()
 	panel.custom_minimum_size = Vector2(560, 680)
-	panel.set_anchors_preset(PRESET_CENTER)
+	panel.mouse_filter = Control.MOUSE_FILTER_STOP
 	var p_style := StyleBoxFlat.new()
 	p_style.bg_color = Color(0.98, 0.96, 0.92, 1.0)
 	p_style.border_width_left = 2
@@ -592,7 +701,7 @@ func _build_level_select_modal() -> void:
 	p_style.shadow_color = Color(0, 0, 0, 0.35)
 	p_style.shadow_size = 20
 	panel.add_theme_stylebox_override("panel", p_style)
-	level_select_modal.add_child(panel)
+	center.add_child(panel)
 
 	var margin := MarginContainer.new()
 	margin.add_theme_constant_override("margin_left", 24)
@@ -642,7 +751,11 @@ func start_level(level_num: int) -> void:
 	current_level = clampi(level_num, 1, TOTAL_LEVELS)
 	var level_data := LevelDB.get_level(current_level)
 
+	if is_instance_valid(win_modal_layer):
+		win_modal_layer.visible = false
 	win_modal.visible = false
+	if is_instance_valid(game_over_modal_layer):
+		game_over_modal_layer.visible = false
 	game_over_modal.visible = false
 	level_select_modal.visible = false
 	is_paused = false
@@ -691,17 +804,59 @@ func _build_stacks(stacks_data: Array) -> void:
 		child.queue_free()
 	stack_columns.clear()
 
+	var max_items_in_level: int = 1
+	for col_data in stacks_data:
+		max_items_in_level = maxi(max_items_in_level, col_data.size())
+
+	var col_width: float = 80.0
+	var item_width: float = 72.0
+	var item_x: float = (col_width - item_width) * 0.5
+	var step_y: float = 46.0
+	var top_pad: float = 8.0
+	var bottom_pad: float = 8.0
+	var col_height: float = top_pad + bottom_pad + item_width + float(max_items_in_level - 1) * step_y
+
+	var col_count: int = stacks_data.size()
+	var separation: int = 14
+	if col_count >= 6:
+		separation = 10
+	elif col_count >= 5:
+		separation = 12
+	stacks_container.add_theme_constant_override("separation", separation)
+
 	for col_idx in range(stacks_data.size()):
 		var col_data: Array = stacks_data[col_idx]
 		var col_control := Control.new()
 		col_control.name = "StackCol_%d" % col_idx
-		col_control.custom_minimum_size = Vector2(76, 280)
-		col_control.size_flags_horizontal = SIZE_EXPAND_FILL
+		col_control.custom_minimum_size = Vector2(col_width, col_height)
+
+		# Subtle column track tray backing to ground the items visually
+		var col_track := Panel.new()
+		col_track.name = "TrackBg"
+		col_track.set_anchors_preset(PRESET_FULL_RECT)
+		col_track.mouse_filter = MOUSE_FILTER_IGNORE
+		var track_style := StyleBoxFlat.new()
+		track_style.bg_color = Color(0.18, 0.14, 0.12, 0.45)
+		track_style.border_width_left = 1
+		track_style.border_width_top = 1
+		track_style.border_width_right = 1
+		track_style.border_width_bottom = 1
+		track_style.border_color = Color(0.42, 0.36, 0.30, 0.5)
+		track_style.set_corner_radius_all(14)
+		col_track.add_theme_stylebox_override("panel", track_style)
+		col_control.add_child(col_track)
+
 		stacks_container.add_child(col_control)
 
 		var items_in_col: Array = []
-		# In stacks_data: index 0 is bottom, index -1 is top!
-		for row_idx in range(col_data.size()):
+		var total_rows: int = col_data.size()
+
+		# Stacking from TOP to BOTTOM:
+		# Index 0 in col_data is the bottom of the stack (deepest, locked under other items).
+		# Index total_rows - 1 in col_data is the topmost item of the stack (first accessible).
+		# Accessible item (total_rows - 1) is placed at y = top_pad (top of the column).
+		# Deeper items are placed below it (depth 1, 2, ... down the column).
+		for row_idx in range(total_rows):
 			var item_id: String = str(col_data[row_idx])
 			var item := ItemComponent.new(item_id)
 			item.name = "Item_%d_%d" % [col_idx, row_idx]
@@ -710,8 +865,9 @@ func _build_stacks(stacks_data: Array) -> void:
 			item.clicked.connect(_on_stack_item_clicked)
 			item.drag_ended.connect(_on_stack_item_drag_ended)
 
-			var y_pos: float = float(row_idx) * 44.0
-			item.position = Vector2(2, y_pos)
+			var depth_from_top: int = (total_rows - 1) - row_idx
+			var y_pos: float = top_pad + float(depth_from_top) * step_y
+			item.position = Vector2(item_x, y_pos)
 
 			col_control.add_child(item)
 			items_in_col.append(item)
@@ -1109,6 +1265,8 @@ func _trigger_win() -> void:
 		win_reward_icon.texture = reward_data.icon_texture
 
 	win_next_btn.visible = (current_level < TOTAL_LEVELS)
+	if is_instance_valid(win_modal_layer):
+		win_modal_layer.visible = true
 	win_modal.visible = true
 	win_modal.scale = Vector2(0.7, 0.7)
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -1142,6 +1300,8 @@ func _trigger_game_over(reason: String) -> void:
 		SoundManager.play_error()
 
 	game_over_reason_label.text = reason
+	if is_instance_valid(game_over_modal_layer):
+		game_over_modal_layer.visible = true
 	game_over_modal.visible = true
 	game_over_modal.scale = Vector2(0.7, 0.7)
 	var tween := create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
@@ -1236,6 +1396,9 @@ func _on_restart_pressed() -> void:
 	start_level(current_level)
 
 func _on_win_next_pressed() -> void:
+	if is_instance_valid(win_modal_layer):
+		win_modal_layer.visible = false
+	win_modal.visible = false
 	if current_level < TOTAL_LEVELS:
 		start_level(current_level + 1)
 	else:

@@ -2,7 +2,7 @@ extends Node
 
 # --- Audio Settings ---
 var bgm_enabled: bool = true
-var sfx_enabled: bool = true
+var sfx_enabled: bool = false
 
 var bgm_volume_db: float = -12.0
 var sfx_volume_db: float = -2.0
@@ -22,73 +22,21 @@ const BGM_WITCH: String = "res://assets/background/witch.mp3"
 var current_bgm_track: String = ""
 var _cached_bgm_streams: Dictionary = {}
 
-const STREAM_PICKUP: AudioStream = preload("res://assets/bgm/switch_001.ogg")
-const STREAM_DROP: AudioStream = preload("res://assets/bgm/drop_001.ogg")
-const STREAM_MERGE: AudioStream = preload("res://assets/bgm/glass_001.ogg")
-const STREAM_SPAWN: AudioStream = preload("res://assets/bgm/drop_002.ogg")
-const STREAM_CONSUME: AudioStream = preload("res://assets/bgm/confirmation_001.ogg")
-const STREAM_QUEST: AudioStream = preload("res://assets/bgm/confirmation_002.ogg")
-const STREAM_ERROR: AudioStream = preload("res://assets/bgm/error_004.ogg")
-const STREAM_CLICK: AudioStream = preload("res://assets/bgm/click1.ogg")
-const STREAM_OPEN: AudioStream = preload("res://assets/bgm/open_001.ogg")
-const STREAM_CLOSE: AudioStream = preload("res://assets/bgm/close_001.ogg")
-const STREAM_BUY: AudioStream = preload("res://assets/bgm/confirmation_003.ogg")
-const STREAM_COIN_TICK: AudioStream = preload("res://assets/bgm/tick_001.ogg")
+const STREAM_PICKUP: AudioStream = null
+const STREAM_DROP: AudioStream = null
+const STREAM_MERGE: AudioStream = null
+const STREAM_SPAWN: AudioStream = null
+const STREAM_CONSUME: AudioStream = null
+const STREAM_QUEST: AudioStream = null
+const STREAM_ERROR: AudioStream = null
+const STREAM_CLICK: AudioStream = null
+const STREAM_OPEN: AudioStream = null
+const STREAM_CLOSE: AudioStream = null
+const STREAM_BUY: AudioStream = null
+const STREAM_COIN_TICK: AudioStream = null
 
 # Distinct merge sounds mapped by chain ID
-const CHAIN_MERGE_SOUNDS: Dictionary = {
-	"pantry": preload("res://assets/bgm/switch_002.ogg"),
-	"foodbox": preload("res://assets/bgm/switch_002.ogg"),
-	"oven": preload("res://assets/bgm/maximize_004.ogg"),
-	"burner": preload("res://assets/bgm/drop_001.ogg"),
-	"fridge": preload("res://assets/bgm/glass_002.ogg"),
-	"rack": preload("res://assets/bgm/scratch_001.ogg"),
-	"healthy": preload("res://assets/bgm/drop_003.ogg"),
-	"egg": preload("res://assets/bgm/drop_003.ogg"),
-	"staples": preload("res://assets/bgm/switch_003.ogg"),
-	"leaf": preload("res://assets/bgm/switch_003.ogg"),
-	"bakery": preload("res://assets/bgm/switch_007.ogg"),
-	"sandwich": preload("res://assets/bgm/switch_007.ogg"),
-	"sweets": preload("res://assets/bgm/glass_003.ogg"),
-	"cake": preload("res://assets/bgm/glass_003.ogg"),
-	"grill": preload("res://assets/bgm/drop_001.ogg"),
-	"beef": preload("res://assets/bgm/drop_001.ogg"),
-	"noodle": preload("res://assets/bgm/pluck_001.ogg"),
-	"drinks": preload("res://assets/bgm/glass_004.ogg"),
-	"drink": preload("res://assets/bgm/glass_004.ogg"),
-	"dairy": preload("res://assets/bgm/glass_002.ogg"),
-	"util": preload("res://assets/bgm/glass_005.ogg"),
-	"utils": preload("res://assets/bgm/glass_005.ogg"),
-	"grocery_bag": preload("res://assets/bgm/open_002.ogg"),
-	"discount_coupon": preload("res://assets/bgm/tick_001.ogg"),
-	"sourdough_starter": preload("res://assets/bgm/switch1.ogg"),
-	"seed_packet": preload("res://assets/bgm/switch_003.ogg"),
-	"ice_cream_cart": preload("res://assets/bgm/glass_005.ogg"),
-	"golden_scoop": preload("res://assets/bgm/confirmation_002.ogg"),
-	"fortune_cookie_jar": preload("res://assets/bgm/switch2.ogg"),
-	"mystery_box": preload("res://assets/bgm/maximize_008.ogg"),
-	"chefs_toolbox": preload("res://assets/bgm/scratch_001.ogg"),
-	"whetstone": preload("res://assets/bgm/scratch_002.ogg"),
-	"golden_hen": preload("res://assets/bgm/confirmation_001.ogg"),
-	"golden_egg": preload("res://assets/bgm/glass_006.ogg"),
-	"exp": preload("res://assets/bgm/confirmation_002.ogg"),
-	"gold": preload("res://assets/bgm/confirmation_003.ogg"),
-	"energy": preload("res://assets/bgm/confirmation_004.ogg"),
-	"diamond": preload("res://assets/bgm/glass_006.ogg"),
-	"chest": preload("res://assets/bgm/maximize_006.ogg"),
-	"chest_purple": preload("res://assets/bgm/maximize_006.ogg"),
-	"chest_green": preload("res://assets/bgm/maximize_006.ogg"),
-	"chest_yellow": preload("res://assets/bgm/maximize_006.ogg"),
-	"chest_blue": preload("res://assets/bgm/maximize_006.ogg"),
-	"mystic_tree": preload("res://assets/bgm/maximize_004.ogg"),
-	"shroom": preload("res://assets/bgm/drop_003.ogg"),
-	"candle": preload("res://assets/bgm/glass_003.ogg"),
-	"spellbook": preload("res://assets/bgm/open_001.ogg"),
-	"wand": preload("res://assets/bgm/glass_005.ogg"),
-	"staff": preload("res://assets/bgm/glass_004.ogg"),
-	"broom": preload("res://assets/bgm/switch_007.ogg"),
-	"cauldron": preload("res://assets/bgm/maximize_006.ogg"),
-}
+const CHAIN_MERGE_SOUNDS: Dictionary = {}
 
 func _ready() -> void:
 	# 1. Initialize BGM Player

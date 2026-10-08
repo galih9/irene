@@ -14,6 +14,12 @@ enum ProducerStatus {
 	EXHAUST = 2
 }
 
+enum ItemSizeCategory {
+	SMALL = 0,
+	MEDIUM = 1,
+	NORMAL = 2
+}
+
 const BOX_TEXTURES: Array[Texture2D] = [
 	preload("res://assets/items/extras/box/box1.png"),
 	preload("res://assets/items/extras/box/box2.png"),
@@ -142,10 +148,49 @@ var _scale_tween: Tween
 var _base_scale: float = 0.48
 
 func _ready() -> void:
+	if sprite and sprite.material:
+		sprite.material = sprite.material.duplicate()
 	_ensure_auto_spawn_badge()
 	if data:
 		_update_visuals()
 	glow.visible = false
+
+func get_size_category() -> ItemSizeCategory:
+	if not data or data.max_tier <= 1:
+		return ItemSizeCategory.NORMAL
+	if data.max_tier <= 3:
+		if data.tier <= 1:
+			return ItemSizeCategory.SMALL
+		elif data.tier == 2:
+			return ItemSizeCategory.MEDIUM
+		else:
+			return ItemSizeCategory.NORMAL
+	elif data.max_tier <= 5:
+		if data.tier <= 1:
+			return ItemSizeCategory.SMALL
+		elif data.tier < data.max_tier:
+			return ItemSizeCategory.MEDIUM
+		else:
+			return ItemSizeCategory.NORMAL
+	else:
+		var ratio := float(data.tier) / float(data.max_tier)
+		if ratio <= 0.34:
+			return ItemSizeCategory.SMALL
+		elif ratio <= 0.67:
+			return ItemSizeCategory.MEDIUM
+		else:
+			return ItemSizeCategory.NORMAL
+
+func get_category_target_size() -> float:
+	match get_size_category():
+		ItemSizeCategory.SMALL:
+			return 50.0
+		ItemSizeCategory.MEDIUM:
+			return 60.0
+		ItemSizeCategory.NORMAL:
+			return 70.0
+		_:
+			return 70.0
 
 func _ensure_auto_spawn_badge() -> void:
 	if not visuals:
@@ -432,6 +477,10 @@ func can_merge_with(other: ItemView) -> bool:
 	if needs_feeding_to_upgrade() and not is_fully_fed():
 		return false
 	if other.needs_feeding_to_upgrade() and not other.is_fully_fed():
+		return false
+	if data.chain_id == "bakery" and data.tier >= 7 and current_charges <= 0:
+		return false
+	if other.data.chain_id == "bakery" and other.data.tier >= 7 and other.current_charges <= 0:
 		return false
 	return true
 
@@ -804,6 +853,8 @@ func _update_visuals() -> void:
 		if status_badge and status_label:
 			status_badge.visible = true
 			status_label.text = "Lv.%d" % unlock_level
+		if sprite and sprite.material is ShaderMaterial:
+			(sprite.material as ShaderMaterial).set_shader_parameter("enable_outline", false)
 		return
 
 	# Determine texture and scale for revealed items (NORMAL or LOCKED)
@@ -811,19 +862,20 @@ func _update_visuals() -> void:
 	if data.chain_id == "sheep" and shear_cooldown > 0.0:
 		active_tex = SHEEP_ALT_TEXTURES.get(data.id, data.icon_texture)
 
+	var target_dim := get_category_target_size()
 	if active_tex:
 		sprite.texture = active_tex
 		shadow.texture = active_tex
 		glow.texture = active_tex
 		var tex_size := active_tex.get_size()
 		var max_dim := maxf(tex_size.x, tex_size.y)
-		_base_scale = (70.0 / max_dim) * data.icon_scale if max_dim > 0.0 else 0.48
+		_base_scale = (target_dim / max_dim) * data.icon_scale if max_dim > 0.0 else 0.48
 	else:
 		var def_tex: Texture2D = preload("res://icon.jpg")
 		sprite.texture = def_tex
 		shadow.texture = def_tex
 		glow.texture = def_tex
-		_base_scale = 0.48 * data.icon_scale
+		_base_scale = (target_dim / 70.0) * 0.48 * data.icon_scale
 
 	sprite.scale = Vector2(_base_scale, _base_scale)
 	shadow.scale = Vector2(_base_scale * 0.9, _base_scale * 0.9)
@@ -832,6 +884,11 @@ func _update_visuals() -> void:
 	if item_state == ItemState.LOCKED:
 		# Locked status: disabled dark gray filter (more grayish and more transparent)
 		sprite.modulate = locked_item_modulate
+		if sprite and sprite.material is ShaderMaterial:
+			var sm := sprite.material as ShaderMaterial
+			sm.set_shader_parameter("enable_outline", true)
+			sm.set_shader_parameter("outline_color", Color(0.85, 0.85, 0.85, 0.45))
+			sm.set_shader_parameter("outline_width", 1.5)
 		if web_sprite:
 			if board_theme == "farm":
 				# Farm theme: dirt effect on locked item, no web
@@ -861,6 +918,11 @@ func _update_visuals() -> void:
 		stop_idle_animation()
 	else:
 		# Normal status: active coloring and badges, hide web/dirt
+		if sprite and sprite.material is ShaderMaterial:
+			var sm := sprite.material as ShaderMaterial
+			sm.set_shader_parameter("enable_outline", true)
+			sm.set_shader_parameter("outline_color", Color(1.0, 1.0, 1.0, 0.95))
+			sm.set_shader_parameter("outline_width", 2.2)
 		if web_sprite:
 			web_sprite.visible = false
 
@@ -1097,6 +1159,17 @@ func animate_merge_pop() -> void:
 	flash_tween.tween_property(sprite, "modulate", orig_color, 0.25)
 	SoundManager.play_merge(data)
 
+	# Sparkling effect
+	var b := get_board()
+	if is_instance_valid(b) and b.has_method("spawn_merge_sparkles"):
+		b.spawn_merge_sparkles(global_position)
+	else:
+		var spark_scn: PackedScene = load("res://scenes/fx/merge_sparkles.tscn")
+		if spark_scn and get_parent():
+			var sp = spark_scn.instantiate()
+			sp.global_position = global_position
+			get_parent().add_child(sp)
+
 func animate_consume_pop() -> void:
 	z_index = 50
 	if _scale_tween and _scale_tween.is_valid():
@@ -1171,6 +1244,14 @@ func animate_spawn_flight(from_pos: Vector2, to_pos: Vector2, on_complete: Calla
 
 func set_merge_highlight(active: bool) -> void:
 	glow.visible = active
+	if sprite and sprite.material is ShaderMaterial:
+		var sm := sprite.material as ShaderMaterial
+		if active:
+			sm.set_shader_parameter("outline_color", Color(0.35, 1.0, 0.55, 1.0))
+			sm.set_shader_parameter("outline_width", 3.2)
+		else:
+			sm.set_shader_parameter("outline_color", Color(1.0, 1.0, 1.0, 0.95))
+			sm.set_shader_parameter("outline_width", 2.2)
 	if active:
 		stop_idle_animation()
 		if _pulse_tween and _pulse_tween.is_valid():

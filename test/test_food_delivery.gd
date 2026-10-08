@@ -33,7 +33,26 @@ func _ready() -> void:
 		for st in stacks:
 			total_items += st.size()
 		assert(total_items == orders.size() * 3, "Level %d item count (%d) must equal orders * 3 (%d)" % [i, total_items, orders.size() * 3])
-		print("  [✓] Level %d: '%s' (%d orders, %d stacks, %ds, %d items) verified!" % [i, lvl["title"], orders.size(), stacks.size(), lvl["time_limit"], total_items])
+
+		# For levels >= 2, columns must be distinct (no duplicate triplet clones)
+		if i >= 2:
+			for ci in range(stacks.size()):
+				for cj in range(ci + 1, stacks.size()):
+					assert(stacks[ci] != stacks[cj], "Level %d columns %d and %d must not be identical clones" % [i, ci, cj])
+
+		# Verify mathematical solvability with built-in solver
+		var solve_res: Dictionary = LevelDB.solve_level(orders, stacks, 7)
+		assert(solve_res.get("solvable", false) == true, "Level %d must be 100%% mathematically solvable within 7 temp slots" % i)
+		var peak_slots: int = solve_res.get("peak_temp", 0)
+
+		print("  [✓] Level %d: '%s' (%d orders, %d stacks, %ds, peak temp: %d slots) verified solvable!" % [i, lvl["title"], orders.size(), stacks.size(), lvl["time_limit"], peak_slots])
+
+	# Test Procedural Generator for higher level
+	var lvl11: Dictionary = LevelDB.get_level(11)
+	assert(lvl11.get("level") == 11, "Procedural level 11 must have level number 11")
+	assert(lvl11.get("orders", []).size() >= 8, "Procedural level 11 must have at least 8 orders")
+	assert(LevelDB.solve_level(lvl11["orders"], lvl11["stacks"], 7).get("solvable", false) == true, "Procedural level 11 must be solvable")
+	print("  [✓] Procedural level generator beyond level 10 verified solvable!")
 
 	# 2. Test Food Items in ItemDatabase
 	print("\n--- 2. Testing Food Items Availability ---")
@@ -153,14 +172,47 @@ func _ready() -> void:
 	print("  [✓] Complete set packed without errors! _on_delivery_box_completed verified!")
 
 
-	# Test reward queue filling (Requirement 5)
-	var prev_reward_count := ProgressionManager.get_reward_count()
-	var test_reward := minigame._roll_random_reward()
-	assert(not test_reward.is_empty(), "Rolled reward must not be empty")
-	ProgressionManager.push_reward(test_reward)
-	assert(ProgressionManager.get_reward_count() == prev_reward_count + 1, "Reward queue count must increment")
-	assert(ProgressionManager.peek_reward() != "", "Reward queue must have pending item")
-	print("  [✓] Reward roll and temporary slot push (%s) verified!" % test_reward)
+	# 6. Test UX Polish: Modal Centering, Neat Board Layout & Top-To-Bottom Stacking
+	print("\n--- 6. Testing UX Polish: Modal Centering, Neat Layout & Top-To-Bottom Stacking ---")
+	minigame.start_level(1)
+
+	# Verify Top-to-Bottom stacking & neat horizontal centering in column
+	var col0: Array = minigame.stack_columns[0]
+	assert(col0.size() == 3, "Column 0 must have 3 items initially")
+	var top_item: FoodDeliveryItem = col0.back() # index 2
+	var mid_item: FoodDeliveryItem = col0[1]     # index 1
+	var bot_item: FoodDeliveryItem = col0[0]     # index 0
+
+	assert(top_item.item_id == "bakery_6", "Top item must be bakery_6")
+	assert(mid_item.item_id == "sweets_2", "Middle item must be sweets_2")
+	assert(bot_item.item_id == "healthy_3", "Bottom item must be healthy_3")
+
+	# Top item must be physically higher (lower Y) on screen than middle item, and middle higher than bottom
+	assert(top_item.position.y < mid_item.position.y, "Top item must be vertically higher on screen than middle item (top-to-bottom)")
+	assert(mid_item.position.y < bot_item.position.y, "Middle item must be vertically higher on screen than bottom item (top-to-bottom)")
+	assert(top_item.z_index > mid_item.z_index, "Top item must have higher z_index than middle item to layer neatly")
+	assert(mid_item.z_index > bot_item.z_index, "Middle item must have higher z_index than bottom item to layer neatly")
+
+	# Items must be horizontally centered in column
+	assert(is_equal_approx(top_item.position.x, 4.0), "Top item must be horizontally centered in 80px column (x=4)")
+	assert(is_equal_approx(mid_item.position.x, 4.0), "Middle item must be horizontally centered in 80px column (x=4)")
+
+	# Column must have track background
+	var col_ctrl: Control = top_item.get_parent() as Control
+	assert(col_ctrl.has_node("TrackBg"), "Column control must have TrackBg panel")
+
+	# Stacks must be housed inside centered playfield board
+	assert(minigame.stacks_container.get_parent().get_parent().name == "PlayfieldBoard", "StacksContainer must be framed in PlayfieldBoard")
+
+	# Verify Modal Centering Architecture
+	minigame._trigger_win()
+	assert(minigame.win_modal_layer.visible == true, "Win modal layer must be visible when triggered")
+	assert(minigame.win_modal.visible == true, "Win modal panel must be visible")
+	assert(minigame.win_modal.get_parent() is CenterContainer, "Win modal must be inside CenterContainer for guaranteed centering")
+	assert(minigame.win_modal_layer.has_node("Dimmer"), "Win modal layer must have a Dimmer backdrop")
+	assert(minigame.game_over_modal.get_parent() is CenterContainer, "GameOverModal must be inside CenterContainer")
+	assert(minigame.level_select_modal.has_node("Center"), "LevelSelectModal must have CenterContainer")
+	print("  [✓] Top-to-bottom stacking, column centering, neat board tray & modal centering verified!")
 
 
 	# Clean up

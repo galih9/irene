@@ -23,16 +23,16 @@ func _init_database() -> void:
 
 	# 3.1 EXP Chain (10 Tiers)
 	var exp_textures := [
-		preload("res://assets/items/rewards/exp/exp1.png"),
-		preload("res://assets/items/rewards/exp/exp2.png"),
-		preload("res://assets/items/rewards/exp/exp3.png"),
-		preload("res://assets/items/rewards/exp/exp4.png"),
-		preload("res://assets/items/rewards/exp/exp5.png"),
-		preload("res://assets/items/rewards/exp/exp6.png"),
-		preload("res://assets/items/rewards/exp/exp7.png"),
-		preload("res://assets/items/rewards/exp/exp8.png"),
-		preload("res://assets/items/rewards/exp/exp9.png"),
-		preload("res://assets/items/rewards/exp/exp10.png")
+		preload("res://assets/items_v2/rewards/exp/1.png"),
+		preload("res://assets/items_v2/rewards/exp/2.png"),
+		preload("res://assets/items_v2/rewards/exp/3.png"),
+		preload("res://assets/items_v2/rewards/exp/4.png"),
+		preload("res://assets/items_v2/rewards/exp/5.png"),
+		preload("res://assets/items_v2/rewards/exp/6.png"),
+		preload("res://assets/items_v2/rewards/exp/6.png"),
+		preload("res://assets/items_v2/rewards/exp/6.png"),
+		preload("res://assets/items_v2/rewards/exp/6.png"),
+		preload("res://assets/items_v2/rewards/exp/6.png")
 	]
 	var exp_names := [
 		"Mini EXP Spark", "EXP Ember", "Glowing Shard",
@@ -52,14 +52,14 @@ func _init_database() -> void:
 
 	# 3.2 Gold Chain (8 Tiers)
 	var gold_textures := [
-		preload("res://assets/items/rewards/gold/gold1.png"),
-		preload("res://assets/items/rewards/gold/gold2.png"),
-		preload("res://assets/items/rewards/gold/gold3.png"),
-		preload("res://assets/items/rewards/gold/gold4.png"),
-		preload("res://assets/items/rewards/gold/gold5.png"),
-		preload("res://assets/items/rewards/gold/gold6.png"),
-		preload("res://assets/items/rewards/gold/gold7.png"),
-		preload("res://assets/items/rewards/gold/gold8.png")
+		preload("res://assets/items_v2/rewards/gold/1.png"),
+		preload("res://assets/items_v2/rewards/gold/2.png"),
+		preload("res://assets/items_v2/rewards/gold/3.png"),
+		preload("res://assets/items_v2/rewards/gold/4.png"),
+		preload("res://assets/items_v2/rewards/gold/5.png"),
+		preload("res://assets/items_v2/rewards/gold/6.png"),
+		preload("res://assets/items_v2/rewards/gold/6.png"),
+		preload("res://assets/items_v2/rewards/gold/6.png")
 	]
 	var gold_names := [
 		"Bronze Penny", "Silver Dime", "Gold Sovereign",
@@ -79,14 +79,14 @@ func _init_database() -> void:
 
 	# 3.3 Energy Chain (8 Tiers)
 	var energy_textures := [
-		preload("res://assets/items/rewards/energy/energy_1.png"),
-		preload("res://assets/items/rewards/energy/energy_2.png"),
-		preload("res://assets/items/rewards/energy/energy_3.png"),
-		preload("res://assets/items/rewards/energy/energy_4.png"),
-		preload("res://assets/items/rewards/energy/energy_5.png"),
-		preload("res://assets/items/rewards/energy/energy_6.png"),
-		preload("res://assets/items/rewards/energy/energy_7.png"),
-		preload("res://assets/items/rewards/energy/energy_8.png")
+		preload("res://assets/items_v2/rewards/energy/1.png"),
+		preload("res://assets/items_v2/rewards/energy/2.png"),
+		preload("res://assets/items_v2/rewards/energy/3.png"),
+		preload("res://assets/items_v2/rewards/energy/4.png"),
+		preload("res://assets/items_v2/rewards/energy/5.png"),
+		preload("res://assets/items_v2/rewards/energy/6.png"),
+		preload("res://assets/items_v2/rewards/energy/6.png"),
+		preload("res://assets/items_v2/rewards/energy/6.png")
 	]
 	var energy_names := [
 		"Energy Spark", "Energy Droplet", "Energy Battery",
@@ -106,13 +106,13 @@ func _init_database() -> void:
 
 	# 3.4 Diamond Chain (7 Tiers)
 	var diamond_textures := [
-		preload("res://assets/items/rewards/diamond/diamond_1.png"),
-		preload("res://assets/items/rewards/diamond/diamond_2.png"),
-		preload("res://assets/items/rewards/diamond/diamond_3.png"),
-		preload("res://assets/items/rewards/diamond/diamond_4.png"),
-		preload("res://assets/items/rewards/diamond/diamond_5.png"),
-		preload("res://assets/items/rewards/diamond/diamond_6.png"),
-		preload("res://assets/items/rewards/diamond/diamond_7.png")
+		preload("res://assets/items_v2/rewards/diamond/1.png"),
+		preload("res://assets/items_v2/rewards/diamond/2.png"),
+		preload("res://assets/items_v2/rewards/diamond/3.png"),
+		preload("res://assets/items_v2/rewards/diamond/4.png"),
+		preload("res://assets/items_v2/rewards/diamond/5.png"),
+		preload("res://assets/items_v2/rewards/diamond/6.png"),
+		preload("res://assets/items_v2/rewards/diamond/6.png")
 	]
 	var diamond_names := [
 		"Raw Diamond Shard", "Flawed Diamond", "Cut Diamond",
@@ -1417,13 +1417,16 @@ func _register_kitchen_items() -> void:
 	# 1.1 Pantry Chain (10 Tiers, produces healthy & staples)
 	# -------------------------------------------------------------------------
 	var pantry_textures: Array[Texture2D] = [
-		preload("res://assets/items/kitchen/foodbox/food1.png"),
-		preload("res://assets/items/kitchen/foodbox/food2.png"),
-		preload("res://assets/items/kitchen/foodbox/food3.png"),
-		preload("res://assets/items/kitchen/foodbox/food4.png"),
-		preload("res://assets/items/kitchen/foodbox/food5.png"),
-		preload("res://assets/items/kitchen/foodbox/food6.png"),
-		beta_tex, beta_tex, beta_tex, beta_tex
+		preload("res://assets/items_v2/kitchen/pantry/1.png"),
+		preload("res://assets/items_v2/kitchen/pantry/2.png"),
+		preload("res://assets/items_v2/kitchen/pantry/3.png"),
+		preload("res://assets/items_v2/kitchen/pantry/4.png"),
+		preload("res://assets/items_v2/kitchen/pantry/5.png"),
+		preload("res://assets/items_v2/kitchen/pantry/6.png"),
+		preload("res://assets/items_v2/kitchen/pantry/7.png"),
+		preload("res://assets/items_v2/kitchen/pantry/8.png"),
+		preload("res://assets/items_v2/kitchen/pantry/9.png"),
+		preload("res://assets/items_v2/kitchen/pantry/10.png")
 	]
 	var pantry_names := [
 		"Wooden Pantry Crate", "Reinforced Pantry Bin", "Pantry Box",
@@ -1433,10 +1436,10 @@ func _register_kitchen_items() -> void:
 	var pantry_descs := [
 		"A small wooden storage crate. Merge to tier 3 to create a fresh pantry spawner!",
 		"A reinforced produce storage bin. Merge to tier 3 to create a fresh pantry spawner!",
-		"A well-stocked kitchen pantry box. Tap to produce healthy food and staples! Uses 1 Energy.",
-		"Chef's selection produce bin with fresh ingredients. Uses 1 Energy.",
-		"Gourmet harvest locker packed with kitchen staples and fresh items. Uses 1 Energy.",
-		"Spacious master pantry vault producing high-quality culinary essentials. Uses 1 Energy.",
+		"A well-stocked kitchen pantry box. Tap to produce healthy food! Uses 1 Energy.",
+		"Chef's selection produce bin with fresh healthy food and a low chance of staples. Uses 1 Energy.",
+		"Gourmet harvest locker packed with fresh healthy food and kitchen staples. Uses 1 Energy.",
+		"Spacious master pantry vault producing high-quality culinary essentials and higher tier items. Uses 1 Energy.",
 		"Artisan food cellar! Produces healthy items, staples, and drops Grocery Bags. Uses 1 Energy.",
 		"Deluxe culinary larder! Drops healthy items, staples, Grocery Bags, and Seed Packets. Uses 1 Energy.",
 		"Imperial farm pantry! Drops healthy items, staples, temp spawners, and rare Golden Hens! Uses 1 Energy.",
@@ -1459,13 +1462,16 @@ func _register_kitchen_items() -> void:
 	# 1.2 Oven Chain (10 Tiers, produces bakery & sweets)
 	# -------------------------------------------------------------------------
 	var oven_textures: Array[Texture2D] = [
-		preload("res://assets/items/kitchen/oven/oven_1.png"),
-		preload("res://assets/items/kitchen/oven/oven_2.png"),
-		preload("res://assets/items/kitchen/oven/oven_3.png"),
-		preload("res://assets/items/kitchen/oven/oven_4.png"),
-		preload("res://assets/items/kitchen/oven/oven_5.png"),
-		preload("res://assets/items/kitchen/oven/oven_6.png"),
-		beta_tex, beta_tex, beta_tex, beta_tex
+		preload("res://assets/items_v2/kitchen/oven/1.tres"),
+		preload("res://assets/items_v2/kitchen/oven/2.tres"),
+		preload("res://assets/items_v2/kitchen/oven/3.tres"),
+		preload("res://assets/items_v2/kitchen/oven/4.tres"),
+		preload("res://assets/items_v2/kitchen/oven/5.tres"),
+		preload("res://assets/items_v2/kitchen/oven/6.tres"),
+		preload("res://assets/items_v2/kitchen/oven/7.tres"),
+		preload("res://assets/items_v2/kitchen/oven/8.tres"),
+		preload("res://assets/items_v2/kitchen/oven/9.tres"),
+		preload("res://assets/items_v2/kitchen/oven/10.tres")
 	]
 	var oven_names := [
 		"Clay Toaster", "Stone Stove", "Brick Baker",
@@ -1473,16 +1479,16 @@ func _register_kitchen_items() -> void:
 		"Artisan Deck Oven", "Hearth Stone Roaster", "Convection Master Range", "Supreme Culinary Blast Oven"
 	]
 	var oven_descs := [
-		"A small clay toaster. Merge to tier 3 to bake delicious bakery goods and sweets!",
+		"A small clay toaster. Merge to tier 3 to bake delicious bakery goods!",
 		"A sturdy stone hearth with steady baking heat. Merge to tier 3 to bake!",
-		"Traditional brick baker for warm breads and sweet treats. Uses 1 Energy.",
-		"Precision stainless steel baking oven. Uses 1 Energy.",
-		"Professional pastry and cake range. Uses 1 Energy.",
-		"Grand culinary oven! Bakes gourmet bakery and delicate sweets. Uses 1 Energy.",
-		"Artisan deck oven! Produces bakery & sweets, and drops Sourdough Starters. Uses 1 Energy.",
-		"Hearth stone roaster! Produces bakery, sweets, Sourdough Starters, and Ice Cream Carts. Uses 1 Energy.",
-		"Convection master range! Fast baking and frequent temporary spawner drops. Uses 1 Energy.",
-		"Supreme blast oven! The pinnacle of baking mastery. Uses 1 Energy."
+		"Traditional brick baker for warm breads! Tap to bake or lets it autospawn fresh bakery nearby for free (0 Energy).",
+		"Precision stainless steel baking oven. Tap to produce or autospawns bakery nearby without consuming energy.",
+		"Professional pastry and bread range. Tap to produce or autospawns bakery nearby without consuming energy.",
+		"Grand culinary oven! Bakes gourmet bakery. Tap to produce or autospawns bakery nearby for free.",
+		"Artisan deck oven! Produces bakery and drops Sourdough Starters. Autospawns nearby without consuming energy.",
+		"Hearth stone roaster! Produces bakery, Sourdough Starters, and autospawns nearby for free.",
+		"Convection master range! Fast baking and autospawns bakery goods nearby without consuming energy.",
+		"Supreme blast oven! The pinnacle of baking mastery. Autospawns premium bakery goods nearby for free."
 	]
 	for t in range(1, 11):
 		var it := _register_item(
@@ -1496,6 +1502,11 @@ func _register_kitchen_items() -> void:
 		it.cooldown_per_charge = default_spawner_cooldown_per_charge
 		it.energy_cost = 1
 		it.spawn_pool = _get_oven_pool(t)
+		if t >= default_min_spawner_tier:
+			it.has_auto_spawn = true
+			it.auto_spawn_interval = 20.0 if t == 3 else (16.0 if t <= 6 else 12.0)
+			it.auto_spawn_max_stack = 1 if t == 3 else (2 if t <= 5 else 3)
+			it.auto_spawn_pool = _get_oven_auto_pool(t)
 
 	# -------------------------------------------------------------------------
 	# 1.3 Burner Chain (10 Tiers, produces grill & noodle)
@@ -1619,13 +1630,22 @@ func _register_kitchen_items() -> void:
 	# 2.1 Healthy Food Chain (16 Tiers, replaces Eggs)
 	# -------------------------------------------------------------------------
 	var healthy_textures: Array[Texture2D] = [
-		preload("res://assets/items/kitchen/eggs/egg_0.png"),
-		preload("res://assets/items/kitchen/eggs/egg_1.png"),
-		preload("res://assets/items/kitchen/eggs/egg_2.png"),
-		preload("res://assets/items/kitchen/eggs/egg_3.png"),
-		preload("res://assets/items/kitchen/eggs/egg_4.png"),
-		preload("res://assets/items/kitchen/eggs/egg_5.png"),
-		beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex
+		preload("res://assets/items_v2/kitchen/healthy/1.png"),
+		preload("res://assets/items_v2/kitchen/healthy/2.png"),
+		preload("res://assets/items_v2/kitchen/healthy/3.png"),
+		preload("res://assets/items_v2/kitchen/healthy/4.png"),
+		preload("res://assets/items_v2/kitchen/healthy/5.png"),
+		preload("res://assets/items_v2/kitchen/healthy/6.png"),
+		preload("res://assets/items_v2/kitchen/healthy/7.png"),
+		preload("res://assets/items_v2/kitchen/healthy/8.png"),
+		preload("res://assets/items_v2/kitchen/healthy/9.png"),
+		preload("res://assets/items_v2/kitchen/healthy/10.png"),
+		preload("res://assets/items_v2/kitchen/healthy/11.png"),
+		preload("res://assets/items_v2/kitchen/healthy/12.png"),
+		preload("res://assets/items_v2/kitchen/healthy/13.png"),
+		preload("res://assets/items_v2/kitchen/healthy/14.png"),
+		preload("res://assets/items_v2/kitchen/healthy/15.png"),
+		preload("res://assets/items_v2/kitchen/healthy/16.png")
 	]
 	var healthy_names := [
 		"Fresh Farm Egg", "Boiled Egg & Chives", "Sunny Side Toast", "Avocado Egg Bowl",
@@ -1662,12 +1682,22 @@ func _register_kitchen_items() -> void:
 	# 2.2 Pantry Staples Chain (16 Tiers, replaces leaf)
 	# -------------------------------------------------------------------------
 	var staples_textures: Array[Texture2D] = [
-		preload("res://assets/items/kitchen/leafs/leaf_0.png"),
-		preload("res://assets/items/kitchen/leafs/leaf_1.png"),
-		preload("res://assets/items/kitchen/leafs/leaf_2.png"),
-		preload("res://assets/items/kitchen/leafs/leaf_3.png"),
-		preload("res://assets/items/kitchen/leafs/leaf_4.png"),
-		beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex
+		preload("res://assets/items_v2/kitchen/staple/1.png"),
+		preload("res://assets/items_v2/kitchen/staple/2.png"),
+		preload("res://assets/items_v2/kitchen/staple/3.png"),
+		preload("res://assets/items_v2/kitchen/staple/4.png"),
+		preload("res://assets/items_v2/kitchen/staple/5.png"),
+		preload("res://assets/items_v2/kitchen/staple/6.png"),
+		preload("res://assets/items_v2/kitchen/staple/7.png"),
+		preload("res://assets/items_v2/kitchen/staple/8.png"),
+		preload("res://assets/items_v2/kitchen/staple/9.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png"),
+		preload("res://assets/items_v2/kitchen/staple/10.png")
 	]
 	var staples_names := [
 		"Fresh Herb Leaf", "Crisp Celery Stalk", "Spinach Bundle", "Garden Cabbage",
@@ -1704,13 +1734,22 @@ func _register_kitchen_items() -> void:
 	# 2.3 Bakery Chain (16 Tiers)
 	# -------------------------------------------------------------------------
 	var bakery_textures: Array[Texture2D] = [
-		preload("res://assets/items/kitchen/sandwich/sandwich1.png"),
-		preload("res://assets/items/kitchen/sandwich/sandwich2.png"),
-		preload("res://assets/items/kitchen/sandwich/sandwich3.png"),
-		preload("res://assets/items/kitchen/sandwich/sandwich4.png"),
-		preload("res://assets/items/kitchen/sandwich/sandwich5.png"),
-		preload("res://assets/items/kitchen/sandwich/sandwich6.png"),
-		beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex
+		preload("res://assets/items_v2/kitchen/bakery/1.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/2.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/3.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/4.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/5.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/6.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/7.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/8.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres"),
+		preload("res://assets/items_v2/kitchen/bakery/9.tres")
 	]
 	var bakery_names := [
 		"Bread Dough", "Dinner Roll", "Pretzel Knot", "French Baguette",
@@ -1725,35 +1764,56 @@ func _register_kitchen_items() -> void:
 		"Crusty French baguette with an airy open crumb.",
 		"Slow-fermented rustic artisan sourdough loaf with a blistered crust.",
 		"Flaky, golden, buttery layered French croissant. Finished bread shortcut!",
-		"Crisp layered pastry filled with sweet custard and fruit.",
-		"Fragrant rolled cinnamon pastry glazed with icing sugar. Finished bread shortcut!",
-		"Golden braided holiday challah bread with a glossy egg wash.",
-		"Rich, buttery, feather-light French brioche loaf. Finished bread shortcut!",
-		"Rosemary and sea salt focaccia dimpled with virgin olive oil.",
-		"Magnificent wheat sheaf shaped harvest bread. Finished bread shortcut!",
-		"Rustic countryside pain de campagne baked in wood-fired hearths.",
-		"An artisan baker's grand centerpiece bread display.",
-		"Decadent bread fit for royalty, baked with golden heirloom grains.",
-		"The legendary Golden Loaf of gastronomy! Max tier bakery masterpiece."
+		"Crisp layered pastry filled with sweet custard and fruit. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Fragrant rolled cinnamon pastry glazed with icing sugar. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Golden braided holiday challah bread with a glossy egg wash. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Rich, buttery, feather-light French brioche loaf. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Rosemary and sea salt focaccia dimpled with virgin olive oil. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Magnificent wheat sheaf shaped harvest bread. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Rustic countryside pain de campagne baked in wood-fired hearths. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"An artisan baker's grand centerpiece bread display. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"Decadent bread fit for royalty, baked with golden heirloom grains. Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Merges into next tier, or reverts to Tier 6 Croissant when exhausted!",
+		"The legendary Golden Loaf of gastronomy! Hybrid Spawner: Tap to spawn Sweets (6 charges, 1 Energy). Reverts to Tier 6 Croissant when exhausted!"
 	]
 	for t in range(1, 17):
-		_register_item(
+		var it := _register_item(
 			"bakery_%d" % t, "bakery", "Bakery", t, 16,
 			bakery_names[t - 1], bakery_descs[t - 1],
 			Color(0.92, 0.78, 0.42), bakery_textures[t - 1]
 		)
+		if t >= 7:
+			# Hybrid Spawner: acts as hybrid between spawner and normal item
+			# Spawns sweets for 6 charges, then converts back into bakery tier 6
+			# Can still be merged into higher tiers as long as it has charges
+			it.is_spawner = true
+			it.is_temporary_spawner = true
+			it.min_spawner_tier = 1
+			it.max_charges = 6
+			it.cooldown_per_charge = 0.0
+			it.energy_cost = 1
+			it.exhaust_conversion_id = "bakery_6"
+			it.spawn_pool = _get_bakery_sweets_pool(t)
 
 	# -------------------------------------------------------------------------
 	# 2.4 Sweets Chain (16 Tiers)
 	# -------------------------------------------------------------------------
 	var sweets_textures: Array[Texture2D] = [
-		preload("res://assets/items/kitchen/cake/cake_1.png"),
-		preload("res://assets/items/kitchen/cake/cake_2.png"),
-		preload("res://assets/items/kitchen/cake/cake_3.png"),
-		preload("res://assets/items/kitchen/cake/cake_4.png"),
-		preload("res://assets/items/kitchen/cake/cake_5.png"),
-		preload("res://assets/items/kitchen/cake/cake_6.png"),
-		beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex, beta_tex
+		preload("res://assets/items_v2/kitchen/sweets/1.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/2.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/3.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/4.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/5.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/6.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/7.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/8.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/9.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/10.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/11.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/12.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/13.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/14.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/15.tres"),
+		preload("res://assets/items_v2/kitchen/sweets/16.tres")
 	]
 	var sweets_names := [
 		"Sugar Cookie", "Fluffy Cupcake", "Berry Tart", "Vanilla Sponge Roll",
@@ -2223,53 +2283,53 @@ func _register_temporary_spawners() -> void:
 func _get_pantry_pool(tier: int) -> Array[String]:
 	match tier:
 		3:
-			# Tier 3 Pantry Box (Starter Spawner): Strictly Level 1 items only (100% Level 1)
+			# Tier 3 Pantry Box: Starts spawning healthy items only (100% healthy_1)
 			return [
-				"healthy_1", "healthy_1", "healthy_1", "healthy_1",
-				"staples_1", "staples_1", "staples_1", "staples_1"
+				"healthy_1"
 			]
 		4:
-			# Tier 4 Chef's Produce Bin: 85% Level 1, 15% Level 2
+			# Tier 4 Chef's Produce Bin: Primarily healthy, low chance to also spawn staple (~18% staple), low chance tier 2 (~9%)
 			return [
 				"healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1",
-				"staples_1", "staples_1", "staples_1", "staples_1", "staples_1", "staples_1", "staples_1", "staples_1",
-				"healthy_2", "staples_2", "healthy_2"
+				"staples_1", "staples_1",
+				"healthy_2"
 			]
 		5:
-			# Tier 5 Gourmet Harvest Locker: 70% Level 1, 25% Level 2, 5% Level 3
-			return [
-				"healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1",
-				"staples_1", "staples_1", "staples_1", "staples_1", "staples_1", "staples_1", "staples_1",
-				"healthy_2", "healthy_2", "healthy_2", "staples_2", "staples_2",
-				"healthy_3"
-			]
-		6:
-			# Tier 6 Master Walk-in Pantry: 50% Level 1, 35% Level 2, 15% Level 3
+			# Tier 5 Gourmet Harvest Locker: Moderate chance to spawn staple (40% staple), low chance tier 2 (20%)
 			return [
 				"healthy_1", "healthy_1", "healthy_1", "healthy_1", "healthy_1",
-				"staples_1", "staples_1", "staples_1", "staples_1", "staples_1",
-				"healthy_2", "healthy_2", "healthy_2", "healthy_2", "staples_2", "staples_2", "staples_2",
-				"healthy_3", "healthy_3", "staples_3"
+				"staples_1", "staples_1", "staples_1",
+				"healthy_2", "staples_2"
+			]
+		6:
+			# Tier 6 Master Walk-in Pantry: Healthy & staples with low chance to spawn high tier items (tier 2)
+			return [
+				"healthy_1", "healthy_1", "healthy_1", "healthy_1",
+				"staples_1", "staples_1", "staples_1",
+				"healthy_2", "staples_2"
 			]
 		7:
 			# Tier 7 Artisan Food Cellar: Drops Healthy, Staples + Grocery Bag
 			return [
-				"healthy_1", "healthy_1", "healthy_2", "healthy_2", "healthy_3",
-				"staples_1", "staples_1", "staples_2", "staples_2", "staples_3",
-				"healthy_4", "staples_4",
+				"healthy_1", "healthy_1", "healthy_1",
+				"staples_1", "staples_1",
+				"healthy_2", "healthy_2", "staples_2",
+				"healthy_3", "staples_3",
 				"grocery_bag_1", "grocery_bag_1"
 			]
 		8:
 			# Tier 8 Deluxe Culinary Larder: Drops Healthy, Staples + Grocery Bag, Seed Packet
 			return [
-				"healthy_1", "healthy_2", "healthy_2", "healthy_3", "healthy_4",
-				"staples_1", "staples_2", "staples_2", "staples_3", "staples_4",
+				"healthy_1", "healthy_2", "healthy_2", "healthy_3",
+				"staples_1", "staples_2", "staples_2", "staples_3",
+				"healthy_4", "staples_4",
 				"grocery_bag_1", "seed_packet_1"
 			]
 		9:
 			var p9: Array[String] = [
-				"healthy_2", "healthy_2", "healthy_3", "healthy_3", "healthy_4", "healthy_5",
-				"staples_2", "staples_2", "staples_3", "staples_3", "staples_4", "staples_5",
+				"healthy_2", "healthy_2", "healthy_3", "healthy_3", "healthy_4",
+				"staples_2", "staples_2", "staples_3", "staples_3", "staples_4",
+				"healthy_5", "staples_5",
 				"grocery_bag_1", "seed_packet_1"
 			]
 			if randf() < 0.01:
@@ -2291,55 +2351,74 @@ func _get_foodbox_pool(tier: int) -> Array[String]:
 func _get_oven_pool(tier: int) -> Array[String]:
 	match tier:
 		3:
-			# Tier 3 Brick Baker: Strictly Level 1 items only (100% Level 1)
-			return ["bakery_1", "sweets_1"]
+			# Tier 3 Brick Baker: Strictly Level 1 bakery
+			return ["bakery_1"]
 		4:
 			# Tier 4 Stainless Oven: 85% Level 1, 15% Level 2
 			return [
 				"bakery_1", "bakery_1", "bakery_1", "bakery_1", "bakery_1", "bakery_1",
-				"sweets_1", "sweets_1", "sweets_1", "sweets_1", "sweets_1", "sweets_1",
-				"bakery_2", "sweets_2"
+				"bakery_2"
 			]
 		5:
 			# Tier 5 Pastry Range: 70% Level 1, 25% Level 2, 5% Level 3
 			return [
 				"bakery_1", "bakery_1", "bakery_1", "bakery_1",
-				"sweets_1", "sweets_1", "sweets_1", "sweets_1",
-				"bakery_2", "bakery_2", "sweets_2", "sweets_2",
-				"sweets_3"
+				"bakery_2", "bakery_2",
+				"bakery_3"
 			]
 		6:
 			# Tier 6 Grand Master Oven: 50% Level 1, 35% Level 2, 15% Level 3
 			return [
 				"bakery_1", "bakery_1", "bakery_1",
-				"sweets_1", "sweets_1", "sweets_1",
-				"bakery_2", "bakery_2", "sweets_2", "sweets_2",
-				"bakery_3", "sweets_3"
+				"bakery_2", "bakery_2",
+				"bakery_3"
 			]
 		7:
 			return [
-				"bakery_1", "bakery_2", "bakery_3", "bakery_4",
-				"sweets_1", "sweets_2", "sweets_3", "sweets_4",
+				"bakery_1", "bakery_2", "bakery_2", "bakery_3", "bakery_4",
 				"sourdough_starter_1", "sourdough_starter_1"
 			]
 		8:
 			return [
 				"bakery_2", "bakery_2", "bakery_3", "bakery_4",
-				"sweets_2", "sweets_2", "sweets_3", "sweets_4",
-				"sourdough_starter_1", "ice_cream_cart_1"
+				"sourdough_starter_1"
 			]
 		9:
 			return [
 				"bakery_2", "bakery_3", "bakery_3", "bakery_4", "bakery_5",
-				"sweets_2", "sweets_3", "sweets_3", "sweets_4", "sweets_5",
-				"sourdough_starter_1", "ice_cream_cart_1"
+				"sourdough_starter_1"
 			]
 		_:
 			return [
 				"bakery_3", "bakery_3", "bakery_4", "bakery_4", "bakery_5",
-				"sweets_3", "sweets_3", "sweets_4", "sweets_4", "sweets_5",
-				"sourdough_starter_1", "ice_cream_cart_1"
+				"sourdough_starter_1"
 			]
+
+func _get_oven_auto_pool(tier: int) -> Array[String]:
+	match tier:
+		3:
+			return ["bakery_1"]
+		4:
+			return ["bakery_1", "bakery_1", "bakery_2"]
+		5:
+			return ["bakery_1", "bakery_2"]
+		6:
+			return ["bakery_1", "bakery_2", "bakery_3"]
+		_:
+			return ["bakery_2", "bakery_3"]
+
+func _get_bakery_sweets_pool(tier: int) -> Array[String]:
+	match tier:
+		7:
+			return ["sweets_1", "sweets_1", "sweets_1", "sweets_1", "sweets_2"]
+		8:
+			return ["sweets_1", "sweets_1", "sweets_1", "sweets_2", "sweets_2"]
+		9:
+			return ["sweets_1", "sweets_1", "sweets_2", "sweets_2", "sweets_3"]
+		10:
+			return ["sweets_1", "sweets_2", "sweets_2", "sweets_3", "sweets_4"]
+		_:
+			return ["sweets_2", "sweets_2", "sweets_3", "sweets_3", "sweets_4", "sweets_5"]
 
 func _get_burner_pool(tier: int) -> Array[String]:
 	match tier:

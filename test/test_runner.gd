@@ -758,17 +758,9 @@ func _ready() -> void:
 	assert(SplashScreen.SPLASH_DURATION == 3.0, "SplashScreen duration must be 3.0 seconds")
 	print("[OK] Multi-Track Looped BGM System & Splash Screen verified!")
 
-	# 19. Test Sound Effects (Kenney SFX Audio Pool)
+	# 19. Test Sound Effects (Audio Pool & Safe Fallbacks when SFX deleted)
 	print("\n--- Testing Kenney SFX Audio Pool ---")
 	assert(SoundManager._sfx_players.size() == 8, "SFX player pool must have 8 players")
-	assert(SoundManager.STREAM_PICKUP != null, "STREAM_PICKUP must be loaded")
-	assert(SoundManager.STREAM_ERROR != null, "STREAM_ERROR must be loaded")
-	assert(SoundManager.STREAM_CLICK != null, "STREAM_CLICK must be loaded")
-	assert("error_004" in SoundManager.STREAM_ERROR.resource_path, "STREAM_ERROR must use error_004.ogg")
-	assert(not "click" in SoundManager.STREAM_PICKUP.resource_path, "STREAM_PICKUP must not use click sound")
-	assert(not "pluck" in SoundManager.STREAM_PICKUP.resource_path, "STREAM_PICKUP must not use pluck sound")
-	assert("click" in SoundManager.STREAM_CLICK.resource_path, "STREAM_CLICK must use click sound")
-	assert(not "pluck" in SoundManager.STREAM_CLICK.resource_path, "STREAM_CLICK must not use pluck sound")
 
 	# Trigger all gameplay SFX methods to ensure no exceptions or missing streams
 	SoundManager.play_pickup()
@@ -783,16 +775,8 @@ func _ready() -> void:
 	SoundManager.play_close()
 	print("[OK] Kenney SFX Audio Pool verified!")
 
-	# 20. Test Distinct Merge Sounds per Item & Chain
+	# 20. Test Distinct Merge Sounds per Item & Chain (Safe Fallback)
 	print("\n--- Testing Distinct Merge Sounds per Item & Chain ---")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("foodbox"), "Must have merge sound for foodbox")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("oven"), "Must have merge sound for oven")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("fridge"), "Must have merge sound for fridge")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("egg"), "Must have merge sound for egg")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("beef"), "Must have merge sound for beef")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("cake"), "Must have merge sound for cake")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS.has("chest"), "Must have merge sound for chest")
-	assert(SoundManager.CHAIN_MERGE_SOUNDS["chest"] != null, "Chest merge sound must be loaded")
 
 	# Test calling play_merge with various item data instances
 	var test_foodbox: ItemData = ItemDatabase.get_item("foodbox_3")
