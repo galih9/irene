@@ -63,6 +63,14 @@ const SMOKE_TEXTURES: Array[Texture2D] = [
 	preload("res://assets/vfx/smoke_10.png")
 ]
 
+const SMOKE_TINTS: Array[Color] = [
+	Color(0.98, 0.97, 0.95), # Clean fluffy white
+	Color(0.95, 0.91, 0.83), # Warm plaster/chalk dust
+	Color(0.91, 0.86, 0.77), # Cozy beige / wood dust
+	Color(0.86, 0.84, 0.80), # Soft mortar / gray shadow
+	Color(0.96, 0.93, 0.86)  # Creamy billow
+]
+
 # State
 var tier: int = 1
 var chain_id: String = "bakery"
@@ -78,6 +86,7 @@ var construction_duration: float = 10.0
 var construction_audio: AudioStreamPlayer = null
 var smoke_container: Node2D = null
 var construction_timer_panel: PanelContainer = null
+var construction_progress_bar: ProgressBar = null
 var construction_timer_label: Label = null
 var _smoke_spawn_timer: float = 0.0
 
@@ -100,10 +109,11 @@ func _ready() -> void:
 	_update_visuals()
 
 func setup(p_tier: int, p_root: Vector2i, p_board: Node, p_chain: String = "bakery") -> void:
-	tier = clampi(p_tier, 1, 3)
+	chain_id = p_chain
+	var max_t := OverworldBuildingDataClass.get_max_tier(chain_id)
+	tier = clampi(p_tier, 1, max_t)
 	root_coord = p_root
 	_board_ref = p_board
-	chain_id = p_chain
 	building_data = OverworldBuildingDataClass.get_data(tier, chain_id)
 	_build_nodes_if_needed()
 	_update_visuals()
@@ -187,6 +197,7 @@ func _build_nodes_if_needed() -> void:
 		badge_label.add_theme_font_size_override("font_size", 12)
 		badge_label.add_theme_color_override("font_color", Color(1.0, 0.96, 0.85))
 		badge_panel.add_child(badge_label)
+		badge_panel.visible = false
 
 		visuals.add_child(badge_panel)
 
@@ -213,10 +224,11 @@ func _update_visuals() -> void:
 	if badge_label:
 		badge_label.text = building_data.badge_text
 		badge_label.add_theme_color_override("font_color", building_data.badge_color)
-	if badge_panel and tex:
-		# Place badge slightly above the building roof
-		var badge_y: float = s_pos.y - (tex.get_height() * sc * 0.5) - 10.0
-		badge_panel.position = Vector2(-badge_panel.size.x * 0.5, badge_y)
+	if badge_panel:
+		badge_panel.visible = false
+		if tex:
+			var badge_y: float = s_pos.y - (tex.get_height() * sc * 0.5) - 10.0
+			badge_panel.position = Vector2(-badge_panel.size.x * 0.5, badge_y)
 
 	_update_shadow_polygon()
 
@@ -334,9 +346,11 @@ func _process(delta: float) -> void:
 	_update_audio_volume()
 
 	_smoke_spawn_timer += delta
-	if _smoke_spawn_timer >= 0.22:
+	if _smoke_spawn_timer >= 0.08:
 		_smoke_spawn_timer = 0.0
-		_spawn_smoke_puff()
+		var puff_count := 1 if get_occupied_cells().size() <= 2 else 2
+		for p in range(puff_count):
+			_spawn_smoke_puff()
 
 	if construction_timer <= 0.0:
 		finish_construction()
@@ -364,33 +378,74 @@ func _build_construction_nodes() -> void:
 		construction_timer_panel.name = "ConstructionTimerPanel"
 		construction_timer_panel.mouse_filter = Control.MOUSE_FILTER_IGNORE
 		var style := StyleBoxFlat.new()
-		style.bg_color = Color(0.18, 0.13, 0.08, 0.95)
-		style.border_width_left = 2
-		style.border_width_top = 2
-		style.border_width_right = 2
-		style.border_width_bottom = 2
-		style.border_color = Color(1.0, 0.78, 0.22, 0.95)
+		style.bg_color = Color(0.12, 0.14, 0.18, 0.94)
+		style.border_width_left = 1
+		style.border_width_top = 1
+		style.border_width_right = 1
+		style.border_width_bottom = 1
+		style.border_color = Color(1.0, 0.82, 0.28, 0.9)
 		style.corner_radius_top_left = 8
 		style.corner_radius_top_right = 8
 		style.corner_radius_bottom_right = 8
 		style.corner_radius_bottom_left = 8
 		style.content_margin_left = 8
 		style.content_margin_right = 8
-		style.content_margin_top = 3
-		style.content_margin_bottom = 3
+		style.content_margin_top = 4
+		style.content_margin_bottom = 4
+		style.shadow_color = Color(0, 0, 0, 0.45)
+		style.shadow_size = 4
 		construction_timer_panel.add_theme_stylebox_override("panel", style)
+
+		var vbox := VBoxContainer.new()
+		vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+		vbox.add_theme_constant_override("separation", 3)
+		vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		construction_timer_panel.add_child(vbox)
+
+		construction_progress_bar = ProgressBar.new()
+		construction_progress_bar.name = "ConstructionProgressBar"
+		construction_progress_bar.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		construction_progress_bar.custom_minimum_size = Vector2(76, 8)
+		construction_progress_bar.show_percentage = false
+		construction_progress_bar.min_value = 0.0
+		construction_progress_bar.max_value = 100.0
+		construction_progress_bar.value = 0.0
+
+		var bar_bg := StyleBoxFlat.new()
+		bar_bg.bg_color = Color(0.08, 0.09, 0.12, 0.95)
+		bar_bg.corner_radius_top_left = 4
+		bar_bg.corner_radius_top_right = 4
+		bar_bg.corner_radius_bottom_right = 4
+		bar_bg.corner_radius_bottom_left = 4
+		construction_progress_bar.add_theme_stylebox_override("background", bar_bg)
+
+		var bar_fill := StyleBoxFlat.new()
+		bar_fill.bg_color = Color(1.0, 0.76, 0.22, 1.0)
+		bar_fill.corner_radius_top_left = 4
+		bar_fill.corner_radius_top_right = 4
+		bar_fill.corner_radius_bottom_right = 4
+		bar_fill.corner_radius_bottom_left = 4
+		construction_progress_bar.add_theme_stylebox_override("fill", bar_fill)
+		vbox.add_child(construction_progress_bar)
 
 		construction_timer_label = Label.new()
 		construction_timer_label.name = "ConstructionTimerLabel"
 		construction_timer_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
-		construction_timer_label.add_theme_font_size_override("font_size", 13)
-		construction_timer_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.35))
+		construction_timer_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		construction_timer_label.add_theme_font_size_override("font_size", 11)
+		construction_timer_label.add_theme_color_override("font_color", Color(1.0, 0.92, 0.45))
 		construction_timer_label.text = "🔨 10s"
-		construction_timer_panel.add_child(construction_timer_label)
+		vbox.add_child(construction_timer_label)
+
 		construction_timer_panel.visible = false
 		visuals.add_child(construction_timer_panel)
 
 func start_construction(duration: float = 10.0) -> void:
+	if chain_id == "tree" or (building_data and "requires_construction" in building_data and not building_data.requires_construction):
+		is_under_construction = false
+		animate_merge_pop()
+		return
+
 	_build_construction_nodes()
 	is_under_construction = true
 	construction_duration = duration
@@ -408,8 +463,9 @@ func start_construction(duration: float = 10.0) -> void:
 
 	# Initial multiple smoke construction burst
 	_smoke_spawn_timer = 0.0
-	for i in range(4):
-		_spawn_smoke_puff()
+	var burst_count := 8 + get_occupied_cells().size() * 2
+	for i in range(burst_count):
+		_spawn_smoke_puff(true)
 
 	# Animated subtle construction wobble / pulsing
 	if _anim_tween and _anim_tween.is_valid():
@@ -434,7 +490,7 @@ func finish_construction() -> void:
 	if construction_timer_panel:
 		construction_timer_panel.visible = false
 	if badge_panel:
-		badge_panel.visible = true
+		badge_panel.visible = false
 
 	animate_merge_pop()
 
@@ -453,7 +509,11 @@ func skip_construction() -> void:
 func _update_construction_timer_display() -> void:
 	if not construction_timer_panel or not construction_timer_label:
 		return
-	construction_timer_label.text = "🔨 %ds" % int(ceilf(construction_timer))
+	var remaining_sec := maxi(0, int(ceilf(construction_timer)))
+	construction_timer_label.text = "🔨 %ds" % remaining_sec
+	if construction_progress_bar:
+		var ratio := clampf((construction_duration - construction_timer) / maxf(0.001, construction_duration), 0.0, 1.0)
+		construction_progress_bar.value = ratio * 100.0
 	if building_data and sprite and sprite.texture:
 		var s_pos: Vector2 = building_data.sprite_offset
 		var tex := sprite.texture
@@ -494,41 +554,79 @@ func _update_audio_volume() -> void:
 
 	construction_audio.volume_db = clampf(vol, -45.0, 2.0)
 
-func _spawn_smoke_puff() -> void:
+func _spawn_smoke_puff(is_burst: bool = false) -> void:
 	if not smoke_container or SMOKE_TEXTURES.is_empty():
 		return
 	var puff := Sprite2D.new()
 	var tex_idx := randi() % SMOKE_TEXTURES.size()
 	puff.texture = SMOKE_TEXTURES[tex_idx]
+	puff.flip_h = randf() > 0.5
+	puff.flip_v = randf() > 0.5
 	var mat := CanvasItemMaterial.new()
 	mat.blend_mode = CanvasItemMaterial.BLEND_MODE_MIX
 	puff.material = mat
 
-	# Multi-point smoke position around the building footprint
-	var spread_x := float(tier) * 36.0
-	var spread_y := float(tier) * 18.0
+	# Calculate multi-point footprint distribution
+	var occupied := get_occupied_cells()
+	var foot_cells := maxi(1, occupied.size())
+	var size_mult := maxf(1.0, sqrt(float(foot_cells)) * 0.6)
+
+	var offsets := get_footprint_offsets()
+	var chosen_off: Vector2i = offsets[randi() % offsets.size()] if not offsets.is_empty() else Vector2i.ZERO
+	var cell_offset := OverworldGeometryClass.get_cell_offset(chosen_off)
 	var s_pos: Vector2 = building_data.sprite_offset if building_data else Vector2.ZERO
-	var spawn_pos := Vector2(
-		randf_range(-spread_x, spread_x),
-		s_pos.y + randf_range(10.0 - spread_y, spread_y + 15.0)
+
+	# Position centered around the chosen footprint cell with organic jitter
+	var spawn_pos := cell_offset + Vector2(
+		randf_range(-38.0, 38.0) * size_mult,
+		(s_pos.y * 0.35) + randf_range(-20.0, 20.0) * size_mult + (randf_range(-40.0, 10.0) if is_burst else 0.0)
 	)
 	puff.position = spawn_pos
-	puff.scale = Vector2(0.06, 0.06)
-	puff.modulate = Color(0.94, 0.92, 0.86, 0.82)
+	puff.z_index = randi_range(20, 35)
+
+	# Rich scale variation: Large voluminous clouds that blanket the site, medium billows, and dense accents
+	var roll := randf()
+	var target_scale: float
+	if roll < 0.45:
+		# Large voluminous clouds that engulf the site
+		target_scale = randf_range(0.75, 1.25) * size_mult
+	elif roll < 0.85:
+		# Medium billows
+		target_scale = randf_range(0.48, 0.75) * size_mult
+	else:
+		# Dense base puffs
+		target_scale = randf_range(0.32, 0.48) * size_mult
+
+	var initial_scale := target_scale * (0.35 if is_burst else 0.12)
+	puff.scale = Vector2(initial_scale, initial_scale)
+
+	# High opacity with rich color variation
+	var tint: Color = SMOKE_TINTS[randi() % SMOKE_TINTS.size()]
+	var initial_alpha := randf_range(0.92, 0.98)
+	puff.modulate = Color(tint.r, tint.g, tint.b, initial_alpha)
 	smoke_container.add_child(puff)
 
-	var target_scale := randf_range(0.24, 0.35)
-	var rise_height := randf_range(45.0, 75.0)
+	var rise_height := randf_range(50.0, 110.0) * size_mult
 	var target_y := spawn_pos.y - rise_height
-	var duration := randf_range(0.65, 0.85)
-	var rot_target := randf_range(-PI * 0.45, PI * 0.45)
+	var drift_x := spawn_pos.x + randf_range(-30.0, 30.0) * size_mult
+	var duration := randf_range(0.95, 1.55)
+	var rot_start := randf_range(-PI, PI)
+	var rot_target := rot_start + randf_range(-PI * 0.5, PI * 0.5)
+	puff.rotation = rot_start
 
 	var tw := create_tween().set_parallel(true)
 	tw.tween_property(puff, "position:y", target_y, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-	tw.tween_property(puff, "position:x", spawn_pos.x + randf_range(-15.0, 15.0), duration)
+	tw.tween_property(puff, "position:x", drift_x, duration).set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_OUT)
 	tw.tween_property(puff, "scale", Vector2(target_scale, target_scale), duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
 	tw.tween_property(puff, "rotation", rot_target, duration)
-	tw.tween_property(puff, "modulate:a", 0.0, duration).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
+	# Hold opacity for ~58% of duration, then fade out smoothly over remaining ~42%
+	var fade_delay := duration * 0.58
+	var fade_time := duration * 0.42
+	var alpha_tw := create_tween()
+	alpha_tw.tween_interval(fade_delay)
+	alpha_tw.tween_property(puff, "modulate:a", 0.0, fade_time).set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_IN)
+
 	tw.finished.connect(func():
 		if is_instance_valid(puff):
 			puff.queue_free()

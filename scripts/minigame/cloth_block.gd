@@ -101,16 +101,13 @@ func _draw() -> void:
 				draw_rect(cell_rect, main_c, true, -1, false)
 				draw_rect(cell_rect, dark_c, false, 1.8, false)
 
-				# Inner dashed stitching around the cell
+				# Inner stitching around the cell
 				var inset := 3.0
 				var inner_c := cell_rect.grow(-inset)
 				if inner_c.size.x > 4.0 and inner_c.size.y > 4.0:
 					var stitch_c := light_c
-					stitch_c.a = 0.8
-					_draw_dashed_segment(inner_c.position, Vector2(inner_c.end.x, inner_c.position.y), stitch_c, 4.0)
-					_draw_dashed_segment(Vector2(inner_c.position.x, inner_c.end.y), inner_c.end, stitch_c, 4.0)
-					_draw_dashed_segment(inner_c.position, Vector2(inner_c.position.x, inner_c.end.y), stitch_c, 4.0)
-					_draw_dashed_segment(Vector2(inner_c.end.x, inner_c.position.y), inner_c.end, stitch_c, 4.0)
+					stitch_c.a = 0.55
+					draw_rect(inner_c, stitch_c, false, 1.0, false)
 
 				# Top soft shine
 				var shine_rect := Rect2(cell_rect.position + Vector2(2, 2), Vector2(maxf(2.0, cell_rect.size.x - 4), maxf(2.0, cell_rect.size.y * 0.3)))
@@ -149,14 +146,18 @@ func _draw_dashed_segment(from: Vector2, to: Vector2, col: Color, dash_len: floa
 	if total_len <= 0.001:
 		return
 	var dir := (to - from).normalized()
+	var pts := PackedVector2Array()
 	var curr := 0.0
 	var draw_dash := true
 	while curr < total_len:
 		var next_curr := minf(curr + dash_len, total_len)
 		if draw_dash:
-			draw_line(from + dir * curr, from + dir * next_curr, col, 1.5)
+			pts.append(from + dir * curr)
+			pts.append(from + dir * next_curr)
 		curr = next_curr
 		draw_dash = not draw_dash
+	if pts.size() >= 2:
+		draw_multiline(pts, col, 1.5)
 
 func animate_fall_to(new_pos: Vector2, delay: float = 0.0, duration: float = 0.26) -> void:
 	if is_rolling or is_cleared:

@@ -162,7 +162,7 @@ func apply_orientation(landscape: bool) -> void:
 			board.position.y = 86.0
 		else:
 			board.position.x = (720.0 - board.get_board_width()) * 0.5
-			board.position.y = 298.0
+			board.position.y = 322.0
 
 	# 3. Quests on the left (Landscape) vs top (Portrait)
 	if is_instance_valid(quest_container) and is_instance_valid(quest_manager):
@@ -176,7 +176,7 @@ func apply_orientation(landscape: bool) -> void:
 			quest_container.offset_left = 28.0
 			quest_container.offset_top = 114.0
 			quest_container.offset_right = 692.0
-			quest_container.offset_bottom = 286.0
+			quest_container.offset_bottom = 296.0
 
 	# 4. Bottom nav on the right (Landscape) vs bottom (Portrait)
 	if is_instance_valid(bottom_nav_bar):
@@ -254,6 +254,7 @@ func show_minigame(enable: bool, game_type: String = "thread_roller") -> void:
 
 		minigame_instance.visible = true
 		board.visible = false
+		board.process_mode = Node.PROCESS_MODE_DISABLED
 		if is_instance_valid(quest_container):
 			quest_container.visible = false
 		if is_instance_valid(bottom_bar):
@@ -266,6 +267,7 @@ func show_minigame(enable: bool, game_type: String = "thread_roller") -> void:
 		if is_instance_valid(minigame_instance):
 			minigame_instance.visible = false
 		board.visible = true
+		board.process_mode = Node.PROCESS_MODE_INHERIT
 		if is_instance_valid(quest_container):
 			quest_container.visible = true
 		if is_instance_valid(bottom_bar):

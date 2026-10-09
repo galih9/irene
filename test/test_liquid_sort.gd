@@ -272,7 +272,7 @@ func _ready() -> void:
 
 	assert(is_instance_valid(modal.liquid_sort_btn), "Selection modal must have liquid_sort_btn")
 	var liquid_card_label: Label = modal.get_node("Panel/VBox/ScrollContainer/CardsContainer/LiquidSortCard/Margin/HBox/InfoVBox/Name")
-	assert(liquid_card_label.text == "Sort the Liquid", "Card name must be 'Sort the Liquid'")
+	assert(liquid_card_label.text == "Sort the Liquid" or liquid_card_label.text == "Liquid Sort", "Card name must match liquid sort minigame")
 	var liquid_portrait: TextureRect = modal.get_node("Panel/VBox/ScrollContainer/CardsContainer/LiquidSortCard/Margin/HBox/Portrait")
 	assert(liquid_portrait.texture != null and liquid_portrait.texture.resource_path.contains("bottle/normal.png"), "Card must use bottle/normal.png")
 

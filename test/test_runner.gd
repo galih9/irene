@@ -1386,10 +1386,11 @@ func _ready() -> void:
 	for q in qm._pending_starter_quests:
 		if q != null:
 			all_starter_quests.append(q)
-	assert(all_starter_quests.size() == 3, "Must have 3 starter quests total")
-	for q in all_starter_quests:
+	assert(all_starter_quests.size() == 20, "Must have 20 starter quests total")
+	for i in range(3):
+		var q: QuestData = all_starter_quests[i]
 		for req_id in q.required_item_ids:
-			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "Starter quest items must only be egg or leaf, got: %s" % req_id)
+			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "Starter quest items 1-3 must only be egg or leaf, got: %s" % req_id)
 
 	# 30.2 Test quest generation when only egg/leaf are unlocked
 	ProgressionManager.reset_all()

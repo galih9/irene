@@ -2,7 +2,8 @@ class_name QuestManager
 extends Control
 
 @export var quest_card_scene: PackedScene = preload("res://scenes/quest_card.tscn")
-@onready var cards_container: BoxContainer = $CardsContainer
+@onready var cards_scroll: ScrollContainer = get_node_or_null("MarginContainer/CardsScroll") if has_node("MarginContainer/CardsScroll") else get_node_or_null("CardsScroll")
+@onready var cards_container: BoxContainer = get_node_or_null("MarginContainer/CardsScroll/CardsContainer") if has_node("MarginContainer/CardsScroll/CardsContainer") else (get_node_or_null("CardsScroll/CardsContainer") if has_node("CardsScroll/CardsContainer") else get_node_or_null("CardsContainer"))
 
 var board_ref: Board = null
 var is_vertical: bool = false
@@ -16,7 +17,13 @@ var _pending_starter_quests: Array[QuestData] = []
 var ultimate_quest_active: bool = false
 var ultimate_quest_completed: bool = false
 
+const ABSOLUTE_MAX_QUESTS: int = 10
+const BASE_QUESTS: int = 3
 const MAX_QUESTS: int = 3
+
+func get_max_quests_for_level(lvl: int = -1) -> int:
+	var l := lvl if lvl > 0 else (ProgressionManager.player_level if is_instance_valid(ProgressionManager) else 1)
+	return clampi(2 + l, BASE_QUESTS, ABSOLUTE_MAX_QUESTS)
 
 var current_board_theme: String = "kitchen"
 var _boards_data: Dictionary = {} # theme_id -> Dictionary of state
@@ -95,10 +102,58 @@ func _ready() -> void:
 	instance = self
 	GameEvents.board_changed.connect(_on_board_changed)
 	GameEvents.inventory_changed.connect(update_quest_status)
+	GameEvents.player_leveled_up.connect(_on_player_leveled_up)
+	_setup_scroll_handling()
+
+func _setup_scroll_handling() -> void:
+	if is_instance_valid(cards_scroll) and not cards_scroll.gui_input.is_connected(_on_cards_scroll_gui_input):
+		cards_scroll.gui_input.connect(_on_cards_scroll_gui_input)
+
+var _is_dragging_scroll: bool = false
+var _drag_start_x: float = 0.0
+var _scroll_start_x: int = 0
+
+func _on_cards_scroll_gui_input(event: InputEvent) -> void:
+	if not is_instance_valid(cards_scroll) or is_vertical:
+		return
+	if event is InputEventMouseButton:
+		var mb := event as InputEventMouseButton
+		if mb.button_index == MOUSE_BUTTON_WHEEL_UP:
+			cards_scroll.scroll_horizontal = clampi(cards_scroll.scroll_horizontal - 50, 0, 10000)
+			cards_scroll.accept_event()
+		elif mb.button_index == MOUSE_BUTTON_WHEEL_DOWN:
+			cards_scroll.scroll_horizontal = clampi(cards_scroll.scroll_horizontal + 50, 0, 10000)
+			cards_scroll.accept_event()
+		elif mb.button_index == MOUSE_BUTTON_LEFT:
+			if mb.pressed:
+				_is_dragging_scroll = true
+				_drag_start_x = mb.position.x
+				_scroll_start_x = cards_scroll.scroll_horizontal
+			else:
+				_is_dragging_scroll = false
+	elif event is InputEventMouseMotion and _is_dragging_scroll:
+		var mm := event as InputEventMouseMotion
+		var delta_x := _drag_start_x - mm.position.x
+		cards_scroll.scroll_horizontal = clampi(int(_scroll_start_x + delta_x), 0, 10000)
+
+func _on_player_leveled_up(new_lvl: int) -> void:
+	var target_max := get_max_quests_for_level(new_lvl)
+	if target_max > active_quests.size():
+		var old_size := active_quests.size()
+		active_quests.resize(target_max)
+		_slot_cooldowns.resize(target_max)
+		_slot_total_cooldowns.resize(target_max)
+		for i in range(old_size, target_max):
+			active_quests[i] = null
+			_slot_cooldowns[i] = 0.0
+			_slot_total_cooldowns[i] = 0.0
+			_arrive_quest_for_slot(i)
+		_rebuild_cards()
+		update_quest_status()
 
 func _process(delta: float) -> void:
-	for i in range(MAX_QUESTS):
-		if active_quests[i] == null and _slot_cooldowns[i] > 0.0:
+	for i in range(active_quests.size()):
+		if active_quests[i] == null and i < _slot_cooldowns.size() and _slot_cooldowns[i] > 0.0:
 			_slot_cooldowns[i] -= delta
 			if _slot_cooldowns[i] <= 0.0:
 				_slot_cooldowns[i] = 0.0
@@ -112,10 +167,17 @@ func set_layout_vertical(vertical: bool) -> void:
 	is_vertical = vertical
 	if is_instance_valid(cards_container):
 		cards_container.vertical = vertical
+	if is_instance_valid(cards_scroll):
+		if vertical:
+			cards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
+			cards_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+		else:
+			cards_scroll.horizontal_scroll_mode = ScrollContainer.SCROLL_MODE_AUTO
+			cards_scroll.vertical_scroll_mode = ScrollContainer.SCROLL_MODE_DISABLED
 	if vertical:
 		custom_minimum_size = Vector2(270, 520)
 	else:
-		custom_minimum_size = Vector2(664, 172)
+		custom_minimum_size = Vector2(664, 184)
 	_apply_card_sizes()
 
 func _apply_card_sizes() -> void:
@@ -177,15 +239,21 @@ func _restore_board_state(data: Dictionary) -> void:
 	completed_quest_count = int(data.get("completed_quest_count", 0))
 	ultimate_quest_active = data.get("ultimate_quest_active", false)
 	ultimate_quest_completed = data.get("ultimate_quest_completed", false)
-	var sc = data.get("slot_cooldowns", [])
-	var stc = data.get("slot_total_cooldowns", [])
-	if sc is Array and sc.size() == MAX_QUESTS:
-		for i in range(MAX_QUESTS):
-			_slot_cooldowns[i] = float(sc[i])
-			_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and stc.size() == MAX_QUESTS) else float(sc[i])
-	
+	var cur_max := get_max_quests_for_level()
 	active_quests = _deserialize_quest_array(data.get("active_quests", []))
 	_pending_starter_quests = _deserialize_quest_list(data.get("pending_starter_quests", []))
+	var sc = data.get("slot_cooldowns", [])
+	var stc = data.get("slot_total_cooldowns", [])
+	_slot_cooldowns.clear()
+	_slot_cooldowns.resize(cur_max)
+	_slot_cooldowns.fill(0.0)
+	_slot_total_cooldowns.clear()
+	_slot_total_cooldowns.resize(cur_max)
+	_slot_total_cooldowns.fill(0.0)
+	if sc is Array:
+		for i in range(mini(sc.size(), cur_max)):
+			_slot_cooldowns[i] = float(sc[i])
+			_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and i < stc.size()) else float(sc[i])
 	GameEvents.quest_count_changed.emit(completed_quest_count)
 
 func get_first_card() -> QuestCard:
@@ -201,56 +269,103 @@ func _init_starter_quests() -> void:
 	else:
 		_init_kitchen_starter_quests()
 
+func _get_manual_kitchen_quests_20() -> Array[QuestData]:
+	var list: Array[QuestData] = []
+	var defs := [
+		# 1
+		{"id": "quest_1", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["egg_1", "leaf_1"], "c": 45, "g": 1, "e": 10, "exp": 20, "chest": ""},
+		# 2
+		{"id": "quest_2", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["egg_2"], "c": 55, "g": 1, "e": 10, "exp": 25, "chest": ""},
+		# 3
+		{"id": "quest_3", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["egg_2", "leaf_2"], "c": 85, "g": 2, "e": 15, "exp": 35, "chest": ""},
+		# 4
+		{"id": "quest_4", "name": "Florist Lily", "color": Color(0.9, 0.4, 0.6), "req": ["leaf_1", "leaf_2"], "c": 60, "g": 1, "e": 10, "exp": 25, "chest": ""},
+		# 5
+		{"id": "quest_5", "name": "Mechanic Rex", "color": Color(0.9, 0.6, 0.2), "req": ["egg_1", "egg_2"], "c": 70, "g": 1, "e": 10, "exp": 30, "chest": ""},
+		# 6
+		{"id": "quest_6", "name": "Artist Chloe", "color": Color(0.7, 0.3, 0.8), "req": ["sandwich_1"], "c": 65, "g": 1, "e": 12, "exp": 30, "chest": ""},
+		# 7
+		{"id": "quest_7", "name": "Explorer Sam", "color": Color(0.2, 0.65, 0.8), "req": ["cake_1"], "c": 65, "g": 1, "e": 12, "exp": 30, "chest": ""},
+		# 8
+		{"id": "quest_8", "name": "Professor Oak", "color": Color(0.4, 0.7, 0.3), "req": ["sandwich_1", "leaf_1"], "c": 85, "g": 2, "e": 15, "exp": 40, "chest": ""},
+		# 9
+		{"id": "quest_9", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["cake_1", "egg_1"], "c": 90, "g": 2, "e": 15, "exp": 40, "chest": ""},
+		# 10
+		{"id": "quest_10", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["egg_3"], "c": 115, "g": 2, "e": 15, "exp": 50, "chest": "chest_1"},
+		# 11
+		{"id": "quest_11", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["leaf_3"], "c": 120, "g": 2, "e": 15, "exp": 50, "chest": ""},
+		# 12
+		{"id": "quest_12", "name": "Florist Lily", "color": Color(0.9, 0.4, 0.6), "req": ["sandwich_2"], "c": 125, "g": 2, "e": 15, "exp": 55, "chest": ""},
+		# 13
+		{"id": "quest_13", "name": "Mechanic Rex", "color": Color(0.9, 0.6, 0.2), "req": ["cake_2"], "c": 125, "g": 2, "e": 15, "exp": 55, "chest": ""},
+		# 14
+		{"id": "quest_14", "name": "Artist Chloe", "color": Color(0.7, 0.3, 0.8), "req": ["beef_1", "leaf_2"], "c": 135, "g": 2, "e": 15, "exp": 60, "chest": ""},
+		# 15
+		{"id": "quest_15", "name": "Explorer Sam", "color": Color(0.2, 0.65, 0.8), "req": ["egg_3", "leaf_2"], "c": 160, "g": 3, "e": 20, "exp": 70, "chest": "chest_yellow_1"},
+		# 16
+		{"id": "quest_16", "name": "Professor Oak", "color": Color(0.4, 0.7, 0.3), "req": ["sandwich_2", "egg_2"], "c": 170, "g": 3, "e": 20, "exp": 75, "chest": ""},
+		# 17
+		{"id": "quest_17", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["cake_2", "sandwich_1"], "c": 175, "g": 3, "e": 20, "exp": 75, "chest": ""},
+		# 18
+		{"id": "quest_18", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["beef_2"], "c": 180, "g": 3, "e": 20, "exp": 80, "chest": ""},
+		# 19
+		{"id": "quest_19", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["util_2", "sandwich_2"], "c": 210, "g": 4, "e": 25, "exp": 95, "chest": ""},
+		# 20
+		{"id": "quest_20", "name": "Royal Food Critic Irene", "color": Color(1.0, 0.84, 0.0), "req": ["egg_4", "sandwich_3", "cake_3"], "c": 500, "g": 10, "e": 40, "exp": 200, "chest": "chest_purple_1"}
+	]
+
+	for d in defs:
+		var q := QuestData.new()
+		q.id = d.id
+		q.customer_name = d.name
+		q.customer_color = d.color
+		var req_arr: Array[String] = []
+		for item_id in d.req:
+			req_arr.append(item_id)
+		q.required_item_ids = req_arr
+		q.reward_coins = d.c
+		q.reward_gems = d.g
+		q.reward_energy = d.e
+		q.reward_exp = d.exp
+		q.reward_chest = d.chest
+		list.append(q)
+
+	return list
+
 func _init_kitchen_starter_quests() -> void:
+	var cur_max := get_max_quests_for_level()
 	active_quests.clear()
-	active_quests.resize(MAX_QUESTS)
+	active_quests.resize(cur_max)
 	active_quests.fill(null)
-	_slot_cooldowns = [0.0, 6.0, 14.0]
-	_slot_total_cooldowns = [0.0, 6.0, 14.0]
+	_slot_cooldowns.clear()
+	_slot_cooldowns.resize(cur_max)
+	_slot_total_cooldowns.clear()
+	_slot_total_cooldowns.resize(cur_max)
+	for i in range(cur_max):
+		var cd := 0.0 if i == 0 else (6.0 if i == 1 else 14.0 + (i - 2) * 4.0)
+		_slot_cooldowns[i] = cd
+		_slot_total_cooldowns[i] = cd
+
+	var manual_quests := _get_manual_kitchen_quests_20()
+	active_quests[0] = manual_quests[0]
+
 	_pending_starter_quests.clear()
-
-	# Quest 1: Farm Breakfast (Egg + Fresh Herb)
-	var q1 := QuestData.new()
-	q1.id = "quest_1"
-	q1.customer_name = "Chef Luigi"
-	q1.customer_color = Color(0.85, 0.35, 0.3)
-	q1.required_item_ids = ["egg_1", "leaf_1"]
-	q1.reward_coins = 45
-	q1.reward_gems = 1
-	q1.reward_energy = 10
-	q1.reward_exp = 20
-	active_quests[0] = q1
-
-	# Quest 2: Boiled Snack (Boiled Egg)
-	var q2 := QuestData.new()
-	q2.id = "quest_2"
-	q2.customer_name = "Grandma Rose"
-	q2.customer_color = Color(0.9, 0.55, 0.2)
-	q2.required_item_ids = ["egg_2"]
-	q2.reward_coins = 55
-	q2.reward_gems = 1
-	q2.reward_energy = 10
-	q2.reward_exp = 25
-	_pending_starter_quests.append(q2)
-
-	# Quest 3: Garden Omelet (Boiled Egg + Herb Bunch)
-	var q3 := QuestData.new()
-	q3.id = "quest_3"
-	q3.customer_name = "Mayor Bob"
-	q3.customer_color = Color(0.25, 0.6, 0.9)
-	q3.required_item_ids = ["egg_2", "leaf_2"]
-	q3.reward_coins = 85
-	q3.reward_gems = 2
-	q3.reward_energy = 15
-	q3.reward_exp = 35
-	_pending_starter_quests.append(q3)
+	for i in range(1, manual_quests.size()):
+		_pending_starter_quests.append(manual_quests[i])
 
 func _init_farm_starter_quests() -> void:
+	var cur_max := get_max_quests_for_level()
 	active_quests.clear()
-	active_quests.resize(MAX_QUESTS)
+	active_quests.resize(cur_max)
 	active_quests.fill(null)
-	_slot_cooldowns = [0.0, 6.0, 14.0]
-	_slot_total_cooldowns = [0.0, 6.0, 14.0]
+	_slot_cooldowns.clear()
+	_slot_cooldowns.resize(cur_max)
+	_slot_total_cooldowns.clear()
+	_slot_total_cooldowns.resize(cur_max)
+	for i in range(cur_max):
+		var cd := 0.0 if i == 0 else (6.0 if i == 1 else 14.0 + (i - 2) * 4.0)
+		_slot_cooldowns[i] = cd
+		_slot_total_cooldowns[i] = cd
 	_pending_starter_quests.clear()
 
 	# Farm Quest 1: Morning Grazing
@@ -290,11 +405,18 @@ func _init_farm_starter_quests() -> void:
 	_pending_starter_quests.append(q3)
 
 func _init_witch_starter_quests() -> void:
+	var cur_max := get_max_quests_for_level()
 	active_quests.clear()
-	active_quests.resize(MAX_QUESTS)
+	active_quests.resize(cur_max)
 	active_quests.fill(null)
-	_slot_cooldowns = [0.0, 6.0, 14.0]
-	_slot_total_cooldowns = [0.0, 6.0, 14.0]
+	_slot_cooldowns.clear()
+	_slot_cooldowns.resize(cur_max)
+	_slot_total_cooldowns.clear()
+	_slot_total_cooldowns.resize(cur_max)
+	for i in range(cur_max):
+		var cd := 0.0 if i == 0 else (6.0 if i == 1 else 14.0 + (i - 2) * 4.0)
+		_slot_cooldowns[i] = cd
+		_slot_total_cooldowns[i] = cd
 	_pending_starter_quests.clear()
 
 	# Witch Quest 1: Apprentice Gathering
@@ -338,7 +460,7 @@ func _rebuild_cards() -> void:
 		child.queue_free()
 	_cards.clear()
 
-	for i in range(MAX_QUESTS):
+	for i in range(active_quests.size()):
 		var card: QuestCard = quest_card_scene.instantiate()
 		card.deliver_pressed.connect(_on_deliver_pressed)
 		cards_container.add_child(card)
@@ -977,16 +1099,17 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 	return q
 
 func complete_active_quest_debug() -> void:
-	for i in range(MAX_QUESTS):
+	for i in range(active_quests.size()):
 		var q = active_quests[i]
 		if q is QuestData:
 			_on_deliver_pressed(q as QuestData)
 			return
-	# If all slots are currently waiting / on cooldown, force slot 0 to arrive immediately and deliver it
-	_slot_cooldowns[0] = 0.0
-	_arrive_quest_for_slot(0)
-	if active_quests[0] is QuestData:
-		_on_deliver_pressed(active_quests[0] as QuestData)
+	if not active_quests.is_empty():
+		# If all slots are currently waiting / on cooldown, force slot 0 to arrive immediately and deliver it
+		_slot_cooldowns[0] = 0.0
+		_arrive_quest_for_slot(0)
+		if active_quests[0] is QuestData:
+			_on_deliver_pressed(active_quests[0] as QuestData)
 
 func serialize_data() -> Dictionary:
 	_save_current_board_state()
@@ -1016,12 +1139,19 @@ func load_data(data: Dictionary) -> void:
 		completed_quest_count = int(data.get("completed_quest_count", 0))
 		ultimate_quest_active = data.get("ultimate_quest_active", false)
 		ultimate_quest_completed = data.get("ultimate_quest_completed", false)
+		var cur_max := get_max_quests_for_level()
 		var sc = data.get("slot_cooldowns", [])
 		var stc = data.get("slot_total_cooldowns", [])
-		if sc is Array and sc.size() == MAX_QUESTS:
-			for i in range(MAX_QUESTS):
+		_slot_cooldowns.clear()
+		_slot_cooldowns.resize(cur_max)
+		_slot_cooldowns.fill(0.0)
+		_slot_total_cooldowns.clear()
+		_slot_total_cooldowns.resize(cur_max)
+		_slot_total_cooldowns.fill(0.0)
+		if sc is Array:
+			for i in range(mini(sc.size(), cur_max)):
 				_slot_cooldowns[i] = float(sc[i])
-				_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and stc.size() == MAX_QUESTS) else float(sc[i])
+				_slot_total_cooldowns[i] = float(stc[i]) if (stc is Array and i < stc.size()) else float(sc[i])
 		load_quests(data.get("quests", []))
 		_save_current_board_state()
 
@@ -1052,10 +1182,11 @@ func _serialize_quest_array(arr: Array) -> Array[Dictionary]:
 	return result
 
 func _deserialize_quest_array(arr: Array) -> Array[Variant]:
+	var cur_max := get_max_quests_for_level()
 	var result: Array[Variant] = []
-	result.resize(MAX_QUESTS)
+	result.resize(cur_max)
 	result.fill(null)
-	for i in range(mini(arr.size(), MAX_QUESTS)):
+	for i in range(mini(arr.size(), cur_max)):
 		var entry = arr[i]
 		if entry is Dictionary and not entry.is_empty():
 			result[i] = _dict_to_quest(entry)
@@ -1100,10 +1231,17 @@ func load_quests(quests_data: Variant, completed_count: int = -1) -> void:
 	if list.is_empty():
 		_init_starter_quests()
 	else:
+		var cur_max := get_max_quests_for_level()
 		active_quests.clear()
-		active_quests.resize(MAX_QUESTS)
+		active_quests.resize(cur_max)
 		active_quests.fill(null)
-		for i in range(mini(list.size(), MAX_QUESTS)):
+		_slot_cooldowns.clear()
+		_slot_cooldowns.resize(cur_max)
+		_slot_cooldowns.fill(0.0)
+		_slot_total_cooldowns.clear()
+		_slot_total_cooldowns.resize(cur_max)
+		_slot_total_cooldowns.fill(0.0)
+		for i in range(mini(list.size(), cur_max)):
 			var entry = list[i]
 			if entry is Dictionary and not entry.is_empty():
 				active_quests[i] = _dict_to_quest(entry)

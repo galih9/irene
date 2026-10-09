@@ -50,6 +50,8 @@ var _current_target_pos: Vector2 = Vector2.ZERO
 ## Each column has its own vertical drop animation offset.
 var _drop_offsets: Array[float] = []
 var cell_data: Array = []
+var _cached_badge_count: int = -1
+var _cached_badge_size: Vector2 = Vector2.ZERO
 
 ## Cell visual config
 const PAD := 5.0
@@ -461,16 +463,13 @@ func _draw() -> void:
 				draw_rect(cell_rect, main_c, true)
 				draw_rect(cell_rect, dark_c, false, 1.8)
 
-				# Inner stitching
+				# Inner stitching (high-performance single inset stroke)
 				var inset := 3.0
 				var inner := cell_rect.grow(-inset)
 				if inner.size.x > 4.0 and inner.size.y > 4.0:
 					var stitch_c := light_c
-					stitch_c.a = 0.75
-					_draw_dashed_segment(inner.position, Vector2(inner.end.x, inner.position.y), stitch_c, 4.0)
-					_draw_dashed_segment(Vector2(inner.position.x, inner.end.y), inner.end, stitch_c, 4.0)
-					_draw_dashed_segment(inner.position, Vector2(inner.position.x, inner.end.y), stitch_c, 4.0)
-					_draw_dashed_segment(Vector2(inner.end.x, inner.position.y), inner.end, stitch_c, 4.0)
+					stitch_c.a = 0.55
+					draw_rect(inner, stitch_c, false, 1.0)
 
 				# Shine highlight
 				var shine_c := light_c
@@ -504,8 +503,10 @@ func _draw() -> void:
 		var font := ThemeDB.fallback_font
 		var text_str := "%d" % remaining_cells
 		var font_size := 11
-		var text_size := font.get_string_size(text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
-		var text_pos := badge_pos + Vector2((badge_w - text_size.x) * 0.5, (badge_h + text_size.y) * 0.5 - 2.0)
+		if remaining_cells != _cached_badge_count:
+			_cached_badge_count = remaining_cells
+			_cached_badge_size = font.get_string_size(text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size)
+		var text_pos := badge_pos + Vector2((badge_w - _cached_badge_size.x) * 0.5, (badge_h + _cached_badge_size.y) * 0.5 - 2.0)
 		draw_string(font, text_pos, text_str, HORIZONTAL_ALIGNMENT_CENTER, -1, font_size, Color.WHITE)
 
 func _draw_dashed_segment(from: Vector2, to: Vector2, col: Color, dash_len: float) -> void:
@@ -513,11 +514,15 @@ func _draw_dashed_segment(from: Vector2, to: Vector2, col: Color, dash_len: floa
 	if total_len <= 0.001:
 		return
 	var dir := (to - from).normalized()
+	var pts := PackedVector2Array()
 	var curr := 0.0
 	var draw_dash := true
 	while curr < total_len:
 		var next_curr := minf(curr + dash_len, total_len)
 		if draw_dash:
-			draw_line(from + dir * curr, from + dir * next_curr, col, 1.5)
+			pts.append(from + dir * curr)
+			pts.append(from + dir * next_curr)
 		curr = next_curr
 		draw_dash = not draw_dash
+	if pts.size() >= 2:
+		draw_multiline(pts, col, 1.5)

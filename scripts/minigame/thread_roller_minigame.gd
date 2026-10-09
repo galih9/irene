@@ -48,12 +48,14 @@ var current_level: int = 1
 var score: int = 0
 var auto_dispatch: bool = false
 var is_game_active: bool = false
+var loading_overlay: Control = null
 
 # Progression upgrades (persist across levels during minigame play)
 var purchased_slots: int = 3
 var roller_capacity: int = 3 # Default: 3 cells of the same color
 
 func _ready() -> void:
+	_build_loading_overlay()
 	# Connect UI buttons
 	if is_instance_valid(back_btn):
 		back_btn.pressed.connect(_on_back_pressed)
@@ -109,12 +111,70 @@ func _ready() -> void:
 	levels = LevelLibrary.load_levels()
 	show_level_select()
 
+func _build_loading_overlay() -> void:
+	loading_overlay = Control.new()
+	loading_overlay.name = "LoadingOverlay"
+	loading_overlay.set_anchors_preset(PRESET_FULL_RECT)
+	loading_overlay.z_index = 200
+	loading_overlay.visible = false
+	add_child(loading_overlay)
+
+	var bg := ColorRect.new()
+	bg.set_anchors_preset(PRESET_FULL_RECT)
+	bg.color = Color(0.06, 0.08, 0.12, 0.72)
+	loading_overlay.add_child(bg)
+
+	var card := PanelContainer.new()
+	card.custom_minimum_size = Vector2(280, 110)
+	card.set_anchors_preset(PRESET_CENTER)
+	card.offset_left = -140.0
+	card.offset_top = -55.0
+	card.offset_right = 140.0
+	card.offset_bottom = 55.0
+	var card_style := StyleBoxFlat.new()
+	card_style.bg_color = Color(0.14, 0.16, 0.22, 0.98)
+	card_style.border_color = Color(0.85, 0.72, 0.45, 0.8)
+	card_style.set_border_width_all(2)
+	card_style.set_corner_radius_all(16)
+	card_style.shadow_size = 16
+	card_style.shadow_color = Color(0, 0, 0, 0.45)
+	card.add_theme_stylebox_override("panel", card_style)
+	loading_overlay.add_child(card)
+
+	var margin := MarginContainer.new()
+	margin.add_theme_constant_override("margin_left", 20)
+	margin.add_theme_constant_override("margin_right", 20)
+	margin.add_theme_constant_override("margin_top", 16)
+	margin.add_theme_constant_override("margin_bottom", 16)
+	card.add_child(margin)
+
+	var vbox := VBoxContainer.new()
+	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
+	vbox.add_theme_constant_override("separation", 6)
+	margin.add_child(vbox)
+
+	var title_lbl := Label.new()
+	title_lbl.text = "Threading Loom..."
+	title_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	title_lbl.add_theme_font_size_override("font_size", 18)
+	title_lbl.add_theme_color_override("font_color", Color(1.0, 0.92, 0.75, 1.0))
+	vbox.add_child(title_lbl)
+
+	var sub_lbl := Label.new()
+	sub_lbl.text = "Preparing spools & fabric"
+	sub_lbl.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	sub_lbl.add_theme_font_size_override("font_size", 12)
+	sub_lbl.add_theme_color_override("font_color", Color(0.7, 0.75, 0.88, 0.85))
+	vbox.add_child(sub_lbl)
+
 func is_level_unlocked(index: int) -> bool:
 	return index == 0 or ProgressionManager.cloth_unlocked_levels.has(levels[index]["id"])
 
 func show_level_select() -> void:
 	_round_id += 1
 	is_game_active = false
+	if is_instance_valid(loading_overlay):
+		loading_overlay.visible = false
 	cloth_grid.clear_grid()
 	roller_station.clear_station()
 	roller_queue.clear_queue()
@@ -177,6 +237,17 @@ func start_level(level_num: int) -> void:
 	level_select.hide()
 	$VBoxContainer.show()
 	$ControlBar.show()
+	if loading_overlay and Engine.time_scale <= 1.0:
+		loading_overlay.visible = true
+		loading_overlay.modulate.a = 1.0
+		var tw := create_tween()
+		tw.tween_interval(0.18)
+		tw.tween_property(loading_overlay, "modulate:a", 0.0, 0.12)
+		tw.chain().tween_callback(func():
+			if is_instance_valid(loading_overlay):
+				loading_overlay.visible = false
+				loading_overlay.modulate.a = 1.0
+		)
 	cloth_grid.setup_level(levels[level_num - 1]["rows"])
 	roller_station.setup_station(purchased_slots)
 

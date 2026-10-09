@@ -89,7 +89,7 @@ func _draw() -> void:
 
 	# Ring outline (golden if occupied, subtle dashed if empty)
 	var ring_col := Color(1.0, 0.85, 0.35, 0.9) if is_occupied else Color(0.55, 0.60, 0.70, 0.6)
-	draw_arc(center, radius, 0, TAU, 32, ring_col, 2.5, true)
+	draw_arc(center, radius, 0, TAU, 16, ring_col, 2.5, true)
 
 	if not is_occupied:
 		# Inner center hole and guide dots
@@ -97,12 +97,12 @@ func _draw() -> void:
 		draw_arc(center, radius * 0.65, 0, TAU, 16, Color(0.4, 0.45, 0.55, 0.4), 1.5, true)
 		draw_circle(center, 3.0, Color(0.7, 0.75, 0.85, 0.5))
 
-	# 2. Thread line if currently rolling
+	# 2. Thread line if currently rolling (GPU batched polyline)
 	if is_rolling:
 		for points in _thread_paths:
-			for i in range(points.size() - 1):
-				draw_line(points[i], points[i + 1], _thread_color, 3.2, true)
-				draw_line(points[i], points[i + 1], Color.WHITE, 1.2, true)
+			if points.size() >= 2:
+				draw_polyline(points, _thread_color, 3.2, true)
+				draw_polyline(points, Color.WHITE, 1.2, true)
 
 ## Places a spool into this slot and animates entrance flight.
 ## Rolling cannot start until docking is fully finished.

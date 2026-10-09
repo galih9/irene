@@ -304,6 +304,8 @@ func _process(_delta: float) -> void:
 	loading_dots_label.text = frames[frame]
 
 func start_level(level: int) -> void:
+	if SoundManager:
+		SoundManager.stop_pouring()
 	current_level = level
 	undo_stack.clear()
 	extra_bottles_added = 0
@@ -525,19 +527,27 @@ func _execute_pour(source: LiquidBottle, target: LiquidBottle) -> void:
 		# 2. Pour: stream goes from source lip → through target neck → down to liquid surface inside
 		var lip_pt := source.get_lip_position_global()
 		var surface_pt := target.get_liquid_surface_global()
+		stream_renderer.set_flow_path(lip_pt, surface_pt, color_val, target)
+
+		# More layers poured = longer pouring duration
+		var base_duration := 0.40
+		var duration_per_layer := 0.35
+		var pour_duration := base_duration + float(units_to_pour) * duration_per_layer
+
 		if SoundManager:
 			SoundManager.play_pouring()
 			SoundManager.play_merge_tier(2)
 
-		var pour_duration := 0.45 + float(units_to_pour - 1) * 0.25
 		source.animate_pour_out(units_to_pour, pour_duration)
 		target.animate_fill_in(pour_color, units_to_pour, pour_duration)
 
 		# Wait for pour duration
 		var stream_timer := get_tree().create_timer(pour_duration)
 		stream_timer.timeout.connect(func():
-			# 3. Stop stream
+			# 3. Stop stream and stop pouring sound
 			stream_renderer.stop()
+			if SoundManager:
+				SoundManager.stop_pouring()
 
 			# 4. Return source bottle upright to original slot
 			var return_tween := create_tween().set_parallel(true)
@@ -654,8 +664,14 @@ func _update_undo_button() -> void:
 		undo_btn.disabled = undo_stack.is_empty()
 
 func _on_back_pressed() -> void:
-	if SoundManager: SoundManager.play_close()
+	if SoundManager:
+		SoundManager.stop_pouring()
+		SoundManager.play_close()
 	exit_requested.emit()
+
+func _exit_tree() -> void:
+	if SoundManager:
+		SoundManager.stop_pouring()
 
 func apply_orientation(landscape: bool) -> void:
 	is_landscape_mode = landscape

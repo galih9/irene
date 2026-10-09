@@ -2,7 +2,7 @@ extends Node
 
 # --- Audio Settings ---
 var bgm_enabled: bool = true
-var sfx_enabled: bool = false
+var sfx_enabled: bool = true
 
 var bgm_volume_db: float = -12.0
 var sfx_volume_db: float = -2.0
@@ -12,6 +12,7 @@ var _bgm_player: AudioStreamPlayer
 const SFX_POOL_SIZE: int = 8
 var _sfx_players: Array[AudioStreamPlayer] = []
 var _sfx_index: int = 0
+var _pouring_player: AudioStreamPlayer = null
 
 # --- Preloaded & Configured Audio Assets ---
 const BGM_MENU: String = "res://assets/background/ambient.mp3"
@@ -154,6 +155,8 @@ func toggle_sfx() -> bool:
 
 func set_sfx_enabled(enabled: bool) -> void:
 	sfx_enabled = enabled
+	if not enabled:
+		stop_pouring()
 
 func play_sfx(stream: AudioStream, volume_offset_db: float = 0.0, pitch_variance: float = 0.0, base_pitch: float = 1.0) -> void:
 	if not sfx_enabled or stream == null or _sfx_players.is_empty():
@@ -235,7 +238,19 @@ func play_toast() -> void:
 	play_sfx(STREAM_TOAST, 0.0, 0.0)
 
 func play_pouring() -> void:
-	play_sfx(STREAM_POURING, 0.0, 0.02)
+	if not sfx_enabled or STREAM_POURING == null:
+		return
+	if not is_instance_valid(_pouring_player):
+		_pouring_player = AudioStreamPlayer.new()
+		_pouring_player.name = "PouringPlayer"
+		_pouring_player.stream = STREAM_POURING
+		add_child(_pouring_player)
+	_pouring_player.volume_db = sfx_volume_db
+	_pouring_player.play()
+
+func stop_pouring() -> void:
+	if is_instance_valid(_pouring_player) and _pouring_player.playing:
+		_pouring_player.stop()
 
 func play_fabric_roll() -> void:
 	play_sfx(STREAM_FABRIC_ROLL, 0.0, 0.02)
