@@ -41,6 +41,9 @@ var completed_quest_count: int:
 func get_completed_quest_count() -> int:
 	return completed_quest_count
 
+func _ready() -> void:
+	should_load_on_start = has_save()
+
 func _process(delta: float) -> void:
 	if is_gameplay_active and auto_save_enabled:
 		_auto_save_timer += delta

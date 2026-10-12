@@ -14,7 +14,6 @@ const AppVersion = preload("res://scripts/core/app_version.gd")
 @onready var save_info_label: Label = $UI/MenuContainer/TapPromptArea/VBox/SaveInfoLabel
 @onready var bottom_area: Control = $UI/MenuContainer/BottomArea
 @onready var options_btn: Button = $UI/MenuContainer/BottomArea/NavButtons/OptionsBtn
-@onready var experimental_btn: Button = $UI/MenuContainer/BottomArea/NavButtons/ExperimentalBtn if has_node("UI/MenuContainer/BottomArea/NavButtons/ExperimentalBtn") else null
 @onready var quit_btn: Button = $UI/MenuContainer/BottomArea/NavButtons/QuitBtn
 @onready var background_rect: TextureRect = $Background
 @onready var version_label: Label = $UI/VersionLabel if has_node("UI/VersionLabel") else null
@@ -44,10 +43,6 @@ func _ready() -> void:
 	if is_instance_valid(options_btn):
 		options_btn.pressed.connect(_on_options_pressed)
 		_setup_button_hover(options_btn)
-
-	if is_instance_valid(experimental_btn):
-		experimental_btn.pressed.connect(_on_experimental_pressed)
-		_setup_button_hover(experimental_btn)
 
 	if is_instance_valid(quit_btn):
 		quit_btn.pressed.connect(_on_quit_pressed)
@@ -198,11 +193,6 @@ func _on_options_closed() -> void:
 	menu_container.visible = true
 	_update_save_state()
 	options_btn.grab_focus()
-
-func _on_experimental_pressed() -> void:
-	if is_instance_valid(SoundManager):
-		SoundManager.play_click()
-	get_tree().change_scene_to_file("res://scenes/experimental/world.tscn")
 
 func _on_quit_pressed() -> void:
 	if is_instance_valid(SoundManager):

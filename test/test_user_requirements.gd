@@ -202,7 +202,6 @@ func _ready() -> void:
 	assert(SoundManager.STREAM_ATTENTION != null, "STREAM_ATTENTION must be loaded")
 	assert(SoundManager.STREAM_POURING != null, "STREAM_POURING must be loaded")
 	assert(SoundManager.STREAM_FABRIC_ROLL != null, "STREAM_FABRIC_ROLL must be loaded")
-	assert(SoundManager.STREAM_CONSTRUCTION != null, "STREAM_CONSTRUCTION must be loaded")
 
 	SoundManager.play_spawnspray()
 	SoundManager.play_toast()
@@ -311,107 +310,9 @@ func _ready() -> void:
 	print("  -> Item Interaction VFX verified!")
 
 	# -------------------------------------------------------------
-	# 8. Test Overworld Construction System
+	# 8. Test Quest Margin, Horizontal Scroll, Dynamic Max Quests & 20 Starter Quests
 	# -------------------------------------------------------------
-	print("\n8. Testing Overworld Construction System...")
-	var world_scene: PackedScene = load("res://scenes/experimental/world.tscn")
-	var world: OverworldBoard = world_scene.instantiate()
-	add_child(world)
-	world._buildings.clear()
-	world._occupancy.clear()
-
-	var b_source := world.spawn_building(1, Vector2i(-8, 7))
-	var b_target := world.spawn_building(1, Vector2i(-8, 8))
-
-	# Merge buildings
-	world._execute_merge(b_source, b_target)
-	assert(b_target.tier == 2, "Building must upgrade to Tier 2")
-	assert(b_target.is_under_construction == true, "Merged building must enter construction status")
-	assert(is_equal_approx(b_target.construction_timer, 10.0), "Default construction duration must be 10.0s")
-	assert(b_target.construction_timer_panel != null, "Construction timer panel must exist")
-	assert(b_target.construction_timer_panel.visible == true, "Construction timer panel must be visible")
-	assert("10s" in b_target.construction_timer_label.text, "Timer label must display countdown seconds")
-	assert(b_target.construction_progress_bar != null, "Construction progress bar must exist")
-	assert(b_target.construction_audio != null, "Construction audio player must exist")
-	assert(b_target.construction_audio.stream == preload("res://assets/sfx/construction.mp3"), "Audio stream must be construction.mp3")
-	assert(b_target.smoke_container != null, "Smoke container must exist")
-	assert(b_target.smoke_container.get_child_count() > 0, "Smoke container must contain animated smoke puffs")
-
-	# Test distance volume attenuation
-	world.camera.global_position = b_target.global_position # Camera directly on building (close)
-	b_target._update_audio_volume()
-	var close_vol := b_target.construction_audio.volume_db
-
-	world.camera.global_position = b_target.global_position + Vector2(1500, 1500) # Camera far away
-	b_target._update_audio_volume()
-	var far_vol := b_target.construction_audio.volume_db
-	assert(close_vol > far_vol, "Construction audio must be louder when camera is closer and lower when farther! Close: %f, Far: %f" % [close_vol, far_vol])
-
-	# Test finish construction
-	b_target.finish_construction()
-	assert(b_target.is_under_construction == false, "Construction status must be cleared when finished")
-	assert(b_target.construction_timer_panel.visible == false, "Timer panel must hide after construction finishes")
-	assert(b_target.badge_panel.visible == false, "Item name indicator badge must remain hidden so only tile cursor and info bar identify buildings")
-
-	world.queue_free()
-	print("  -> Overworld Construction System verified!")
-
-	# -------------------------------------------------------------
-	# 9. Test Overworld Tile Cursor & Information Bar
-	# -------------------------------------------------------------
-	print("\n9. Testing Overworld Tile Cursor & Information Bar...")
-	var world2: OverworldBoard = world_scene.instantiate()
-	add_child(world2)
-	world2._buildings.clear()
-	world2._occupancy.clear()
-	var b_t3 := world2.spawn_building(3, Vector2i(0, 0)) # 2x2 building
-	assert(world2.tile_cursor != null, "world must have tile_cursor node")
-	assert(world2.info_bar != null, "world must have info_bar node")
-	assert(world2.info_title_label.text == "Select a Building", "info_title_label must start with prompt")
-	assert(world2.tile_cursor.visible == false, "tile_cursor must start hidden")
-
-	# Select building
-	world2.select_building(b_t3)
-	assert(world2.selected_building == b_t3, "Building must be selected")
-	assert(world2.tile_cursor.visible == true, "tile_cursor must be visible when building selected")
-	assert("Tier 3" in world2.info_title_label.text, "InfoBar title must show building tier")
-	assert(world2.info_desc_label.text != "", "InfoBar description must not be empty")
-
-	# Deselect
-	world2.clear_selection()
-	assert(world2.selected_building == null, "Selection must be cleared")
-	assert(world2.tile_cursor.visible == false, "tile_cursor must hide after deselect")
-	assert(world2.info_title_label.text == "Select a Building", "InfoBar must return to prompt")
-
-	world2.queue_free()
-	print("  -> Overworld Tile Cursor & InfoBar verified!")
-
-	# -------------------------------------------------------------
-	# 10. Test Improved Construction Smoke Size, Opacity & Variation
-	# -------------------------------------------------------------
-	print("\n10. Testing Improved Construction Smoke...")
-	var test_smoke_b := OverworldBuilding.new()
-	test_smoke_b.setup(3, Vector2i(0, 0), null, "kitchen")
-	add_child(test_smoke_b)
-	test_smoke_b.start_construction(5.0)
-	assert(test_smoke_b.smoke_container.get_child_count() >= 12, "Large multi-tile building must start with abundant smoke puffs")
-	var has_high_opacity := false
-	var tints_found: Array[Color] = []
-	for p in test_smoke_b.smoke_container.get_children():
-		if p is Sprite2D:
-			if p.modulate.a >= 0.8:
-				has_high_opacity = true
-			if not tints_found.has(p.modulate):
-				tints_found.append(p.modulate)
-	assert(has_high_opacity == true, "Smoke puffs must have high opacity covering the site")
-	assert(tints_found.size() >= 2, "Smoke puffs must have color variation")
-	test_smoke_b.queue_free()
-	print("  -> Improved Construction Smoke verified!")
-
-	# -------------------------------------------------------------
-	# 11. Test Quest Margin, Horizontal Scroll, Dynamic Max Quests & 20 Starter Quests
-	# -------------------------------------------------------------
-	print("\n11. Testing Quest Margins, Scroll, Dynamic Level Slots & 20 Starter Quests...")
+	print("\n8. Testing Quest Margins, Scroll, Dynamic Level Slots & 20 Starter Quests...")
 	var qm_scene: PackedScene = load("res://scenes/quest_manager.tscn")
 	var qm: QuestManager = qm_scene.instantiate()
 	add_child(qm)

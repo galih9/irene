@@ -4,12 +4,11 @@ extends Control
 ## Dedicated startup loading screen displayed after the splash screen.
 ## Plays ambient music immediately, preloads game scenes in background,
 ## displays dynamic tips and progress bar with a 5-second duration,
-## then cleanly transitions to the main menu.
+## then cleanly transitions to the main game board.
 
-const NEXT_SCENE_PATH: String = "res://scenes/main_menu.tscn"
+const NEXT_SCENE_PATH: String = "res://main.tscn"
 const AppVersion = preload("res://scripts/core/app_version.gd")
 const PRELOAD_SCENE_PATHS: Array[String] = [
-	"res://scenes/main_menu.tscn",
 	"res://main.tscn"
 ]
 const MIN_LOAD_DURATION: float = 5.0
@@ -123,6 +122,7 @@ func _process(delta: float) -> void:
 
 func _start_transition_to_menu() -> void:
 	_is_transitioning = true
+	SaveManager.should_load_on_start = SaveManager.has_save()
 	if is_instance_valid(fade_overlay):
 		fade_overlay.visible = true
 		var tween := create_tween().set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
@@ -132,6 +132,7 @@ func _start_transition_to_menu() -> void:
 		_change_to_main_menu()
 
 func _change_to_main_menu() -> void:
+	SaveManager.should_load_on_start = SaveManager.has_save()
 	var err := get_tree().change_scene_to_file(NEXT_SCENE_PATH)
 	if err != OK:
 		push_error("StartupLoadingScreen: Failed to transition to %s (error %d)" % [NEXT_SCENE_PATH, err])

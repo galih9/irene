@@ -33,7 +33,6 @@ const STREAM_BUBBLE: AudioStream = preload("res://assets/sfx/bubble.mp3")
 const STREAM_ATTENTION: AudioStream = preload("res://assets/sfx/attention.mp3")
 const STREAM_POURING: AudioStream = preload("res://assets/sfx/pouring.mp3")
 const STREAM_FABRIC_ROLL: AudioStream = preload("res://assets/sfx/fabric_roll.mp3")
-const STREAM_CONSTRUCTION: AudioStream = preload("res://assets/sfx/construction.mp3")
 const STREAM_INTRO: AudioStream = preload("res://assets/sfx/intro.mp3")
 
 const STREAM_PICKUP: AudioStream = STREAM_BUBBLE
