@@ -44,9 +44,7 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 	if is_instance_valid(deliver_btn):
 		deliver_btn.visible = true
 
-	customer_name_label.text = quest.customer_name
-
-	# Special styling for Ultimate Quest
+	# Special styling for Ultimate Quest or Important Quest
 	if quest.id.begins_with("ultimate_quest"):
 		var ult_style := StyleBoxFlat.new()
 		ult_style.bg_color = Color(1.0, 0.98, 0.92, 0.98)
@@ -62,8 +60,26 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 		ult_style.shadow_color = Color(1.0, 0.78, 0.15, 0.35)
 		ult_style.shadow_size = 10
 		background.add_theme_stylebox_override("panel", ult_style)
+		customer_name_label.text = "★ " + quest.customer_name
+	elif quest.is_important or not quest.reward_spawner.is_empty():
+		var imp_style := StyleBoxFlat.new()
+		imp_style.bg_color = Color(1.0, 0.975, 0.91, 1.0)
+		imp_style.border_color = Color(0.96, 0.65, 0.15, 1.0)
+		imp_style.border_width_left = 2
+		imp_style.border_width_top = 2
+		imp_style.border_width_right = 2
+		imp_style.border_width_bottom = 2
+		imp_style.corner_radius_top_left = 14
+		imp_style.corner_radius_top_right = 14
+		imp_style.corner_radius_bottom_right = 14
+		imp_style.corner_radius_bottom_left = 14
+		imp_style.shadow_color = Color(0.96, 0.6, 0.1, 0.28)
+		imp_style.shadow_size = 8
+		background.add_theme_stylebox_override("panel", imp_style)
+		customer_name_label.text = "★ " + quest.customer_name
 	else:
 		background.add_theme_stylebox_override("panel", _default_background)
+		customer_name_label.text = quest.customer_name
 
 	# Avatar color
 	var av_style := StyleBoxFlat.new()
@@ -87,15 +103,24 @@ func setup(quest: QuestData, is_ready: bool, available_item_ids: Array[String]) 
 		var chest_item := ItemDatabase.get_item(quest.reward_chest)
 		var c_name := chest_item.display_name if chest_item else "Chest"
 		reward_parts.append("+%s" % c_name)
+	if not quest.reward_spawner.is_empty():
+		var spawner_item := ItemDatabase.get_item(quest.reward_spawner)
+		var sp_name := spawner_item.display_name if spawner_item else "Spawner"
+		reward_parts.append("★ +%s" % sp_name)
 
 	reward_label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	reward_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	if reward_parts.size() >= 4:
-		reward_label.add_theme_font_size_override("font_size", 11)
-	elif reward_parts.size() == 3:
-		reward_label.add_theme_font_size_override("font_size", 12)
+	if quest.is_important or not quest.reward_spawner.is_empty():
+		reward_label.add_theme_color_override("font_color", Color(0.85, 0.42, 0.05))
 	else:
-		reward_label.add_theme_font_size_override("font_size", 13)
+		reward_label.add_theme_color_override("font_color", Color(0.72, 0.45, 0.06, 1))
+
+	if reward_parts.size() >= 4:
+		reward_label.add_theme_font_size_override("font_size", 10)
+	elif reward_parts.size() == 3:
+		reward_label.add_theme_font_size_override("font_size", 11)
+	else:
+		reward_label.add_theme_font_size_override("font_size", 12)
 
 	reward_label.text = "  ".join(reward_parts)
 

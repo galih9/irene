@@ -83,12 +83,12 @@ func _ready() -> void:
 	# 4. Test All Overhauled Item Chains Registration
 	print("\n--- Testing Overhauled Item Chains & Textures ---")
 	var chains_info := [
-		{"id": "pantry", "tiers": 10, "spawner": true},
+		{"id": "pantry", "tiers": 8, "spawner": true},
 		{"id": "oven", "tiers": 10, "spawner": true},
 		{"id": "burner", "tiers": 10, "spawner": true},
 		{"id": "fridge", "tiers": 10, "spawner": true},
 		{"id": "rack", "tiers": 10, "spawner": true},
-		{"id": "healthy", "tiers": 16, "spawner": false},
+		{"id": "healthy", "tiers": 10, "spawner": false},
 		{"id": "staples", "tiers": 16, "spawner": false},
 		{"id": "bakery", "tiers": 16, "spawner": false},
 		{"id": "sweets", "tiers": 16, "spawner": false},
@@ -138,8 +138,8 @@ func _ready() -> void:
 
 			total_items_checked += 1
 
-	assert(total_items_checked == 227, "Expected exactly 227 items, checked %d" % total_items_checked)
-	print("[OK] All overhauled kitchen chains and consumables (227 items) successfully verified!")
+	assert(total_items_checked == 219, "Expected exactly 219 items, checked %d" % total_items_checked)
+	print("[OK] All overhauled kitchen chains and consumables (219 items) successfully verified!")
 
 	# 5. Test HUD UI Currency & Level Sprites
 	print("\n--- Testing HUD UI Elements & Sprites ---")
@@ -1377,7 +1377,7 @@ func _ready() -> void:
 	add_child(qm)
 	qm.setup(null)
 
-	# 30.1 Verify starter quests 1, 2, 3 only require egg and leaf (reachable from Foodbox)
+	# 30.1 Verify starter quests 1, 2, 3 only require healthy items (reachable from Pantry)
 	assert(qm.active_quests.size() == 3, "Must have 3 quest slots")
 	var all_starter_quests: Array[QuestData] = []
 	for q in qm.active_quests:
@@ -1390,31 +1390,31 @@ func _ready() -> void:
 	for i in range(3):
 		var q: QuestData = all_starter_quests[i]
 		for req_id in q.required_item_ids:
-			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "Starter quest items 1-3 must only be egg or leaf, got: %s" % req_id)
+			assert(req_id.begins_with("healthy_"), "Starter quest items 1-3 must only be healthy, got: %s" % req_id)
 
-	# 30.2 Test quest generation when only egg/leaf are unlocked
+	# 30.2 Test quest generation when only healthy is unlocked
 	ProgressionManager.reset_all()
-	ProgressionManager.unlock_item("foodbox_1", true)
-	ProgressionManager.unlock_item("egg_1", true)
-	ProgressionManager.unlock_item("leaf_1", true)
+	ProgressionManager.unlock_item("pantry_1", true)
+	ProgressionManager.unlock_item("healthy_1", true)
 
 	for i in range(10):
 		var generated_q: QuestData = qm._generate_new_quest()
 		for req_id in generated_q.required_item_ids:
-			assert(req_id.begins_with("egg_") or req_id.begins_with("leaf_"), "When only egg/leaf unlocked, quests must only pick egg/leaf, got: %s" % req_id)
+			assert(req_id.begins_with("healthy_"), "When only healthy unlocked, quests must only pick healthy, got: %s" % req_id)
 
-	# 30.3 Test quest generation when beef is unlocked
-	ProgressionManager.unlock_item("beef_1", true)
-	var generated_beef_chain := false
+	# 30.3 Test quest generation when bakery is unlocked
+	ProgressionManager.unlock_item("oven_1", true)
+	ProgressionManager.unlock_item("bakery_1", true)
+	var generated_bakery_chain := false
 	for i in range(50):
 		var gen_q: QuestData = qm._generate_new_quest()
 		for req_id in gen_q.required_item_ids:
-			if req_id.begins_with("beef_"):
-				generated_beef_chain = true
+			if req_id.begins_with("bakery_"):
+				generated_bakery_chain = true
 				break
-		if generated_beef_chain:
+		if generated_bakery_chain:
 			break
-	assert(generated_beef_chain == true, "Once beef_1 is unlocked, beef items should appear in quest pools")
+	assert(generated_bakery_chain == true, "Once bakery_1 is unlocked, bakery items should appear in quest pools")
 
 	qm.queue_free()
 	print("[OK] Quest Generation Chain Filtering & Starter Quests verified!")
@@ -1785,6 +1785,8 @@ func _ready() -> void:
 
 	# 41. Test Quest System Pacing, Cooldowns & Ultimate Quest
 	print("\n--- Testing Quest Pacing, Cooldowns & Ultimate Quest ---")
+	ProgressionManager.reset_all()
+	ProgressionManager.player_level = 1
 	var feat41_qm_scene: PackedScene = load("res://scenes/quest_manager.tscn")
 	var feat41_qm: QuestManager = feat41_qm_scene.instantiate()
 	add_child(feat41_qm)
@@ -2286,7 +2288,7 @@ func _ready() -> void:
 	assert(test_qm.current_board_theme == "kitchen", "QM should be kitchen theme")
 	assert(test_qm.active_quests[0] != null, "Kitchen active quest should exist")
 	assert(test_qm.active_quests[0].customer_name in QuestManager.KITCHEN_CUSTOMERS, "Kitchen customer name should match kitchen pool")
-	assert(test_qm.active_quests[0].required_item_ids == ["egg_1", "leaf_1"], "Kitchen starter quest 1 matches")
+	assert(test_qm.active_quests[0].required_item_ids == ["healthy_1"], "Kitchen starter quest 1 matches")
 
 	# Switch to farm:
 	test_qm.switch_board("farm")
@@ -2304,7 +2306,7 @@ func _ready() -> void:
 	# Switch back to kitchen:
 	test_qm.switch_board("kitchen")
 	assert(test_qm.current_board_theme == "kitchen", "QM should switch back to kitchen")
-	assert(test_qm.active_quests[0].required_item_ids == ["egg_1", "leaf_1"], "Kitchen quests preserved")
+	assert(test_qm.active_quests[0].required_item_ids == ["healthy_1"], "Kitchen quests preserved")
 
 	# Test serialization of per-board quests:
 	var qm_data := test_qm.serialize_data()
@@ -3486,7 +3488,7 @@ func _ready() -> void:
 
 	# 53.1 Check Spawner Tiers & Chain IDs
 	for sp_info in [
-		{"id": "pantry", "max": 10},
+		{"id": "pantry", "max": 8},
 		{"id": "oven", "max": 10},
 		{"id": "burner", "max": 10},
 		{"id": "fridge", "max": 10},
@@ -3496,25 +3498,26 @@ func _ready() -> void:
 			var it_id := "%s_%d" % [sp_info.id, t]
 			var it_data := ItemDatabase.get_item(it_id)
 			assert(it_data != null, "%s must be registered" % it_id)
-			assert(it_data.max_tier == 10, "%s max_tier must be 10" % it_id)
+			assert(it_data.max_tier == sp_info.max, "%s max_tier must be %d" % [it_id, sp_info.max])
 			if t >= 3:
 				assert(it_data.is_spawner, "%s must be a spawner" % it_id)
 				assert(not it_data.spawn_pool.is_empty(), "%s spawn pool must not be empty" % it_id)
 			else:
 				assert(not it_data.is_spawner, "%s must not be a spawner" % it_id)
 
-	# 53.2 Check Normal Items Max Tier (16 tiers each)
+	# 53.2 Check Normal Items Max Tier (10 tiers for healthy, 16 for others)
 	for ch_id in ["healthy", "staples", "bakery", "sweets", "grill", "noodle", "drinks", "dairy", "util"]:
-		for t in range(1, 17):
+		var max_t: int = 10 if ch_id == "healthy" else 16
+		for t in range(1, max_t + 1):
 			var it_id := "%s_%d" % [ch_id, t]
 			var it_data := ItemDatabase.get_item(it_id)
 			assert(it_data != null, "%s must be registered" % it_id)
 			assert(it_data.tier == t, "%s tier must be %d" % [it_id, t])
-			assert(it_data.max_tier == 16, "%s max_tier must be 16" % it_id)
+			assert(it_data.max_tier == max_t, "%s max_tier must be %d" % [it_id, max_t])
 
 	# 53.3 Check Producer Spawn Pools
 	# Pantry spawns healthy and staples
-	for p_tier in range(3, 11):
+	for p_tier in range(3, 9):
 		var p_pool: Array[String] = ItemDatabase.get_item("pantry_%d" % p_tier).spawn_pool
 		for drop in p_pool:
 			var d_data := ItemDatabase.get_item(drop)
@@ -3672,13 +3675,13 @@ func _ready() -> void:
 	t53_board._trigger_consumable(egg_it)
 	assert(EconomyManager.gems == pre_gems + 8, "Tapping golden egg must award 8 diamonds")
 
-	# Test Golden Egg option B: Merge 2 Golden Eggs into Mezze Platter (healthy_12)
+	# Test Golden Egg option B: Merge 2 Golden Eggs into Celestial Healthy Feast (healthy_10)
 	var egg_a := t53_board.spawn_item_at(Vector2i(2, 1), "golden_egg", ItemView.ItemState.NORMAL)
 	var egg_b := t53_board.spawn_item_at(Vector2i(3, 1), "golden_egg", ItemView.ItemState.NORMAL)
 	assert(t53_board._can_merge(egg_a, egg_b) == true, "Two golden eggs must be mergeable")
 	t53_board._execute_merge(egg_a, egg_b)
 	var mezze_it := t53_board.get_item_at(Vector2i(3, 1))
-	assert(mezze_it != null and mezze_it.data.id == "healthy_12", "Merging two golden eggs must produce healthy_12 (Mezze Platter), got: %s" % (mezze_it.data.id if mezze_it else "null"))
+	assert(mezze_it != null and mezze_it.data.id == "healthy_10", "Merging two golden eggs must produce healthy_10 (Celestial Healthy Feast), got: %s" % (mezze_it.data.id if mezze_it else "null"))
 
 	# Test Temporary Spawner Merge Rule: Merging 2 same temp spawners yields next tier with full charges
 	var bag1_a := t53_board.spawn_item_at(Vector2i(4, 1), "grocery_bag_1", ItemView.ItemState.NORMAL)

@@ -2107,7 +2107,7 @@ func convert_item_in_place(item: ItemView, new_id: String) -> void:
 func _execute_merge(source: ItemView, target: ItemView) -> void:
 	var next_id := target.data.get_next_tier_id()
 	if target.data.id == "golden_egg" and source.data.id == "golden_egg":
-		next_id = "healthy_12" # Mezze Platter
+		next_id = "healthy_10" # Celestial Healthy Feast (Max Tier)
 	var new_data := ItemDatabase.get_item(next_id)
 	if not new_data:
 		_return_item_to_origin(source)

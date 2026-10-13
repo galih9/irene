@@ -1414,7 +1414,7 @@ func _register_kitchen_items() -> void:
 	var beta_tex: Texture2D = preload("res://assets/items/beta_item.png")
 
 	# -------------------------------------------------------------------------
-	# 1.1 Pantry Chain (10 Tiers, produces healthy & staples)
+	# 1.1 Pantry Chain (8 Tiers, produces healthy & staples)
 	# -------------------------------------------------------------------------
 	var pantry_textures: Array[Texture2D] = [
 		preload("res://assets/items_v2/kitchen/pantry/1.png"),
@@ -1424,14 +1424,12 @@ func _register_kitchen_items() -> void:
 		preload("res://assets/items_v2/kitchen/pantry/5.png"),
 		preload("res://assets/items_v2/kitchen/pantry/6.png"),
 		preload("res://assets/items_v2/kitchen/pantry/7.png"),
-		preload("res://assets/items_v2/kitchen/pantry/8.png"),
-		preload("res://assets/items_v2/kitchen/pantry/9.png"),
-		preload("res://assets/items_v2/kitchen/pantry/10.png")
+		preload("res://assets/items_v2/kitchen/pantry/8.png")
 	]
 	var pantry_names := [
 		"Wooden Pantry Crate", "Reinforced Pantry Bin", "Pantry Box",
 		"Chef's Produce Bin", "Gourmet Harvest Locker", "Master Walk-in Pantry",
-		"Artisan Food Cellar", "Deluxe Culinary Larder", "Imperial Farm Pantry", "Grand Master Gastronomy Vault"
+		"Artisan Food Cellar", "Deluxe Culinary Larder"
 	]
 	var pantry_descs := [
 		"A small wooden storage crate. Merge to tier 3 to create a fresh pantry spawner!",
@@ -1441,14 +1439,12 @@ func _register_kitchen_items() -> void:
 		"Gourmet harvest locker packed with fresh healthy food and kitchen staples. Uses 1 Energy.",
 		"Spacious master pantry vault producing high-quality culinary essentials and higher tier items. Uses 1 Energy.",
 		"Artisan food cellar! Produces healthy items, staples, and drops Grocery Bags. Uses 1 Energy.",
-		"Deluxe culinary larder! Drops healthy items, staples, Grocery Bags, and Seed Packets. Uses 1 Energy.",
-		"Imperial farm pantry! Drops healthy items, staples, temp spawners, and rare Golden Hens! Uses 1 Energy.",
-		"Supreme culinary vault! Packed with elite ingredients and wondrous temporary spawners. Uses 1 Energy."
+		"Deluxe culinary larder! Max tier pantry producing the finest culinary ingredients, staples, temp spawners, and rare Golden Hens! Uses 1 Energy."
 	]
-	for t in range(1, 11):
+	for t in range(1, 9):
 		var it := _register_item(
-			"pantry_%d" % t, "pantry", "Pantry", t, 10,
-		pantry_names[t - 1], pantry_descs[t - 1],
+			"pantry_%d" % t, "pantry", "Pantry", t, 8,
+			pantry_names[t - 1], pantry_descs[t - 1],
 			Color(0.88, 0.65, 0.35), pantry_textures[t - 1]
 		)
 		it.min_spawner_tier = default_min_spawner_tier
@@ -1627,7 +1623,7 @@ func _register_kitchen_items() -> void:
 		it.spawn_pool = _get_rack_pool(t)
 
 	# -------------------------------------------------------------------------
-	# 2.1 Healthy Food Chain (16 Tiers, replaces Eggs)
+	# 2.1 Healthy Food Chain (10 Tiers, replaces Eggs)
 	# -------------------------------------------------------------------------
 	var healthy_textures: Array[Texture2D] = [
 		preload("res://assets/items_v2/kitchen/healthy/1.png"),
@@ -1639,19 +1635,12 @@ func _register_kitchen_items() -> void:
 		preload("res://assets/items_v2/kitchen/healthy/7.png"),
 		preload("res://assets/items_v2/kitchen/healthy/8.png"),
 		preload("res://assets/items_v2/kitchen/healthy/9.png"),
-		preload("res://assets/items_v2/kitchen/healthy/10.png"),
-		preload("res://assets/items_v2/kitchen/healthy/11.png"),
-		preload("res://assets/items_v2/kitchen/healthy/12.png"),
-		preload("res://assets/items_v2/kitchen/healthy/13.png"),
-		preload("res://assets/items_v2/kitchen/healthy/14.png"),
-		preload("res://assets/items_v2/kitchen/healthy/15.png"),
-		preload("res://assets/items_v2/kitchen/healthy/16.png")
+		preload("res://assets/items_v2/kitchen/healthy/10.png")
 	]
 	var healthy_names := [
 		"Fresh Farm Egg", "Boiled Egg & Chives", "Sunny Side Toast", "Avocado Egg Bowl",
 		"Poached Egg Benedict", "Garden Omelet Supreme", "Grilled Chicken Caesar", "Superfood Quinoa Bowl",
-		"Salmon Avocado Tartare", "Mediterranean Feast Salad", "Rainbow Poke Bowl", "Mezze Platter",
-		"Michelin Protein Feast", "Gourmet Wellness Banquet", "Vitality Ambrosia Platter", "Celestial Healthy Feast"
+		"Salmon Avocado Tartare", "Celestial Healthy Feast"
 	]
 	var healthy_descs := [
 		"A smooth white egg, fresh from the farm.",
@@ -1663,17 +1652,11 @@ func _register_kitchen_items() -> void:
 		"Tender grilled chicken breast over fresh romaine and shaved parmesan.",
 		"Nutrient-dense warm quinoa bowl packed with roasted veggies and seeds.",
 		"Delicately seasoned fresh salmon and avocado tartare.",
-		"Vibrant Mediterranean salad loaded with olives, feta, and olive oil.",
-		"Colorful poke bowl with marinated tuna, edamame, and sesame crunch.",
-		"Magnificent royal Mezze Platter with dips, falafel, and artisan flatbread!",
-		"Three-star Michelin wellness feast balanced to culinary perfection.",
-		"An extravagant banquet celebrating pure wholesome ingredients.",
-		"Mythical vitality platter overflowing with supreme wholesome delights.",
 		"The legendary Celestial Healthy Feast! Max tier healthy cuisine."
 	]
-	for t in range(1, 17):
+	for t in range(1, 11):
 		_register_item(
-			"healthy_%d" % t, "healthy", "Healthy Food", t, 16,
+			"healthy_%d" % t, "healthy", "Healthy Food", t, 10,
 			healthy_names[t - 1], healthy_descs[t - 1],
 			Color(0.96, 0.93, 0.88), healthy_textures[t - 1]
 		)
@@ -2272,7 +2255,7 @@ func _register_temporary_spawners() -> void:
 	# Golden Egg
 	var egg := _register_item(
 		"golden_egg", "golden_egg", "Golden Egg", 1, 1,
-		"Golden Egg", "A solid golden egg! Tap for 8 precious Diamonds, or merge two Golden Eggs together to create a Tier 12 Mezze Platter!",
+		"Golden Egg", "A solid golden egg! Tap for 8 precious Diamonds, or merge two Golden Eggs together to create a Tier 10 Celestial Healthy Feast!",
 		Color(1.0, 0.9, 0.3), beta_tex
 	)
 	egg.is_consumable = true
@@ -2317,33 +2300,17 @@ func _get_pantry_pool(tier: int) -> Array[String]:
 				"healthy_3", "staples_3",
 				"grocery_bag_1", "grocery_bag_1"
 			]
-		8:
-			# Tier 8 Deluxe Culinary Larder: Drops Healthy, Staples + Grocery Bag, Seed Packet
-			return [
-				"healthy_1", "healthy_2", "healthy_2", "healthy_3",
-				"staples_1", "staples_2", "staples_2", "staples_3",
-				"healthy_4", "staples_4",
-				"grocery_bag_1", "seed_packet_1"
-			]
-		9:
-			var p9: Array[String] = [
+		_:
+			# Tier 8 Deluxe Culinary Larder (Max Tier): Elite healthy, staples, temp spawners & rare golden hen
+			var p8: Array[String] = [
 				"healthy_2", "healthy_2", "healthy_3", "healthy_3", "healthy_4",
 				"staples_2", "staples_2", "staples_3", "staples_3", "staples_4",
 				"healthy_5", "staples_5",
 				"grocery_bag_1", "seed_packet_1"
 			]
 			if randf() < 0.01:
-				p9.append("golden_hen_1")
-			return p9
-		_:
-			var p10: Array[String] = [
-				"healthy_2", "healthy_3", "healthy_3", "healthy_4", "healthy_4", "healthy_5",
-				"staples_2", "staples_3", "staples_3", "staples_4", "staples_4", "staples_5",
-				"grocery_bag_1", "seed_packet_1", "grocery_bag_1"
-			]
-			if randf() < 0.01:
-				p10.append("golden_hen_1")
-			return p10
+				p8.append("golden_hen_1")
+			return p8
 
 func _get_foodbox_pool(tier: int) -> Array[String]:
 	return _get_pantry_pool(tier)
@@ -2783,7 +2750,7 @@ func get_spawner_drop(spawner_id: String, board_context: String = "") -> String:
 			return pool[randi() % pool.size()]
 
 	# Generator Tier 7+ Temporary Spawner Drops
-	if (item.chain_id == "pantry" or item.chain_id == "foodbox") and item.tier >= 9:
+	if (item.chain_id == "pantry" or item.chain_id == "foodbox") and item.tier >= 8:
 		if randf() < 0.01:
 			return "golden_hen_1"
 

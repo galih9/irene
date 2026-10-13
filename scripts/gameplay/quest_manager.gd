@@ -272,46 +272,46 @@ func _init_starter_quests() -> void:
 func _get_manual_kitchen_quests_20() -> Array[QuestData]:
 	var list: Array[QuestData] = []
 	var defs := [
-		# 1
-		{"id": "quest_1", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["egg_1", "leaf_1"], "c": 45, "g": 1, "e": 10, "exp": 20, "chest": ""},
-		# 2
-		{"id": "quest_2", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["egg_2"], "c": 55, "g": 1, "e": 10, "exp": 25, "chest": ""},
-		# 3
-		{"id": "quest_3", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["egg_2", "leaf_2"], "c": 85, "g": 2, "e": 15, "exp": 35, "chest": ""},
-		# 4
-		{"id": "quest_4", "name": "Florist Lily", "color": Color(0.9, 0.4, 0.6), "req": ["leaf_1", "leaf_2"], "c": 60, "g": 1, "e": 10, "exp": 25, "chest": ""},
-		# 5
-		{"id": "quest_5", "name": "Mechanic Rex", "color": Color(0.9, 0.6, 0.2), "req": ["egg_1", "egg_2"], "c": 70, "g": 1, "e": 10, "exp": 30, "chest": ""},
-		# 6
-		{"id": "quest_6", "name": "Artist Chloe", "color": Color(0.7, 0.3, 0.8), "req": ["sandwich_1"], "c": 65, "g": 1, "e": 12, "exp": 30, "chest": ""},
-		# 7
-		{"id": "quest_7", "name": "Explorer Sam", "color": Color(0.2, 0.65, 0.8), "req": ["cake_1"], "c": 65, "g": 1, "e": 12, "exp": 30, "chest": ""},
-		# 8
-		{"id": "quest_8", "name": "Professor Oak", "color": Color(0.4, 0.7, 0.3), "req": ["sandwich_1", "leaf_1"], "c": 85, "g": 2, "e": 15, "exp": 40, "chest": ""},
-		# 9
-		{"id": "quest_9", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["cake_1", "egg_1"], "c": 90, "g": 2, "e": 15, "exp": 40, "chest": ""},
-		# 10
-		{"id": "quest_10", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["egg_3"], "c": 115, "g": 2, "e": 15, "exp": 50, "chest": "chest_1"},
-		# 11
-		{"id": "quest_11", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["leaf_3"], "c": 120, "g": 2, "e": 15, "exp": 50, "chest": ""},
-		# 12
-		{"id": "quest_12", "name": "Florist Lily", "color": Color(0.9, 0.4, 0.6), "req": ["sandwich_2"], "c": 125, "g": 2, "e": 15, "exp": 55, "chest": ""},
-		# 13
-		{"id": "quest_13", "name": "Mechanic Rex", "color": Color(0.9, 0.6, 0.2), "req": ["cake_2"], "c": 125, "g": 2, "e": 15, "exp": 55, "chest": ""},
-		# 14
-		{"id": "quest_14", "name": "Artist Chloe", "color": Color(0.7, 0.3, 0.8), "req": ["beef_1", "leaf_2"], "c": 135, "g": 2, "e": 15, "exp": 60, "chest": ""},
-		# 15
-		{"id": "quest_15", "name": "Explorer Sam", "color": Color(0.2, 0.65, 0.8), "req": ["egg_3", "leaf_2"], "c": 160, "g": 3, "e": 20, "exp": 70, "chest": "chest_yellow_1"},
-		# 16
-		{"id": "quest_16", "name": "Professor Oak", "color": Color(0.4, 0.7, 0.3), "req": ["sandwich_2", "egg_2"], "c": 170, "g": 3, "e": 20, "exp": 75, "chest": ""},
-		# 17
-		{"id": "quest_17", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["cake_2", "sandwich_1"], "c": 175, "g": 3, "e": 20, "exp": 75, "chest": ""},
-		# 18
-		{"id": "quest_18", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["beef_2"], "c": 180, "g": 3, "e": 20, "exp": 80, "chest": ""},
-		# 19
-		{"id": "quest_19", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["util_2", "sandwich_2"], "c": 210, "g": 4, "e": 25, "exp": 95, "chest": ""},
-		# 20
-		{"id": "quest_20", "name": "Royal Food Critic Irene", "color": Color(1.0, 0.84, 0.0), "req": ["egg_4", "sandwich_3", "cake_3"], "c": 500, "g": 10, "e": 40, "exp": 200, "chest": "chest_purple_1"}
+		# 1 - Quick easy onboarding order
+		{"id": "quest_1", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["healthy_1"], "c": 40, "g": 0, "e": 10, "exp": 15, "chest": "", "spawner": "", "important": false},
+		# 2 - First IMPORTANT quest: rewards first extra pantry crate!
+		{"id": "quest_2", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["healthy_2"], "c": 55, "g": 1, "e": 15, "exp": 25, "chest": "", "spawner": "pantry_1", "important": true},
+		# 3 - Follow-up quick breakfast order
+		{"id": "quest_3", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["healthy_2"], "c": 60, "g": 1, "e": 15, "exp": 25, "chest": "", "spawner": "", "important": false},
+		# 4 - IMPORTANT: Sunny Side Toast order rewards 2nd pantry crate (player can merge into pantry_2!)
+		{"id": "quest_4", "name": "Florist Lily", "color": Color(0.9, 0.4, 0.6), "req": ["healthy_3"], "c": 90, "g": 2, "e": 20, "exp": 40, "chest": "", "spawner": "pantry_1", "important": true},
+		# 5 - Duo breakfast combo
+		{"id": "quest_5", "name": "Mechanic Rex", "color": Color(0.9, 0.6, 0.2), "req": ["healthy_1", "healthy_2"], "c": 85, "g": 1, "e": 15, "exp": 35, "chest": "", "spawner": "", "important": false},
+		# 6 - IMPORTANT: Artist's Toast order rewards Pantry Bin (pantry_2)!
+		{"id": "quest_6", "name": "Artist Chloe", "color": Color(0.7, 0.3, 0.8), "req": ["healthy_3"], "c": 110, "g": 2, "e": 20, "exp": 50, "chest": "", "spawner": "pantry_2", "important": true},
+		# 7 - Explorer supplies (rewards first chest)
+		{"id": "quest_7", "name": "Explorer Sam", "color": Color(0.2, 0.65, 0.8), "req": ["healthy_2", "healthy_3"], "c": 125, "g": 2, "e": 20, "exp": 55, "chest": "chest_1", "spawner": "", "important": false},
+		# 8 - IMPORTANT: Avocado Bowl milestone rewards first Oven part (oven_1)!
+		{"id": "quest_8", "name": "Professor Oak", "color": Color(0.4, 0.7, 0.3), "req": ["healthy_4"], "c": 160, "g": 3, "e": 25, "exp": 70, "chest": "", "spawner": "oven_1", "important": true},
+		# 9 - Luigi's energetic diner prep
+		{"id": "quest_9", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["healthy_3", "healthy_2"], "c": 140, "g": 2, "e": 20, "exp": 65, "chest": "", "spawner": "", "important": false},
+		# 10 - IMPORTANT: Avocado specialty rewards 2nd Oven part (oven_1) to merge into oven_2!
+		{"id": "quest_10", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["healthy_4"], "c": 190, "g": 3, "e": 30, "exp": 85, "chest": "", "spawner": "oven_1", "important": true},
+		# 11 - Double Toast banquet
+		{"id": "quest_11", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["healthy_3", "healthy_3"], "c": 175, "g": 3, "e": 25, "exp": 75, "chest": "", "spawner": "", "important": false},
+		# 12 - IMPORTANT: Deluxe brunch order rewards Pantry Bin (pantry_2)!
+		{"id": "quest_12", "name": "Florist Lily", "color": Color(0.9, 0.4, 0.6), "req": ["healthy_4", "healthy_2"], "c": 220, "g": 4, "e": 30, "exp": 100, "chest": "", "spawner": "pantry_2", "important": true},
+		# 13 - Workshop lunch
+		{"id": "quest_13", "name": "Mechanic Rex", "color": Color(0.9, 0.6, 0.2), "req": ["healthy_4"], "c": 180, "g": 3, "e": 25, "exp": 80, "chest": "", "spawner": "", "important": false},
+		# 14 - IMPORTANT: Poached Egg Benedict milestone rewards Oven Bin (oven_2)!
+		{"id": "quest_14", "name": "Artist Chloe", "color": Color(0.7, 0.3, 0.8), "req": ["healthy_5"], "c": 260, "g": 5, "e": 35, "exp": 120, "chest": "", "spawner": "oven_2", "important": true},
+		# 15 - Expedition banquet (rewards yellow chest)
+		{"id": "quest_15", "name": "Explorer Sam", "color": Color(0.2, 0.65, 0.8), "req": ["healthy_4", "healthy_3"], "c": 230, "g": 4, "e": 30, "exp": 100, "chest": "chest_yellow_1", "spawner": "", "important": false},
+		# 16 - Academic fuel
+		{"id": "quest_16", "name": "Professor Oak", "color": Color(0.4, 0.7, 0.3), "req": ["healthy_5"], "c": 270, "g": 5, "e": 35, "exp": 125, "chest": "", "spawner": "", "important": false},
+		# 17 - IMPORTANT: Chef's Benedict Feast rewards Burner spawner part (burner_1)!
+		{"id": "quest_17", "name": "Chef Luigi", "color": Color(0.85, 0.35, 0.3), "req": ["healthy_5", "healthy_2"], "c": 310, "g": 5, "e": 40, "exp": 140, "chest": "", "spawner": "burner_1", "important": true},
+		# 18 - Grandma's double bowl
+		{"id": "quest_18", "name": "Grandma Rose", "color": Color(0.9, 0.55, 0.2), "req": ["healthy_4", "healthy_4"], "c": 290, "g": 4, "e": 35, "exp": 130, "chest": "", "spawner": "", "important": false},
+		# 19 - IMPORTANT: Garden Omelet Supreme milestone rewards Oven Bin (oven_2)!
+		{"id": "quest_19", "name": "Mayor Bob", "color": Color(0.25, 0.6, 0.9), "req": ["healthy_6"], "c": 380, "g": 6, "e": 45, "exp": 170, "chest": "", "spawner": "oven_2", "important": true},
+		# 20 - ★ MILESTONE ROYAL FEAST: Royal Critic inspects the kitchen!
+		{"id": "quest_20", "name": "Royal Food Critic Irene", "color": Color(1.0, 0.84, 0.0), "req": ["healthy_6", "healthy_4"], "c": 500, "g": 10, "e": 50, "exp": 250, "chest": "chest_purple_1", "spawner": "fridge_1", "important": true}
 	]
 
 	for d in defs:
@@ -328,6 +328,8 @@ func _get_manual_kitchen_quests_20() -> Array[QuestData]:
 		q.reward_energy = d.e
 		q.reward_exp = d.exp
 		q.reward_chest = d.chest
+		q.reward_spawner = str(d.get("spawner", ""))
+		q.is_important = bool(d.get("important", not q.reward_spawner.is_empty()))
 		list.append(q)
 
 	return list
@@ -534,6 +536,8 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 		ProgressionManager.add_exp(quest.reward_exp)
 	if not quest.reward_chest.is_empty():
 		ProgressionManager.push_reward(quest.reward_chest)
+	if not quest.reward_spawner.is_empty():
+		ProgressionManager.push_reward(quest.reward_spawner)
 
 	completed_quest_count += 1
 	GameEvents.quest_count_changed.emit(completed_quest_count)
@@ -554,6 +558,9 @@ func _on_deliver_pressed(quest: QuestData) -> void:
 		reward_str += " +%d EXP!" % quest.reward_exp
 	if not quest.reward_chest.is_empty():
 		reward_str += " +Chest!"
+	if not quest.reward_spawner.is_empty():
+		var sp_it := ItemDatabase.get_item(quest.reward_spawner)
+		reward_str += "\n★ +%s!" % (sp_it.display_name if sp_it else "Spawner")
 	GameEvents.show_floating_text.emit("Order Complete!\n" + reward_str, global_position + Vector2(332, 100), Color(0.3, 1.0, 0.4))
 
 	# Handle Ultimate Quest completion
@@ -731,6 +738,134 @@ func get_unique_spawner_types() -> Array[String]:
 			if not types.has(it.chain_id):
 				types.append(it.chain_id)
 	return types
+
+## Returns true if the player owns a producer for this chain or has items on the board.
+func _can_produce_product_chain(chain_id: String) -> bool:
+	if not is_instance_valid(board_ref):
+		match chain_id:
+			"healthy":
+				return ProgressionManager.is_unlocked("pantry_1") or ProgressionManager.is_unlocked("foodbox_1") or ProgressionManager.is_unlocked("healthy_1")
+			"staples":
+				return ProgressionManager.is_unlocked("staples_1")
+			"bakery", "sweets":
+				return ProgressionManager.is_unlocked("oven_1") or ProgressionManager.is_unlocked("bakery_1") or ProgressionManager.is_unlocked("sweets_1")
+			"grill", "noodle":
+				return ProgressionManager.is_unlocked("burner_1") or ProgressionManager.is_unlocked("grill_1") or ProgressionManager.is_unlocked("noodle_1")
+			"drinks", "dairy":
+				return ProgressionManager.is_unlocked("fridge_1") or ProgressionManager.is_unlocked("drinks_1") or ProgressionManager.is_unlocked("dairy_1")
+			"util":
+				return ProgressionManager.is_unlocked("rack_1") or ProgressionManager.is_unlocked("util_1")
+			"milk":
+				return ProgressionManager.is_unlocked("barn_1") or ProgressionManager.is_unlocked("milk_1")
+			"fruit":
+				return ProgressionManager.is_unlocked("tree_1") or ProgressionManager.is_unlocked("fruit_1")
+			"wool":
+				return ProgressionManager.is_unlocked("pine_1") or ProgressionManager.is_unlocked("wool_1")
+			"hay":
+				return ProgressionManager.is_unlocked("water_1") or ProgressionManager.is_unlocked("hay_1")
+			"tool":
+				return ProgressionManager.is_unlocked("tool_spawner_1") or ProgressionManager.is_unlocked("tool_1")
+			"wand":
+				return ProgressionManager.is_unlocked("altar_1") or ProgressionManager.is_unlocked("wand_1")
+			"shroom":
+				return ProgressionManager.is_unlocked("pot_1") or ProgressionManager.is_unlocked("shroom_1")
+			_:
+				return ProgressionManager.get_chain_unlocked_count(chain_id) > 0
+
+	match chain_id:
+		"healthy":
+			return get_spawner_count_for_chain("pantry") > 0 or get_spawner_count_for_chain("foodbox") > 0 or _has_any_item_of_chain_on_board_or_bag("healthy")
+		"staples":
+			if get_spawner_count_for_chain("pantry") > 0:
+				if _get_highest_owned_tier_in_chain("pantry") >= 4:
+					return true
+			return _has_any_item_of_chain_on_board_or_bag("staples")
+		"bakery", "sweets":
+			return get_spawner_count_for_chain("oven") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"grill", "noodle":
+			return get_spawner_count_for_chain("burner") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"drinks", "dairy":
+			return get_spawner_count_for_chain("fridge") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"util":
+			return get_spawner_count_for_chain("rack") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		# Farm theme:
+		"milk":
+			return get_spawner_count_for_chain("barn") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"fruit":
+			return get_spawner_count_for_chain("tree") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"wool":
+			return get_spawner_count_for_chain("pine") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"hay":
+			return get_spawner_count_for_chain("water") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"tool":
+			return true
+		# Witch theme:
+		"wand":
+			return get_spawner_count_for_chain("mystic_tree") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"staff":
+			return get_spawner_count_for_chain("cauldron") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"shroom":
+			return get_spawner_count_for_chain("shroom") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"candle":
+			return get_spawner_count_for_chain("candle") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		"spellbook":
+			return get_spawner_count_for_chain("spellbook") > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)
+		_:
+			return true
+
+func _has_any_item_of_chain_on_board_or_bag(chain_id: String) -> bool:
+	if is_instance_valid(board_ref):
+		for item in board_ref.get_all_items_on_board(true):
+			if item and item.data and item.data.chain_id == chain_id and not item.is_hidden():
+				return true
+	for inv_id in InventoryManager.get_all_item_ids():
+		var it := ItemDatabase.get_item(inv_id)
+		if it and it.chain_id == chain_id:
+			return true
+	return false
+
+func _get_highest_owned_tier_in_chain(chain_id: String) -> int:
+	var max_t := 0
+	if is_instance_valid(board_ref):
+		for item in board_ref.get_all_items_on_board(true):
+			if item and item.data and item.data.chain_id == chain_id and not item.is_hidden():
+				max_t = maxi(max_t, item.data.tier)
+	for inv_id in InventoryManager.get_all_item_ids():
+		var it := ItemDatabase.get_item(inv_id)
+		if it and it.chain_id == chain_id:
+			max_t = maxi(max_t, it.tier)
+	return max_t
+
+func _pick_spawner_reward_for_current_theme() -> String:
+	if current_board_theme == "witch":
+		var witch_spawners := ["mystic_tree_1", "cauldron_1", "shroom_1", "candle_1", "spellbook_1"]
+		return witch_spawners[randi() % witch_spawners.size()]
+	elif current_board_theme == "farm":
+		var farm_spawners := ["barn_1", "tree_1", "water_1", "pine_1"]
+		return farm_spawners[randi() % farm_spawners.size()]
+	else:
+		# Kitchen spawner progression based on completed count
+		if completed_quest_count < 10:
+			return "pantry_1" if randf() < 0.70 else "pantry_2"
+		elif completed_quest_count < 20:
+			var r := randf()
+			if r < 0.40:
+				return "pantry_1"
+			elif r < 0.70:
+				return "pantry_2"
+			else:
+				return "oven_1"
+		elif completed_quest_count < 35:
+			var r := randf()
+			if r < 0.35:
+				return "pantry_2"
+			elif r < 0.70:
+				return "oven_1"
+			else:
+				return "burner_1"
+		else:
+			var choices := ["pantry_2", "oven_1", "oven_2", "burner_1", "fridge_1", "rack_1"]
+			return choices[randi() % choices.size()]
 
 ## Validates whether a candidate item can be requested by a quest.
 ## Enforces that a spawner cannot be requested if:
@@ -929,23 +1064,24 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 		]
 	else:
 		possible_pools = [
-			["egg_1", "egg_2", "egg_3", "egg_4", "egg_5", "egg_6"],
-			["leaf_1", "leaf_2", "leaf_3", "leaf_4", "leaf_5"],
-			["beef_1", "beef_2", "beef_3", "beef_4", "beef_5", "beef_6", "beef_7"],
-			["cake_1", "cake_2", "cake_3", "cake_4", "cake_5", "cake_6"],
-			["sandwich_1", "sandwich_2", "sandwich_3", "sandwich_4", "sandwich_5", "sandwich_6"],
-			["drink_1", "drink_2", "drink_3", "drink_4", "drink_5"],
-			["util_1", "util_2", "util_3", "util_4", "util_5", "util_6", "util_7", "util_8"]
+			["healthy_1", "healthy_2", "healthy_3", "healthy_4", "healthy_5", "healthy_6"],
+			["staples_1", "staples_2", "staples_3", "staples_4", "staples_5"],
+			["bakery_1", "bakery_2", "bakery_3", "bakery_4", "bakery_5", "bakery_6"],
+			["sweets_1", "sweets_2", "sweets_3", "sweets_4", "sweets_5", "sweets_6"],
+			["grill_1", "grill_2", "grill_3", "grill_4", "grill_5", "grill_6"],
+			["noodle_1", "noodle_2", "noodle_3", "noodle_4", "noodle_5"],
+			["drinks_1", "drinks_2", "drinks_3", "drinks_4", "drinks_5"],
+			["dairy_1", "dairy_2", "dairy_3", "dairy_4", "dairy_5"],
+			["util_1", "util_2", "util_3", "util_4", "util_5", "util_6"]
 		]
 
-	# Filter out pools whose chain the player hasn't unlocked yet,
-	# and filter items within the pool using can_quest_ask_for_item()
+	# Filter pools: must be producible by player's active spawners or already on the board!
 	var unlocked_pools: Array[Array] = []
 	for pool in possible_pools:
 		var starter_id: String = pool[0]
 		var item_data := ItemDatabase.get_item(starter_id)
 		var chain_id := item_data.chain_id if item_data else starter_id.split("_")[0]
-		if ProgressionManager.is_unlocked(starter_id) or ProgressionManager.get_chain_unlocked_count(chain_id) > 0:
+		if _can_produce_product_chain(chain_id) and (ProgressionManager.is_unlocked(starter_id) or ProgressionManager.get_chain_unlocked_count(chain_id) > 0 or _has_any_item_of_chain_on_board_or_bag(chain_id)):
 			var valid_items: Array[String] = []
 			for id in pool:
 				if can_quest_ask_for_item(id):
@@ -967,9 +1103,33 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 			]
 		else:
 			unlocked_pools = [
-				["egg_1", "egg_2", "egg_3", "egg_4"],
-				["leaf_1", "leaf_2", "leaf_3", "leaf_4"]
+				["healthy_1", "healthy_2", "healthy_3"]
 			]
+
+	# Scan board for locked items from producible chains to create the core merge dilemma
+	var locked_board_candidates: Array[String] = []
+	if is_instance_valid(board_ref):
+		for item in board_ref.get_all_items_on_board(true):
+			if item and item.data and item.is_locked():
+				if item.data.is_spawner or item.data.is_consumable or item.data.chain_id.begins_with("chest"):
+					continue
+				if _can_produce_product_chain(item.data.chain_id) and can_quest_ask_for_item(item.data.id):
+					if not locked_board_candidates.has(item.data.id):
+						locked_board_candidates.append(item.data.id)
+
+	# Determine if this quest should be an Important / Milestone Quest
+	var make_important := false
+	if slot_idx == 0 and (completed_quest_count >= 2):
+		make_important = (randf() < 0.50)
+	elif completed_quest_count > 0 and completed_quest_count % 4 == 0:
+		make_important = true
+
+	if make_important:
+		q.is_important = true
+		q.reward_spawner = _pick_spawner_reward_for_current_theme()
+		if not is_witch and not is_farm and randf() < 0.45:
+			q.customer_name = "Royal Food Critic Irene"
+			q.customer_color = Color(1.0, 0.82, 0.1)
 
 	# Early onboarding (completed_quest_count < 6): keep requests simple (tier 1-2)
 	if completed_quest_count < 6:
@@ -988,23 +1148,30 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 			elif is_farm:
 				low_tier_unlocked = [["hay_1", "hay_2"]]
 			else:
-				low_tier_unlocked = [["egg_1", "egg_2"], ["leaf_1", "leaf_2"]]
+				low_tier_unlocked = [["healthy_1", "healthy_2"]]
 
-		var chosen_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
-		var starter_reqs: Array[String] = [_pick_weighted_quest_item(chosen_pool)]
+		var starter_reqs: Array[String] = []
+		# Prioritize locked board items to create unlocking dilemma
+		if not locked_board_candidates.is_empty() and randf() < 0.65:
+			starter_reqs.append(locked_board_candidates[randi() % locked_board_candidates.size()])
+		else:
+			var chosen_pool: Array = low_tier_unlocked[randi() % low_tier_unlocked.size()]
+			starter_reqs.append(_pick_weighted_quest_item(chosen_pool))
+
 		if slot_idx == 2 and randf() < 0.4 and low_tier_unlocked.size() > 1:
-			var other_pools := low_tier_unlocked.filter(func(p): return p != chosen_pool)
-			var second_pool: Array = other_pools[randi() % other_pools.size()] if not other_pools.is_empty() else chosen_pool
+			var chosen_p: Array = low_tier_unlocked[0]
+			var other_pools := low_tier_unlocked.filter(func(p): return p != chosen_p)
+			var second_pool: Array = other_pools[randi() % other_pools.size()] if not other_pools.is_empty() else chosen_p
 			var second_item: String = _pick_weighted_quest_item(second_pool)
 			if not starter_reqs.has(second_item):
 				starter_reqs.append(second_item)
 
 		q.required_item_ids = starter_reqs
 		var rewards := _calculate_quest_rewards(starter_reqs, slot_idx)
-		q.reward_coins = rewards.coins
-		q.reward_gems = rewards.gems
+		q.reward_coins = int(rewards.coins * (1.25 if q.is_important else 1.0))
+		q.reward_gems = rewards.gems if not q.is_important else maxi(rewards.gems, 1)
 		q.reward_energy = rewards.energy
-		q.reward_exp = rewards.exp
+		q.reward_exp = int(rewards.exp * (1.25 if q.is_important else 1.0))
 		q.reward_chest = rewards.chest
 		return q
 
@@ -1028,10 +1195,16 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 		count = 1 if randf() < 0.55 else 2
 
 	var reqs: Array[String] = []
+
+	# Dilemma check: 60% chance to request an item that is currently locked on the board
+	if not locked_board_candidates.is_empty() and randf() < 0.60:
+		var locked_pick := locked_board_candidates[randi() % locked_board_candidates.size()]
+		reqs.append(locked_pick)
+
 	var available_pools := unlocked_pools.duplicate()
 	available_pools.shuffle()
 
-	for i in range(count):
+	while reqs.size() < count:
 		if available_pools.is_empty():
 			available_pools = unlocked_pools.duplicate()
 			available_pools.shuffle()
@@ -1046,7 +1219,7 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 		# Cap tier based on discovery, quest completion count, and slot role
 		var cap_tier := highest_tier
 		if slot_idx == 0:
-			# Slot 0 is the quick flow pacing slot (max tier 2 early, max tier 3 mid/late)
+			# Slot 0 is the quick flow / main story pacing slot
 			cap_tier = mini(2 if completed_quest_count < 10 else 3, highest_tier)
 		elif slot_idx == 1:
 			# Slot 1 is the standard progression slot
@@ -1090,10 +1263,10 @@ func _generate_new_quest(slot_idx: int = -1) -> QuestData:
 
 	q.required_item_ids = reqs
 	var rewards := _calculate_quest_rewards(reqs, slot_idx)
-	q.reward_coins = rewards.coins
-	q.reward_gems = rewards.gems
+	q.reward_coins = int(rewards.coins * (1.25 if q.is_important else 1.0))
+	q.reward_gems = rewards.gems if not q.is_important else maxi(rewards.gems, 1)
 	q.reward_energy = rewards.energy
-	q.reward_exp = rewards.exp
+	q.reward_exp = int(rewards.exp * (1.25 if q.is_important else 1.0))
 	q.reward_chest = rewards.chest
 
 	return q
@@ -1175,7 +1348,9 @@ func _serialize_quest_array(arr: Array) -> Array[Dictionary]:
 				"reward_gems": qd.reward_gems,
 				"reward_energy": qd.reward_energy,
 				"reward_exp": qd.reward_exp,
-				"reward_chest": qd.reward_chest
+				"reward_chest": qd.reward_chest,
+				"reward_spawner": qd.reward_spawner,
+				"is_important": qd.is_important
 			})
 		else:
 			result.append({})
@@ -1213,6 +1388,8 @@ func _dict_to_quest(entry: Dictionary) -> QuestData:
 	q.reward_energy = int(entry.get("reward_energy", 0))
 	q.reward_exp = int(entry.get("reward_exp", 15))
 	q.reward_chest = str(entry.get("reward_chest", ""))
+	q.reward_spawner = str(entry.get("reward_spawner", ""))
+	q.is_important = bool(entry.get("is_important", not q.reward_spawner.is_empty()))
 	return q
 
 func load_quests(quests_data: Variant, completed_count: int = -1) -> void:

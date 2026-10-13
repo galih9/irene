@@ -63,11 +63,11 @@ func _ready() -> void:
 	# -------------------------------------------------------------
 	# 4. Pantry 10 tiers & spawn pool progression
 	# -------------------------------------------------------------
-	print("4. Testing Pantry 10 tiers & spawn pools...")
-	for t in range(1, 11):
+	print("4. Testing Pantry 8 tiers & spawn pools...")
+	for t in range(1, 9):
 		var p: ItemData = ItemDatabase.get_item("pantry_%d" % t)
 		assert(p != null, "pantry_%d must exist" % t)
-		assert(p.max_tier == 10, "pantry_%d max_tier must be 10" % t)
+		assert(p.max_tier == 8, "pantry_%d max_tier must be 8" % t)
 	
 	# Pantry Tier 3: healthy only
 	var p3: ItemData = ItemDatabase.get_item("pantry_3")
@@ -240,8 +240,8 @@ func _ready() -> void:
 	test_board_vfx.clear_board()
 
 	# 7.1 Maxed item has light effect
-	var max_item := test_board_vfx.spawn_item_at(Vector2i(0, 0), "healthy_16")
-	assert(max_item.is_max_tier() == true, "healthy_16 must be max tier")
+	var max_item := test_board_vfx.spawn_item_at(Vector2i(0, 0), "healthy_10")
+	assert(max_item.is_max_tier() == true, "healthy_10 must be max tier")
 	assert(max_item.max_light_sprite != null, "max_light_sprite must exist")
 	assert(max_item.max_light_sprite.visible == true, "Maxed item must have light effect visible")
 
@@ -344,14 +344,17 @@ func _ready() -> void:
 	var manual_20 := qm._get_manual_kitchen_quests_20()
 	assert(manual_20.size() == 20, "Must have exactly 20 manual quests")
 	assert(manual_20[0].id == "quest_1", "Q1 ID matches")
-	assert(manual_20[0].required_item_ids == ["egg_1", "leaf_1"], "Q1 requires egg_1 and leaf_1")
+	assert(manual_20[0].required_item_ids == ["healthy_1"], "Q1 requires healthy_1")
 	assert(manual_20[1].id == "quest_2", "Q2 ID matches")
-	assert(manual_20[1].required_item_ids == ["egg_2"], "Q2 requires egg_2")
+	assert(manual_20[1].required_item_ids == ["healthy_2"], "Q2 requires healthy_2")
+	assert(manual_20[1].is_important == true, "Q2 is an important quest")
+	assert(manual_20[1].reward_spawner == "pantry_1", "Q2 rewards pantry_1")
 	assert(manual_20[2].id == "quest_3", "Q3 ID matches")
-	assert(manual_20[2].required_item_ids == ["egg_2", "leaf_2"], "Q3 requires egg_2 and leaf_2")
+	assert(manual_20[2].required_item_ids == ["healthy_2"], "Q3 requires healthy_2")
 	assert(manual_20[19].id == "quest_20", "Q20 ID matches")
 	assert(manual_20[19].customer_name == "Royal Food Critic Irene", "Q20 is Irene")
 	assert(manual_20[19].reward_chest == "chest_purple_1", "Q20 gives purple chest")
+	assert(manual_20[19].reward_spawner == "fridge_1", "Q20 gives fridge_1")
 
 	# Test Level Up expansion
 	qm._on_player_leveled_up(2)

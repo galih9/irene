@@ -129,14 +129,14 @@ func _resume_step(step: TutorialStep) -> void:
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(3, 4)), true)
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 			if toast_ref:
-				toast_ref.show_toast("Drag the center Foodbox to the locked Foodbox on the left!", "explain", 6.0)
+				toast_ref.show_toast("Drag the center Pantry Crate to the locked Pantry Crate on the left!", "explain", 6.0)
 			_show_forced_merge_tutorial(_get_cell(Vector2i(3, 4)), _get_cell(Vector2i(2, 4)))
 		TutorialStep.MERGE_RIGHT:
 			if board_ref:
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 				board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
 			if toast_ref:
-				toast_ref.show_toast("Merge your Tier 2 Foodbox into the locked one on the right!", "happy", 6.0)
+				toast_ref.show_toast("Merge your Tier 2 Pantry Bin into the locked one on the right!", "happy", 6.0)
 			_show_forced_merge_tutorial(_get_cell(Vector2i(2, 4)), _get_cell(Vector2i(4, 4)))
 		TutorialStep.SPAWN_ITEM:
 			if board_ref:
@@ -168,11 +168,11 @@ func _show_step_1_merge_left() -> void:
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(3, 4)), true)
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 
-	var msg := "Welcome to Irene's Kitchen!\nLet's get cooking! See that Foodbox in the center? Drag it to the left and merge it with the matching locked Foodbox to unlock it!"
+	var msg := "Welcome to Irene's Kitchen!\nLet's get cooking! See that Pantry Crate in the center? Drag it to the left and merge it with the matching locked Pantry Crate to unlock it!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "greeting", func():
 			if toast_ref:
-				toast_ref.show_toast("Drag the center Foodbox to the locked Foodbox on the left!", "explain", 6.0)
+				toast_ref.show_toast("Drag the center Pantry Crate to the locked Pantry Crate on the left!", "explain", 6.0)
 			_show_forced_merge_tutorial(_get_cell(Vector2i(3, 4)), _get_cell(Vector2i(2, 4)))
 		)
 	else:
@@ -185,11 +185,11 @@ func _show_step_2_merge_right() -> void:
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(2, 4)), true)
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
 
-	var msg := "Awesome job! You unlocked your first item and upgraded it to a Tier 2 Foodbox!\nNow drag that Foodbox to the right and merge it with the locked Tier 2 Foodbox!"
+	var msg := "Awesome job! You unlocked your first item and upgraded it to a Tier 2 Pantry Bin!\nNow drag that Pantry Bin to the right and merge it with the locked Tier 2 Pantry Bin!"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "happy", func():
 			if toast_ref:
-				toast_ref.show_toast("Merge your Tier 2 Foodbox into the locked one on the right!", "happy", 6.0)
+				toast_ref.show_toast("Merge your Tier 2 Pantry Bin into the locked one on the right!", "happy", 6.0)
 			_show_forced_merge_tutorial(_get_cell(Vector2i(2, 4)), _get_cell(Vector2i(4, 4)))
 		)
 	else:
@@ -201,7 +201,7 @@ func _show_step_3_spawn_item() -> void:
 		board_ref.clear_tutorial_highlights()
 		board_ref.highlight_tutorial_cell(_get_cell(Vector2i(4, 4)), true)
 
-	var msg := "Look at that! Tier 3 Foodbox is an ingredient producer!\nTap on your new Pantry Box to produce your very first kitchen ingredient! (Uses 1 Energy)"
+	var msg := "Look at that! A Tier 3 Pantry Box is an ingredient spawner!\nTap on your new Pantry Box to produce your very first kitchen ingredient! (Uses 1 Energy)"
 	if popup_modal_ref:
 		popup_modal_ref.show_dialogue(msg, "explain", func():
 			if toast_ref:
